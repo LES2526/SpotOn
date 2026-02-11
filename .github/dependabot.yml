@@ -1,7 +1,7 @@
 version: 2
 updates:
   - package-ecosystem: "npm"
-    directory: "/spot-on"             
+    directory: "/"             
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
@@ -9,7 +9,7 @@ updates:
       prefix: "deps"
       
   - package-ecosystem: "docker"
-    directory: "/spot-on"             
+    directory: "/"             
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 2
