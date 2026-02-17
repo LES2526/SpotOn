@@ -61,9 +61,8 @@ model User {
 /// @see User
 model Account {
     /// Reference to the associated User.
-    /// One-to-one: each user can only have one account.
     /// Cascade delete: account deleted when user is deleted.
-    userId String @unique
+    userId String
 
     /// Type of account/provider.
     /// Currently always "email" for email-based authentication.
