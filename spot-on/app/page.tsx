@@ -1,4 +1,4 @@
-import StudyDesk from "@/components/study-desk/desk";
+import StudyDesk from "@/components/study-desk/study-desk";
 import Image from "next/image";
 
 export default function Home() {
@@ -62,9 +62,9 @@ export default function Home() {
     //     </div>
     //   </main>
     // </div>
-    <div className="...">
+    <>
       {/* other content */}
-      <StudyDesk seats={4} />
-    </div>
+      <StudyDesk seats={1} shape="rectangular" size={300} />;
+    </>
   );
 }
