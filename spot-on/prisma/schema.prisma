@@ -34,9 +34,9 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relações
-  hostedSessions Session[]       @relation("SessionHost") // Sessões que criou
-  participations UserOnSession[] // Sessões onde participa (incluindo as que criou)
+
+  hostedSessions StudySession[]       @relation("SessionHost") // sessões que criou
+  participations UserOnStudySession[] // sessões onde participa (incluindo as que criou)
 
   @@map("users")
 }
@@ -53,12 +53,12 @@ model Space {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  sessions Session[]
+  sessions StudySession[]
 
   @@map("spaces")
 }
 
-model Session {
+model StudySession {
   id      String @id @default(cuid()) @db.VarChar(30)
   spaceId String @db.VarChar(30)
   hostId  String @db.VarChar(30)
@@ -74,13 +74,12 @@ model Session {
 
   space        Space           @relation(fields: [spaceId], references: [id])
   host         User            @relation("SessionHost", fields: [hostId], references: [id])
-  participants UserOnSession[]
+  participants UserOnStudySession[]
 
-  @@map("sessions")
+  @@map("study_sessions")
 }
 
-model UserOnSession {
-  // Foreign Keys (Chave Composta)
+model UserOnStudySession {
   userId    String @db.VarChar(30)
   sessionId String @db.VarChar(30)
 
@@ -88,10 +87,9 @@ model UserOnSession {
   status   InvitationStatus @default(PENDING)
   joinedAt DateTime         @default(now())
 
-  // Relações
   user    User    @relation(fields: [userId], references: [id])
-  session Session @relation(fields: [sessionId], references: [id])
+  session StudySession @relation(fields: [sessionId], references: [id])
 
-  @@id([userId, sessionId]) // Chave primária composta (um user só entra 1x na mesma sessão)
+  @@id([userId, sessionId])
   @@map("UserOnSession")
 }
