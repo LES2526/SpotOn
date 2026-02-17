@@ -5,10 +5,221 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../app/generated/prisma"
+    provider = "prisma-client"
+    output   = "../app/generated/prisma"
 }
 
 datasource db {
-  provider = "postgresql"
+    provider = "postgresql"
+}
+
+// ============================================
+// NextAuth.js Models
+// ============================================
+// These models are required by NextAuth.js for authentication.
+// They handle user sessions, accounts, and email verification tokens.
+// Learn more: https://next-auth.js.org/adapters/prisma
+
+/// Represents a registered user in the Spot-On system.
+///
+/// Users are authenticated via email (passwordless magic link).
+/// Only users with @ualg.pt email addresses can register.
+/// Users can be students, teachers, or administrative staff.
+///
+/// Relations:
+/// - Has one Account (authentication provider)
+/// - Has many Sessions (active login sessions)
+///
+/// @see Account
+/// @see Session
+model User {
+    /// Unique identifier in CUID format.
+    /// Auto-generated on user creation.
+    /// Example: "ckl12345abcde"
+    id String @default(cuid())
+
+    /// User's full name (optional).
+    /// Can be null if not provided during registration.
+    /// Example: "João Silva"
+    name String?
+
+    /// User's email address.
+    /// Must be unique across all users.
+    /// Must end with @ualg.pt (validated in application layer).
+    /// Example: "joao.silva@ualg.pt"
+    email String @unique
+
+    /// Profile image URL (optional).
+    /// Example: "https://cdn.example.com/avatar.jpg"
+    image String?
+
+    /// Student/Staff ID number (optional).
+    /// Unique identifier within UAlg system.
+    /// Must be unique if provided.
+    /// Example: "a12345" for students, staff IDs for employees
+    studentId String? @unique
+
+    /// Academic department or faculty (optional).
+    /// Free-text field for organizational purposes.
+    /// Example: "Faculdade de Ciências e Tecnologia"
+    department String?
+
+    /// Associated authentication account.
+    /// One-to-one relationship: each user has exactly one account.
+    /// Cascade delete: account is deleted when user is deleted.
+    account Account?
+
+    /// Active login sessions for this user.
+    /// One-to-many relationship: user can have multiple active sessions.
+    /// Cascade delete: all sessions deleted when user is deleted.
+    sessions Session[]
+
+    @@id([id])
+}
+
+/// Stores authentication provider account information.
+///
+/// Links users to their authentication provider (email in our case).
+/// Designed to support multiple OAuth providers (Google, GitHub, etc.)
+/// though currently only email provider is configured.
+///
+/// Relations:
+/// - Belongs to one User
+///
+/// Primary Key: Composite of (provider, providerAccountId)
+/// This allows multiple authentication methods per user in the future.
+///
+/// @see User
+model Account {
+    /// Reference to the associated User.
+    /// One-to-one: each user can only have one account.
+    /// Cascade delete: account deleted when user is deleted.
+    userId String @unique
+
+    /// Type of account/provider.
+    /// Currently always "email" for email-based authentication.
+    /// Could be "oauth" for OAuth providers.
+    type String
+
+    /// Authentication provider identifier.
+    /// Currently: "email"
+    provider String
+
+    /// User's unique identifier on the provider's system.
+    /// For email provider: the email address
+    /// For OAuth: provider's user ID
+    providerAccountId String
+
+    /// OAuth refresh token (optional).
+    /// Only used for OAuth providers, null for email auth.
+    /// Allows refreshing expired access tokens.
+    refresh_token String?
+
+    /// OAuth access token (optional).
+    /// Only used for OAuth providers, null for email auth.
+    /// Short-lived token for API access.
+    access_token String?
+
+    /// OAuth token expiration timestamp (optional).
+    /// Unix timestamp in seconds.
+    /// Only used for OAuth providers, null for email auth.
+    expires_at Int?
+
+    /// OAuth token type (optional).
+    /// Example: "Bearer"
+    /// Only used for OAuth providers, null for email auth.
+    token_type String?
+
+    /// OAuth scopes granted (optional).
+    /// Space-separated list of permissions.
+    /// Example: "read:user user:email"
+    /// Only used for OAuth providers, null for email auth.
+    scope String?
+
+    /// OpenID Connect ID token (optional).
+    /// JWT containing user identity claims.
+    /// Only used for OAuth providers with OIDC, null for email auth.
+    id_token String?
+
+    /// OAuth session state (optional).
+    /// Used for CSRF protection in OAuth flow.
+    /// Only used for OAuth providers, null for email auth.
+    session_state String?
+
+    /// Associated user record.
+    /// Foreign key relationship with cascade delete.
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    /// Composite primary key: (provider, providerAccountId)
+    /// Allows same user to have multiple providers in the future
+    @@id([provider, providerAccountId])
+}
+
+/// Stores active user login sessions.
+///
+/// Used for NextAuth.js database session strategy.
+/// Sessions are created on successful login and deleted on logout.
+/// Each session has an expiration date for automatic cleanup.
+///
+/// Relations:
+/// - Belongs to one User
+///
+/// @see User
+model Session {
+    /// Unique session token/identifier.
+    /// Generated by NextAuth.js on login.
+    /// Used as session cookie value.
+    /// Example: "a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6"
+    sessionToken String @unique
+
+    /// Reference to the user who owns this session.
+    /// Foreign key to User.id
+    /// Cascade delete: session deleted when user is deleted.
+    userId String
+
+    /// Session expiration timestamp.
+    /// When reached, session is considered invalid.
+    /// Automatic cleanup can be implemented based on this field.
+    /// Example: 30 days from creation
+    expires DateTime
+
+    /// Associated user record.
+    /// Foreign key relationship with cascade delete.
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// Stores magic link tokens for email-based passwordless authentication.
+///
+/// When a user requests to sign in:
+/// 1. A unique token is generated
+/// 2. Token is stored here with 5-minute expiration
+/// 3. Magic link with token is sent via email
+/// 4. User clicks link, token is verified and consumed (deleted)
+///
+/// Tokens are single-use and expire after 5 minutes (300 seconds).
+///
+/// Primary Key: Composite of (identifier, token)
+/// Allows multiple pending login attempts per email.
+model VerificationToken {
+    /// User identifier, typically the email address.
+    /// Example: "joao.silva@ualg.pt"
+    /// Not a foreign key - user might not exist yet
+    identifier String
+
+    /// Unique verification token.
+    /// Generated by NextAuth.js, cryptographically secure.
+    /// Sent in magic link URL.
+    /// Example: "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+    token String @unique
+
+    /// Token expiration timestamp.
+    /// Set to 5 minutes (300 seconds) after creation.
+    /// Expired tokens should be rejected and cleaned up.
+    /// Example: 2026-02-17 22:15:00
+    expires DateTime
+
+    /// Composite primary key: (identifier, token)
+    /// Allows multiple verification tokens per email address
+    /// (e.g., user requests new login link before first expires)
+    @@id([identifier, token])
 }
