@@ -9,15 +9,20 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5433:5432"
 
   web:
     build: .
-    command: sh -c "npx prisma db push && npm start"
+    command: sh -c "npx prisma db push && npm run dev"
     ports:
       - "3000:3000"
     environment:
       DATABASE_URL: postgresql://admin:admin@db:5432/spot_on_db
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+    volumes:
+      - .:/app
+      - /app/node_modules
     depends_on:
       - db
 
