@@ -13,7 +13,6 @@ CREATE TABLE "users" (
     "image" VARCHAR(255),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
 
@@ -28,7 +27,6 @@ CREATE TABLE "spaces" (
     "hasPowerOutlet" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-
     CONSTRAINT "spaces_pkey" PRIMARY KEY ("id")
 );
 
@@ -43,7 +41,6 @@ CREATE TABLE "study_sessions" (
     "status" "SessionStatus" NOT NULL DEFAULT 'ACTIVE',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-
     CONSTRAINT "study_sessions_pkey" PRIMARY KEY ("id")
 );
 
@@ -54,8 +51,7 @@ CREATE TABLE "UserOnSession" (
     "isHost" BOOLEAN NOT NULL DEFAULT false,
     "status" "InvitationStatus" NOT NULL DEFAULT 'PENDING',
     "joinedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "UserOnSession_pkey" PRIMARY KEY ("userId","sessionId")
+    CONSTRAINT "UserOnSession_pkey" PRIMARY KEY ("userId", "sessionId")
 );
 
 -- CreateIndex
@@ -65,13 +61,25 @@ CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 CREATE UNIQUE INDEX "spaces_currentQrToken_key" ON "spaces"("currentQrToken");
 
 -- AddForeignKey
-ALTER TABLE "study_sessions" ADD CONSTRAINT "study_sessions_spaceId_fkey" FOREIGN KEY ("spaceId") REFERENCES "spaces"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE
+    "study_sessions"
+ADD
+    CONSTRAINT "study_sessions_spaceId_fkey" FOREIGN KEY ("spaceId") REFERENCES "spaces"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "study_sessions" ADD CONSTRAINT "study_sessions_hostId_fkey" FOREIGN KEY ("hostId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE
+    "study_sessions"
+ADD
+    CONSTRAINT "study_sessions_hostId_fkey" FOREIGN KEY ("hostId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "UserOnSession" ADD CONSTRAINT "UserOnSession_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE
+    "UserOnSession"
+ADD
+    CONSTRAINT "UserOnSession_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "UserOnSession" ADD CONSTRAINT "UserOnSession_sessionId_fkey" FOREIGN KEY ("sessionId") REFERENCES "study_sessions"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE
+    "UserOnSession"
+ADD
+    CONSTRAINT "UserOnSession_sessionId_fkey" FOREIGN KEY ("sessionId") REFERENCES "study_sessions"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
