@@ -99,7 +99,7 @@ enum InvitationStatus {
     REJECTED
 }
 
-/// Study space (room, library, etc).
+/// Study space
 model Space {
     id             String   @id @default(cuid()) @db.VarChar(30)
     name           String   @db.VarChar(255)
@@ -131,8 +131,9 @@ model StudySession {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    space        Space                @relation(fields: [spaceId], references: [id])
-    host         User                 @relation("SessionHost", fields: [hostId], references: [id])
+    space Space @relation(fields: [spaceId], references: [id])
+    host  User  @relation("SessionHost", fields: [hostId], references: [id])
+
     participants UserOnStudySession[]
 
     @@map("study_sessions")
