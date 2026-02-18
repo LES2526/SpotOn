@@ -1,5 +1,5 @@
 # Use the version that matches your local environment
-FROM node:22-alpine
+FROM node:25-alpine
 
 # Set the working directory
 WORKDIR /app
