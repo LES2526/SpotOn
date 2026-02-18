@@ -59,6 +59,9 @@ export const authOptions: NextAuthOptions = {
             /**
              * SMTP server configuration for sending magic links.
              * Uses Gmail SMTP by default.
+             *
+             * @constant {Object|string}
+             * @see {@link https://nodemailer.com/smtp/|Nodemailer SMTP Configuration}
              */
             server: {
                 host: process.env.EMAIL_SERVER_HOST,
@@ -88,7 +91,6 @@ export const authOptions: NextAuthOptions = {
          * Sign-in callback to validate email domain.
          *
          * Only allows authentication if the user's email ends with @ualg.pt.
-         * Logs all authentication attempts for security auditing.
          *
          * @param {Object} params - Callback parameters
          * @param {User} params.user - The user attempting to sign in
@@ -98,8 +100,10 @@ export const authOptions: NextAuthOptions = {
          */
         async signIn({ user }) {
             const isAllowed = isEmailAllowed(user.email);
-            console.log(`Login: ${user.email} - ${isAllowed
-                ? "Allowed" : "Denied"}`);
+            if (!isAllowed) {
+                console.warn(
+                    `Denied login attempt for email: ${user.email}`);
+            }
             return isAllowed;
         },
     },
