@@ -36,10 +36,12 @@
  * @public
  * @since 1.0.0
  */
-export function isEmailAllowed(email: string | null | undefined): boolean {
+export function isEmailAllowed(email: string | null | undefined)
+    : boolean {
     const normalizedEmail = email?.toLowerCase();
     if (!normalizedEmail) {
         return false;
     }
-    return normalizedEmail.endsWith(`@${process.env.ALLOWED_EMAIL_DOMAIN}`);
+    return normalizedEmail.endsWith(
+        `@${process.env.ALLOWED_EMAIL_DOMAIN}`);
 }

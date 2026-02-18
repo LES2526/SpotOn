@@ -16,11 +16,8 @@ COPY prisma ./prisma/
 # Copy the rest of your application code
 COPY . .
 
-# This creates the custom TypeScript/JavaScript code for your specific DB
-RUN npx prisma generate
-
-# Build the Next.js app for production
-RUN npm run build
+# Generate Prisma client and build Next.js app for production
+RUN npx prisma generate && npm run build
 
 # Next.js listens on 3000 by default
 EXPOSE 3000

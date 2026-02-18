@@ -13,15 +13,17 @@ services:
 
   web:
     build: .
-    volumes:
-      - ./:/app
-      - /app/node_modules
     command: sh -c "npx prisma db push && npm run dev"
     ports:
       - "3000:3000"
     env_file: .env
     environment:
       DATABASE_URL: postgresql://admin:admin@db:5432/spot_on_db
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+    volumes:
+      - .:/app
+      - /app/node_modules
     depends_on:
       - db
 
