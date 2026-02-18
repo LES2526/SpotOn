@@ -5,10 +5,152 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../app/generated/prisma"
+    provider = "prisma-client-js"
+    output   = "../app/generated/prisma"
 }
 
 datasource db {
-  provider = "postgresql"
+    provider = "postgresql"
+}
+
+// ============================================
+// NextAuth.js Models
+// ============================================
+
+/// Spot-On system user.
+/// Only @ualg.pt emails are accepted (validated in backend).
+model User {
+    id            String    @id @default(cuid()) @db.VarChar(30)
+    studentId     String?   @unique @db.VarChar(20)
+    department    String?   @db.VarChar(255)
+    name          String?   @db.VarChar(255)
+    email         String    @unique @db.VarChar(255)
+    emailVerified DateTime?
+    image         String?   @db.VarChar(255)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    accounts Account[]
+    sessions Session[]
+
+    hostedStudySessions StudySession[]       @relation("SessionHost")
+    participations      UserOnStudySession[]
+
+    @@map("users")
+}
+
+/// NextAuth authentication providers.
+/// Supports multiple providers per user (email, OAuth, etc).
+model Account {
+    userId            String  @db.VarChar(30)
+    type              String  @db.VarChar(50)
+    provider          String  @db.VarChar(50)
+    providerAccountId String  @db.VarChar(255)
+    refresh_token     String? @db.Text
+    access_token      String? @db.Text
+    expires_at        Int?
+    token_type        String? @db.VarChar(50)
+    scope             String? @db.Text /// Space-separated permissions/scopes granted by the provider
+    id_token          String? @db.Text
+    session_state     String? @db.VarChar(255)
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@id([provider, providerAccountId])
+    @@map("accounts")
+}
+
+/// Active login sessions.
+model Session {
+    sessionToken String   @unique @db.VarChar(255)
+    userId       String   @db.VarChar(30)
+    expires      DateTime
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@map("sessions")
+}
+
+/// Magic link tokens for passwordless authentication.
+/// Expire after 5 minutes.
+model VerificationToken {
+    identifier String   @db.VarChar(255)
+    token      String   @unique @db.VarChar(255)
+    expires    DateTime
+
+    @@id([identifier, token])
+    @@map("verification_tokens")
+}
+
+// ============================================
+// Spot-On Domain Models
+// ============================================
+
+enum SessionStatus {
+    ACTIVE
+    COMPLETED
+    OVERDUE
+}
+
+enum InvitationStatus {
+    PENDING
+    ACCEPTED
+    REJECTED
+}
+
+/// Study space
+model Space {
+    id             String   @id @default(cuid()) @db.VarChar(30)
+    name           String   @db.VarChar(255)
+    location       String   @db.VarChar(255)
+    capacity       Int
+    currentQrToken String?  @unique @db.VarChar(255)
+    description    String?  @db.VarChar(255)
+    hasPowerOutlet Boolean  @default(false)
+    createdAt      DateTime @default(now())
+    updatedAt      DateTime @updatedAt
+
+    sessions StudySession[]
+
+    @@map("spaces")
+}
+
+/// Study session in a space.
+model StudySession {
+    id      String @id @default(cuid()) @db.VarChar(30)
+    spaceId String @db.VarChar(30)
+    hostId  String @db.VarChar(30)
+
+    startTime       DateTime  @default(now())
+    expectedEndTime DateTime
+    actualEndTime   DateTime?
+
+    status SessionStatus @default(ACTIVE)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    space Space @relation(fields: [spaceId], references: [id])
+    host  User  @relation("SessionHost", fields: [hostId], references: [id])
+
+    participants UserOnStudySession[]
+
+    @@map("study_sessions")
+}
+
+/// User participation in study session (pivot table).
+model UserOnStudySession {
+    userId    String @db.VarChar(30)
+    sessionId String @db.VarChar(30)
+
+    isHost   Boolean          @default(false)
+    status   InvitationStatus @default(PENDING)
+    joinedAt DateTime         @default(now())
+
+    user    User         @relation(fields: [userId], references: [id])
+    session StudySession @relation(fields: [sessionId], references: [id])
+
+    @@id([userId, sessionId])
+    @@map("users_study_sessions")
 }
