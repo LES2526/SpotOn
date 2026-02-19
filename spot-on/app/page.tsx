@@ -1,13 +1,26 @@
-import Link from "next/link";
-import ButtonDefault from "./componentes/buttonDefault";
+import ButtonDefault from "./componentes/ButtonDefault";
+import CaixaTextoLogin from "./componentes/CaixaTextoLogin";
 
 export default function Home() {
   return (
-    <main>
-      <h1>Bem-vindo ao SpotON!</h1>
-      <Link href="/login">
-        <ButtonDefault />
-      </Link>
+    <main className="min-h-screen">
+      <div
+        className="min-h-screen flex items-center justify-center bg-cover bg-center"
+        style={{
+          backgroundImage:
+            "url('https://www.taglivros.com/blog/wp-content/uploads/2020/09/Post-Instagram-1000x1000.png')",
+        }}
+      >
+        <div className="w-full max-w-md rounded-2xl bg-white/90 p-8 shadow-lg backdrop-blur">
+          <div className="flex flex-col items-center justify-center min-h-screen gap-6">
+            <h1 className="text-3xl font-bold">Bem-vindo ao SpotON!</h1>
+
+            <CaixaTextoLogin />
+
+            <ButtonDefault href="/login">Login</ButtonDefault>
+          </div>
+        </div>
+      </div>
     </main>
   );
 }
