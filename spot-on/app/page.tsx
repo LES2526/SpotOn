@@ -1,5 +1,4 @@
 import ButtonDefault from "./componentes/ButtonDefault";
-import CaixaTextoLogin from "./componentes/CaixaTextoLogin";
 
 export default function Home() {
   return (
@@ -15,9 +14,7 @@ export default function Home() {
           <div className="flex flex-col items-center justify-center min-h-screen gap-6">
             <h1 className="text-3xl font-bold">Bem-vindo ao SpotON!</h1>
 
-            <CaixaTextoLogin />
-
-            <ButtonDefault href="/login">Login</ButtonDefault>
+            <ButtonDefault href="/api/auth/signin">ENTRAR</ButtonDefault>
           </div>
         </div>
       </div>
