@@ -1,4 +1,4 @@
-function CaixaTexto() {
+function TextBox() {
     return (
         <div className="flex flex-col gap-2">
             <input
@@ -12,4 +12,4 @@ function CaixaTexto() {
     );
 }
 
-export default CaixaTexto;
+export default TextBox;
