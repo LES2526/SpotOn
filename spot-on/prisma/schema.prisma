@@ -36,8 +36,6 @@ model User {
 
     hostedStudySessions StudySession[]       @relation("SessionHost")
     participations      UserOnStudySession[]
-
-    @@map("users")
 }
 
 /// NextAuth authentication providers.
@@ -58,7 +56,6 @@ model Account {
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     @@id([provider, providerAccountId])
-    @@map("accounts")
 }
 
 /// Active login sessions.
@@ -68,8 +65,6 @@ model Session {
     expires      DateTime
 
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-    @@map("sessions")
 }
 
 /// Magic link tokens for passwordless authentication.
@@ -80,7 +75,6 @@ model VerificationToken {
     expires    DateTime
 
     @@id([identifier, token])
-    @@map("verification_tokens")
 }
 
 // ============================================
@@ -112,8 +106,6 @@ model Space {
     updatedAt      DateTime @updatedAt
 
     sessions StudySession[]
-
-    @@map("spaces")
 }
 
 /// Study session in a space.
@@ -135,8 +127,6 @@ model StudySession {
     host  User  @relation("SessionHost", fields: [hostId], references: [id])
 
     participants UserOnStudySession[]
-
-    @@map("study_sessions")
 }
 
 /// User participation in study session (pivot table).
@@ -152,5 +142,4 @@ model UserOnStudySession {
     session StudySession @relation(fields: [sessionId], references: [id])
 
     @@id([userId, sessionId])
-    @@map("users_study_sessions")
 }
