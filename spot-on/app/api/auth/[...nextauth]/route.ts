@@ -135,4 +135,4 @@ export { handler as GET };
  * @function POST
  * @public
  */
-    export { handler as POST };
+export { handler as POST };
