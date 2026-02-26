@@ -36,8 +36,6 @@ model User {
 
     hostedStudySessions StudySession[]       @relation("SessionHost")
     participations      UserOnStudySession[]
-
-    @@map("user")
 }
 
 /// NextAuth authentication providers.
@@ -58,7 +56,6 @@ model Account {
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     @@id([provider, providerAccountId])
-    @@map("account")
 }
 
 /// Active login sessions.
