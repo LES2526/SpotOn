@@ -5,14 +5,16 @@ import { NextResponse } from 'next/server';
 
 export async function POST(
     request: Request,
-    { params }: { params: { spaceId: string } }
+    { params }: { params: Promise<{ spaceId: string }> }
 ) {
     try {
         const { hostId } = await request.json();
+
+        var parameters = await params;
         
         // Check if space exists
         const space = await prisma.space.findUnique({
-            where: { id: params.spaceId }
+            where: { id: parameters.spaceId }
         });
         
         if (!space) {
@@ -24,7 +26,7 @@ export async function POST(
         
         const existingSession = await prisma.studySession.findFirst({
             where: {
-                spaceId: params.spaceId,
+                spaceId: parameters.spaceId,
                 status: 'ACTIVE'
             }
         });
@@ -39,7 +41,7 @@ export async function POST(
         // Create the new session
         const newSession = await prisma.studySession.create({
             data: {
-                spaceId: params.spaceId,
+                spaceId: parameters.spaceId,
                 hostId,
                 expectedEndTime: new Date(Date.now() + 60 * 60 * 1000) // Set expected end time to 1 hour from now, but can be adjusted as needed
             },
