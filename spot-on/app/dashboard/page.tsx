@@ -1,4 +1,5 @@
-import StudyDesk from '@/components/study-desk/study-desk';
+import OccupyButton from '@/components/dashboard/OccupyButton';
+import StudyDesk from '@/components/study-desk/StudyDesk';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
@@ -50,6 +51,7 @@ export default async function DashboardPage() {
                                             shape={space.type === 'GROUP_ROOM' ? 'rectangular' : 'circular'}
                                             initialStatus={isOccupied ? 'occupied' : 'available'}
                                         />
+                                        <OccupyButton spaceId={space.id} isOccupied={isOccupied} />
                                     </article>
                                 );
                             })}
