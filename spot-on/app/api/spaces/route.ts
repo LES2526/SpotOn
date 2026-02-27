@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { TRACE_OUTPUT_VERSION } from 'next/dist/shared/lib/constants';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
@@ -18,3 +19,5 @@ export async function GET() {
         );
     }
 }
+
+
