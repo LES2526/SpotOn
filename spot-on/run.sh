@@ -1,6 +1,11 @@
 #!/bin/bash
 set -euo pipefail
 
-docker compose down -v
+if [[ $1 == "1" ]]; then
+	docker compose down -v
+else
+	docker compose down
+fi
+
 docker compose build --no-cache
 docker compose up
