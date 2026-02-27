@@ -1,22 +1,29 @@
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 
 // We need to implement logic to delete the session when time expires
-
 export async function POST(
     request: Request,
     { params }: { params: Promise<{ spaceId: string }> }
 ) {
     try {
-        const { hostId } = await request.json();
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) {
+            return NextResponse.json(
+                { error: 'Unauthorized' },
+                { status: 401 }
+            );
+        }
 
+        const hostId = session.user.id;
         const parameters = await params;
 
         // Check if space exists
         const space = await prisma.space.findUnique({
             where: { id: parameters.spaceId }
         });
-
         if (!space) {
             return NextResponse.json(
                 { error: 'Space not found' },
@@ -30,11 +37,10 @@ export async function POST(
                 status: 'ACTIVE'
             }
         });
-
         if (existingSession) {
             return NextResponse.json(
                 { error: 'Space is already occupied' },
-                { status: 409 } // 409 Conflict
+                { status: 409 }
             );
         }
 
@@ -43,7 +49,7 @@ export async function POST(
             data: {
                 spaceId: parameters.spaceId,
                 hostId,
-                expectedEndTime: new Date(Date.now() + 60 * 60 * 1000) // Set expected end time to 1 hour from now, but can be adjusted as needed
+                expectedEndTime: new Date(Date.now() + 60 * 60 * 1000)
             },
             include: { space: true, host: true }
         });

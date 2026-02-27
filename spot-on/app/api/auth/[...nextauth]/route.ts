@@ -43,8 +43,11 @@ export const authOptions: NextAuthOptions = {
     adapter: PrismaAdapter(prisma),
 
     /**
-     * Session configuration.
-     * Uses JWT strategy for middleware compatibility.
+     * Session strategy configuration.
+     *
+     * Uses JSON Web Tokens (JWT) for stateless session management.
+     * Sessions are stored client-side and verified on each request.
+     *  @see {@link https://next-auth.js.org/configuration/options#session | Session Configuration}
      */
     session: {
         strategy: "jwt",
@@ -105,6 +108,14 @@ export const authOptions: NextAuthOptions = {
                     `Denied login attempt for email: ${user.email}`);
             }
             return isAllowed;
+        },
+        async jwt({ token, user }) {
+            if (user) token.id = user.id;
+            return token;
+        },
+        async session({ session, token }) {
+            session.user.id = token.id as string;
+            return session;
         },
     },
 };
