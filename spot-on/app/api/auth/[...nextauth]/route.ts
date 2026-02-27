@@ -44,10 +44,10 @@ export const authOptions: NextAuthOptions = {
 
     /**
      * Session configuration.
-     * Uses database strategy to persist sessions in PostgreSQL.
+     * Uses JWT strategy for middleware compatibility.
      */
     session: {
-        strategy: "database",
+        strategy: "jwt",
     },
 
     /**
