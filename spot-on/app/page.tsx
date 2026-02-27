@@ -12,9 +12,12 @@ export default function Home() {
             >
                 <div className="w-full max-w-md rounded-2xl bg-white/90 p-8 shadow-lg backdrop-blur">
                     <div className="flex flex-col items-center justify-center min-h-screen gap-6">
-                        <h1 className="text-3xl font-bold">Bem-vindo ao SpotON!</h1>
-
-                        <ButtonDefault href="/api/auth/signin">ENTRAR</ButtonDefault>
+                        <h1 className="text-3xl font-bold">
+                            Bem-vindo ao SpotON!
+                        </h1>
+                        <ButtonDefault href="/api/auth/signin?callbackUrl=%2Fdashboard">
+                            ENTRAR
+                        </ButtonDefault>
                     </div>
                 </div>
             </div>

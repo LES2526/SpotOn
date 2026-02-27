@@ -29,7 +29,7 @@ model User {
     image         String?   @db.VarChar(255)
 
     createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    updatedAt DateTime @default(now()) @updatedAt
 
     accounts Account[]
     sessions Session[]
@@ -108,7 +108,7 @@ model FloorPlan {
     imageHeight Int
 
     createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    updatedAt DateTime @default(now()) @updatedAt
 
     spaces Space[]
 }
@@ -129,7 +129,7 @@ model Space {
     type           SpaceType @default(INDIVIDUAL_DESK)
 
     createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    updatedAt DateTime @default(now()) @updatedAt
 
     floorPlan FloorPlan      @relation(fields: [floorPlanId], references: [id])
     sessions  StudySession[]
@@ -148,7 +148,7 @@ model StudySession {
     status SessionStatus @default(ACTIVE)
 
     createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    updatedAt DateTime @default(now()) @updatedAt
 
     space Space @relation(fields: [spaceId], references: [id])
     host  User  @relation("SessionHost", fields: [hostId], references: [id])
