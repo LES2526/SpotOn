@@ -16,9 +16,6 @@ COPY prisma ./prisma/
 # Copy the rest of your application code
 COPY . .
 
-# Generate Prisma client and build Next.js app for production
-RUN npx prisma generate && npm run build
-
 # Next.js listens on 3000 by default
 EXPOSE 3000
 
