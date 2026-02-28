@@ -14,9 +14,7 @@
  * @since 1.0.0
  */
 
-import { PrismaClient as PrismaClientType } from "@/app/generated/prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
-import { Pool } from "pg";
+import { PrismaClient as PrismaClientType } from "@/app/generated/prisma";
 
 /**
  * Global augmentation for Prisma Client instance.
@@ -29,27 +27,6 @@ import { Pool } from "pg";
 declare global {
     var prisma: PrismaClientType | undefined;
 }
-
-/**
- * PostgreSQL connection pool.
- *
- * Creates a connection pool for the Prisma PostgreSQL adapter.
- * Uses environment variable `DATABASE_URL` for connection string.
- *
- * @constant {Pool}
- * @private
- */
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-
-/**
- * Prisma PostgreSQL adapter.
- *
- * Wraps the PostgreSQL connection pool for use with Prisma Client.
- *
- * @constant {PrismaPg}
- * @private
- */
-const adapter = new PrismaPg(pool);
 
 /**
  * Prisma Client singleton instance.
@@ -69,9 +46,7 @@ const adapter = new PrismaPg(pool);
  */
 export const prisma =
     globalThis.prisma ||
-    new PrismaClientType({
-        adapter,
-    });
+    new PrismaClientType();
 
 /**
  * Store Prisma Client in global scope during development.
