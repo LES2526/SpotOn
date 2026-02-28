@@ -22,11 +22,13 @@ export default async function ProfilePage() {
   }
 
   return (
-      <ProfileCard
-          name={user!.name ?? user!.email.split("@")[0]}
-          email={user!.email}
-          points={0}
-          image={user!.image ?? undefined}
-      />
+    <main className="min-h-screen flex items-center justify-center bg-[#0f0f0f] px-4">
+        <ProfileCard
+            name={user!.name ?? user!.email.split("@")[0]}
+            email={user!.email}
+            points={0}
+            image={user!.image ?? undefined}
+        />
+    </main>
   );
 }
