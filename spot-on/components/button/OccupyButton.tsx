@@ -24,7 +24,7 @@ export default function OccupyButton({ spaceId, isOccupied }: Readonly<{ spaceId
             onClick={handleClick}
             className={`mt-2 w-full rounded px-4 py-2 text-white ${occupied ? 'bg-red-500' : 'bg-green-500'}`}
         >
-            {occupied ? 'Free' : 'Occupy'}
+            {occupied ? 'Liberar' : 'Ocupar'}
         </button>
     );
 }

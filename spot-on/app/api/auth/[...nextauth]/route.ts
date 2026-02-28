@@ -108,7 +108,7 @@ export const authOptions: NextAuthOptions = {
                     `Denied login attempt for email: ${user.email}`);
                 return false;
             }
-        
+
             // Extrair o prefixo do email (ex: "a84100" de "a84100@ualg.pt")
             const emailPrefix = user.email!.split("@")[0];
 
