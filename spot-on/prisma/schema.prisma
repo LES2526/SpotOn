@@ -30,7 +30,7 @@ model User {
     image         String?   @db.VarChar(255)
 
     createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    updatedAt DateTime @default(now()) @updatedAt
 
     accounts Account[]
     sessions Session[]
@@ -94,19 +94,46 @@ enum InvitationStatus {
     REJECTED
 }
 
+enum SpaceType {
+    INDIVIDUAL_DESK
+    GROUP_ROOM
+}
+
+/// Floor plan canvas. Spaces are positioned relative to this container.
+model FloorPlan {
+    id          String @id @default(cuid()) @db.VarChar(30)
+    name        String @db.VarChar(255)
+    floor       Int    @default(0)
+    imageUrl    String @db.VarChar(255) /// URL or path to the floor plan image
+    imageWidth  Int
+    imageHeight Int
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
+
+    spaces Space[]
+}
+
 /// Study space
 model Space {
-    id             String   @id @default(cuid()) @db.VarChar(30)
-    name           String   @db.VarChar(255)
-    location       String   @db.VarChar(255)
+    id             String    @id @default(cuid()) @db.VarChar(30)
+    floorPlanId    String    @db.VarChar(30)
+    name           String    @db.VarChar(255)
+    posX           Float /// X position on floor plan (0.0–100.0 %)
+    posY           Float /// Y position on floor plan (0.0–100.0 %)
+    width          Float /// Width on floor plan (0.0–100.0 %)
+    height         Float /// Height on floor plan (0.0–100.0 %)
     capacity       Int
-    currentQrToken String?  @unique @db.VarChar(255)
-    description    String?  @db.VarChar(255)
-    hasPowerOutlet Boolean  @default(false)
-    createdAt      DateTime @default(now())
-    updatedAt      DateTime @updatedAt
+    currentQrToken String    @unique @db.VarChar(255) /// Rotates periodically; displayed on the space's tablet
+    description    String?   @db.VarChar(255)
+    hasPowerOutlet Boolean   @default(false)
+    type           SpaceType @default(INDIVIDUAL_DESK)
 
-    sessions StudySession[]
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
+
+    floorPlan FloorPlan      @relation(fields: [floorPlanId], references: [id])
+    sessions  StudySession[]
 }
 
 /// Study session in a space.
@@ -122,7 +149,7 @@ model StudySession {
     status SessionStatus @default(ACTIVE)
 
     createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    updatedAt DateTime @default(now()) @updatedAt
 
     space Space @relation(fields: [spaceId], references: [id])
     host  User  @relation("SessionHost", fields: [hostId], references: [id])
@@ -135,7 +162,6 @@ model UserOnStudySession {
     userId    String @db.VarChar(30)
     sessionId String @db.VarChar(30)
 
-    isHost   Boolean          @default(false)
     status   InvitationStatus @default(PENDING)
     joinedAt DateTime         @default(now())
 
