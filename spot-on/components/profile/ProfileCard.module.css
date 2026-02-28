@@ -1,0 +1,142 @@
+/* ProfileCard.module.css */
+/* Aesthetic: modern student app card */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  width: 100%;
+  max-width: 360px;
+  border-radius: 20px;
+  overflow: hidden;
+
+  background: #1a1a2e;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+
+  font-family: 'Inter', sans-serif;
+  animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Header band with SpotOn branding */
+.header {
+  width: 100%;
+  padding: 1.25rem 1.5rem 3.5rem;
+  background: linear-gradient(135deg, #2d1b69 0%, #5b21b6 100%);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.brandDot {
+  color: #c4b5fd;
+  font-size: 0.85rem;
+}
+
+.brandName {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #fff;
+  letter-spacing: 0.06em;
+}
+
+/* Avatar */
+.avatarWrapper {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  border: 3px solid #1a1a2e;
+  margin-top: -45px;
+  background: #2d2d4e;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  flex-shrink: 0;
+}
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.initials {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #c4b5fd;
+  line-height: 1;
+}
+
+/* Info section */
+.info {
+  text-align: center;
+  padding: 0.85rem 1.5rem 0;
+  width: 100%;
+}
+
+.name {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #f0f0f0;
+  margin: 0 0 0.3rem;
+  line-height: 1.2;
+}
+
+.studentNumber {
+  font-size: 0.85rem;
+  color: #a78bfa;
+  font-weight: 600;
+  margin: 0 0 0.3rem;
+  letter-spacing: 0.04em;
+}
+
+.email {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.35);
+  margin: 0;
+}
+
+/* Points block */
+.pointsBlock {
+  width: calc(100% - 3rem);
+  margin: 1.25rem 1.5rem 1.5rem;
+  padding: 1rem;
+  background: rgba(167, 139, 250, 0.07);
+  border: 1px solid rgba(167, 139, 250, 0.18);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+}
+
+.pointsNumber {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #a78bfa;
+  line-height: 1;
+}
+
+.pointsLabel {
+  font-size: 0.68rem;
+  color: rgba(167, 139, 250, 0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-weight: 500;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
