@@ -106,8 +106,20 @@ export const authOptions: NextAuthOptions = {
             if (!isAllowed) {
                 console.warn(
                     `Denied login attempt for email: ${user.email}`);
+                return false;
             }
-            return isAllowed;
+        
+            // Extrair o prefixo do email (ex: "a84100" de "a84100@ualg.pt")
+            const emailPrefix = user.email!.split("@")[0];
+
+            // se o prefixo for "a" seguido de dígitos, é um aluno — guardar o número na BD
+            if (/^a\d+$/.test(emailPrefix)) {
+                await prisma.user.updateMany({
+                    where: { id: user.id, studentId: null },
+                    data: { studentId: emailPrefix.slice(1) },
+                });
+            }
+            return true;
         },
         async jwt({ token, user }) {
             if (user) token.id = user.id;
