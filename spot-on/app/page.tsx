@@ -15,6 +15,7 @@ export default function Home() {
                         <h1 className="text-3xl font-bold">Bem-vindo ao SpotON!</h1>
 
                         <ButtonDefault href="/api/auth/signin">ENTRAR</ButtonDefault>
+                        <ButtonDefault href="/profile">PERFIL</ButtonDefault>
                     </div>
                 </div>
             </div>
