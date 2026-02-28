@@ -1,5 +1,11 @@
 #!/bin/bash
-docker compose exec web npx prisma migrate dev --name remove_nextauth_map
-docker compose down -v
+set -euo pipefail
+
+if [[ $1 == "1" ]]; then
+	docker compose down -v
+else
+	docker compose down
+fi
+
 docker compose build --no-cache
 docker compose up
