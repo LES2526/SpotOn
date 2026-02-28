@@ -1,6 +1,7 @@
 import OccupyButton from '@/components/dashboard/OccupyButton';
 import StudyDesk from '@/components/study-desk/StudyDesk';
 import { prisma } from '@/lib/prisma';
+import Link from "next/link"
 
 export const dynamic = 'force-dynamic';
 
@@ -26,7 +27,12 @@ export default async function DashboardPage() {
     return (
         <main className="min-h-screen p-8">
             <section className="mx-auto max-w-6xl">
-                <h1 className="mb-6 text-3xl font-bold">Study Desks</h1>
+                <div className="mb-6 flex items-center justify-between">
+                    <h1 className="text-3xl font-bold">Study Desks</h1>
+                    <Link href="/profile" className="rounded-lg border px-4 py-2 text-sm hover:bg-white/10">
+                        Ver perfil
+                    </Link>
+                </div>
                 {spaces.length === 0
                     ? (
                         <p className="text-sm opacity-70">
