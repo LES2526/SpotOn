@@ -5,7 +5,7 @@ type ButtonDefaultProps = {
     children: React.ReactNode; //quase dizer que pode assumir qlqr tipo/renderizar qlqr coisa
 };
 
-function ButtonDefault({ href, children }: ButtonDefaultProps) {
+function ButtonDefault({ href, children }: Readonly<ButtonDefaultProps>) {
     return (
         <Link
             href={href}
