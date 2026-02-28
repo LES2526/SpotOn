@@ -14,12 +14,7 @@ export default async function ProfilePage() {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: {
-      name: true,
-      email: true,
-      image: true,
-      studentId: true,   // campo do schema Prisma
-    },
+    select: { name: true, email: true, image: true},
   });
 
   if (!user) {
@@ -27,14 +22,11 @@ export default async function ProfilePage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-[#0f0f0f] px-4">
       <ProfileCard
-        name={user.name ?? ""}           // ?? "" porque name é String? no schema
-        email={user.email}
-        points={0}                        // ainda não há campo points na DB
-        studentNumber={user.studentId ?? undefined}  // studentId é String? no schema
-        image={user.image ?? undefined}
+          name={user!.name ?? user!.email.split("@")[0]}
+          email={user!.email}
+          points={0}
+          image={user!.image ?? undefined}
       />
-    </main>
   );
 }
