@@ -14,7 +14,7 @@
  * @author Spot-On Team
  * @since 1.0.0
  */
-import { isEmailAllowed } from "@/lib/auth-utils";
+import { extractStudentId, isEmailAllowed } from "@/lib/auth-utils";
 
 /**
  * Test suite for email domain validation.
@@ -133,6 +133,49 @@ describe("Email Domain Validation", () => {
          */
         it("should handle email with only @ualg.pt", () => {
             expect(isEmailAllowed("@ualg.pt")).toBe(true);
+        });
+    });
+});
+describe("Student ID Extraction", () => {
+    describe("Valid student emails", () => {
+        it("should extract student number from standard student email", () => {
+            expect(extractStudentId("a84014@ualg.pt")).toBe("84014");
+        });
+
+        it("should extract student number with different digits", () => {
+            expect(extractStudentId("a12345@ualg.pt")).toBe("12345");
+        });
+    });
+
+    describe("Non-student emails", () => {
+        it("should return null for professor email", () => {
+            expect(extractStudentId("joao.silva@ualg.pt")).toBeNull();
+        });
+
+        it("should return null for email starting with a but no digits", () => {
+            expect(extractStudentId("ana@ualg.pt")).toBeNull();
+        });
+
+        it("should return null for email with digits but no leading a", () => {
+            expect(extractStudentId("84014@ualg.pt")).toBeNull();
+        });
+
+        it("should return null for mixed format", () => {
+            expect(extractStudentId("a84014abc@ualg.pt")).toBeNull();
+        });
+    });
+
+    describe("Edge cases", () => {
+        it("should return null for null input", () => {
+            expect(extractStudentId(null)).toBeNull();
+        });
+
+        it("should return null for undefined input", () => {
+            expect(extractStudentId(undefined)).toBeNull();
+        });
+
+        it("should return null for empty string", () => {
+            expect(extractStudentId("")).toBeNull();
         });
     });
 });
