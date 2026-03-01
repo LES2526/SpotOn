@@ -6,6 +6,7 @@ services:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: spot_on_db
+      POSTGRES_INITDB_ARGS: "--locale=C --encoding=UTF8"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
