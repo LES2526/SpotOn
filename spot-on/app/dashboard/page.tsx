@@ -8,13 +8,14 @@ import { redirect } from "next/navigation";
 
 export const dynamic = 'force-dynamic';
 
-export default async function DashboardPage({ searchParams }: Readonly<{ searchParams: { floor?: string } }>) {
+export default async function DashboardPage({ searchParams }: Readonly<{ searchParams: Promise<{ floor?: string }> }>) {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
         redirect('/api/auth/signin?callbackUrl=/dashboard');
     }
 
-    const selectedFloor = searchParams.floor ?? null;
+    const { floor } = await searchParams;
+    const selectedFloor = floor ?? null;
 
     const [spaces, floorPlans] = await Promise.all([
         prisma.space.findMany({
