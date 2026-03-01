@@ -4,15 +4,14 @@ const prisma = new PrismaClient();
 
 async function main() {
     console.log('Seeding database...');
-    // Create Floor Plan
     const floorPlan = await prisma.floorPlan.upsert({
-        where: { id: 'floorplan-biblioteca-1' },
+        where: { id: '0' },
         update: {},
         create: {
-            id: 'floorplan-biblioteca-1',
-            name: 'Biblioteca - Piso 1',
-            floor: 1,
-            imageUrl: '/images/floorplan-piso1.png',
+            id: '0',
+            name: 'Piso 0',
+            floor: 0,
+            imageUrl: '/images/floorplan-piso0.png',
             imageWidth: 1200,
             imageHeight: 800,
         },
