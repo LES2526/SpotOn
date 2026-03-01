@@ -60,7 +60,9 @@ export async function POST(_request: Request, { params }: Params) {
 
         // Check if the space is already occupied by an active session
         const spaceOccupied = await prisma.studySession.findFirst({
-            where: { spaceId, status: 'ACTIVE', expectedEndTime: { gt: new Date() } }
+            where: {
+                spaceId, status: 'ACTIVE',
+            }
         });
         if (spaceOccupied) {
             return NextResponse.json({ error: 'Space is already occupied' }, { status: 409 });
@@ -68,7 +70,9 @@ export async function POST(_request: Request, { params }: Params) {
 
         // Check if the user already has an active session in another space
         const userOccupied = await prisma.studySession.findFirst({
-            where: { hostId: session.user.id, status: 'ACTIVE', expectedEndTime: { gt: new Date() } }
+            where: {
+                hostId: session.user.id, status: 'ACTIVE',
+            }
         });
         if (userOccupied) {
             return NextResponse.json({ error: 'You already have an active session. Please release it first.' }, { status: 409 });
@@ -120,8 +124,7 @@ export async function DELETE(_request: Request, { params }: Params) {
             where: {
                 spaceId,
                 hostId: session.user.id,
-                status: 'ACTIVE',
-                expectedEndTime: { gt: new Date() }
+                status: 'ACTIVE'
             }
         });
 
@@ -132,7 +135,9 @@ export async function DELETE(_request: Request, { params }: Params) {
         // Mark the session as completed and set the end time to now
         await prisma.studySession.update({
             where: { id: activeSession.id },
-            data: { status: 'COMPLETED', expectedEndTime: new Date() }
+            data: {
+                status: 'COMPLETED', actualEndTime: new Date()
+            }
         });
 
         return NextResponse.json({ success: true });
