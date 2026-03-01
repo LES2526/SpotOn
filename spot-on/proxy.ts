@@ -61,14 +61,8 @@ export const config = {
      *
      * Current patterns:
      * - `/qrcode/:path*` - All QR code scanning and generation routes
-    * - `/dashboard/:path*` - User dashboard pages
-     *
-     * Future patterns to consider:
-     * - `/dashboard/:path*` - User dashboard
-     * - `/admin/:path*` - Admin panel
      */
     matcher: [
         "/qrcode/:path*",
-        "/dashboard/:path*",
     ],
 };
