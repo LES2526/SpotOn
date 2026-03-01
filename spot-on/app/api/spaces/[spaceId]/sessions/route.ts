@@ -23,7 +23,7 @@ import { NextResponse } from 'next/server';
  * @typedef {Object} Params
  * @property {Promise<{ spaceId: string }>} params - Resolved route parameters
  */
-type Params = { params: Promise<{ spaceId: string }> };
+type Params = { params: { spaceId: string } };
 
 /**
  * POST handler — Occupy a study space.
@@ -40,8 +40,6 @@ type Params = { params: Promise<{ spaceId: string }> };
  * @throws {409} If the space is already occupied
  * @throws {409} If the user already has an active session in another space
  * @throws {500} If an unexpected error occurs
- *
- * @async
  */
 export async function POST(_request: Request, { params }: Params) {
     try {
