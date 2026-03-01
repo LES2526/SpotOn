@@ -45,12 +45,12 @@ export const authOptions: NextAuthOptions = {
     /**
      * Session strategy configuration.
      *
-     * Uses JSON Web Tokens (JWT) for stateless session management.
-     * Sessions are stored client-side and verified on each request.
-     *  @see {@link https://next-auth.js.org/configuration/options#session | Session Configuration}
+     * Uses database-backed sessions for persistent session management.
+     * Sessions are stored server-side in the database and verified on each request.
+     * @see {@link https://next-auth.js.org/configuration/options#session | Session Configuration}
      */
     session: {
-        strategy: "jwt",
+        strategy: "database",
     },
 
     /**
@@ -90,43 +90,27 @@ export const authOptions: NextAuthOptions = {
      * Authentication callbacks.
      */
     callbacks: {
-        /**
-         * Sign-in callback to validate email domain.
-         *
-         * Only allows authentication if the user's email ends with @ualg.pt.
-         *
-         * @param {Object} params - Callback parameters
-         * @param {User} params.user - The user attempting to sign in
-         * @returns {Promise<boolean>} `true` to allow sign-in, `false` to deny
-         *
-         * @async
-         */
         async signIn({ user }) {
             const isAllowed = isEmailAllowed(user.email);
             if (!isAllowed) {
-                console.warn(
-                    `Denied login attempt for email: ${user.email}`);
+                console.warn(`Denied login attempt for email: ${user.email}`);
                 return false;
-            }
-
-            // Extrair o prefixo do email (ex: "a84100" de "a84100@ualg.pt")
-            const emailPrefix = user.email!.split("@")[0];
-
-            // se o prefixo for "a" seguido de dígitos, é um aluno — guardar o número na BD
-            if (/^a\d+$/.test(emailPrefix)) {
-                await prisma.user.updateMany({
-                    where: { id: user.id, studentId: null },
-                    data: { studentId: emailPrefix.slice(1) },
-                });
             }
             return true;
         },
-        async jwt({ token, user }) {
-            if (user) token.id = user.id;
-            return token;
-        },
-        async session({ session, token }) {
-            session.user.id = token.id as string;
+
+        async session({ session, user }) {
+            session.user.id = user.id;
+            if (!user.studentId) {
+                const emailPrefix = user.email!.split("@")[0];
+                if (/^a\d+$/.test(emailPrefix)) {
+                    await prisma.user.update({
+                        where: { id: user.id },
+                        data: { studentId: emailPrefix.slice(1) },
+                    });
+                }
+            }
+
             return session;
         },
     },
