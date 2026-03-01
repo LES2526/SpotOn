@@ -14,7 +14,7 @@ export default async function ProfilePage() {
     }
     const user = await prisma.user.findUnique({
         where: { id: session.user.id },
-        select: { name: true, email: true, image: true },
+        select: { email: true, image: true },
     });
 
     if (!user) {
@@ -24,7 +24,6 @@ export default async function ProfilePage() {
     return (
         <main className="min-h-screen flex flex-col items-center justify-center bg-[#0f0f0f] px-4 gap-6">
             <ProfileCard
-                name={user.name ?? user.email.split("@")[0]}
                 email={user.email}
                 points={0}
                 image={user.image ?? undefined}
