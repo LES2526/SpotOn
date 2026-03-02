@@ -3,28 +3,35 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function OccupyButton({ spaceId, isOccupied }: Readonly<{ spaceId: string, isOccupied: boolean }>) {
-    const [occupied, setOccupied] = useState(isOccupied);
+    const [loading, setLoading] = useState(false);
     const router = useRouter();
+
+    let buttonLabel = 'Ocupar';
+    if (loading) buttonLabel = '...';
+    else if (isOccupied) buttonLabel = 'Libertar';
+
     async function handleClick() {
+        setLoading(true);
         const res = await fetch(`/api/spaces/${spaceId}/sessions`, {
-            method: "POST",
+            method: isOccupied ? "DELETE" : "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({}),
         });
         if (res.ok) {
-            setOccupied(!occupied);
-            router.refresh(); // Refresh the page to get the latest data
+            router.refresh();
         } else {
             const data = await res.json();
             alert(data.error ?? "Something went wrong");
         }
+        setLoading(false);
     }
+
     return (
         <button
             onClick={handleClick}
-            className={`mt-2 w-full rounded px-4 py-2 text-white ${occupied ? 'bg-red-500' : 'bg-green-500'}`}
+            disabled={loading}
+            className={`mt-2 w-full rounded px-4 py-2 text-white font-medium transition-colors disabled:opacity-50 ${isOccupied ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'}`}
         >
-            {occupied ? 'Free' : 'Occupy'}
+            {buttonLabel}
         </button>
     );
 }

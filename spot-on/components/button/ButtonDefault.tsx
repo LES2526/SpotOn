@@ -2,14 +2,14 @@ import Link from "next/link";
 
 type ButtonDefaultProps = {
     href: string;
-    children: React.ReactNode; //quase dizer que pode assumir qlqr tipo/renderizar qlqr coisa
+    children: React.ReactNode;
 };
 
 function ButtonDefault({ href, children }: Readonly<ButtonDefaultProps>) {
     return (
         <Link
             href={href}
-            className="px-6 py-3 bg-blue-700 text-white font-semibold rounded-lg hover:bg-blue-800 hover:scale-105 transition duration-200"
+            className="inline-flex items-center gap-2 rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white transition-colors duration-200"
         >
             {children}
         </Link>

@@ -5,7 +5,7 @@
  * user authentication status before allowing access. Unauthenticated
  * users are automatically redirected to the sign-in page.
  *
- * @module middleware
+ * @module proxy
  * @see {@link https://next-auth.js.org/configuration/nextjs#middleware | NextAuth Middleware Documentation}
  *
  * @example
@@ -61,14 +61,8 @@ export const config = {
      *
      * Current patterns:
      * - `/qrcode/:path*` - All QR code scanning and generation routes
-    * - `/dashboard/:path*` - User dashboard pages
-     *
-     * Future patterns to consider:
-     * - `/dashboard/:path*` - User dashboard
-     * - `/admin/:path*` - Admin panel
      */
     matcher: [
         "/qrcode/:path*",
-        "/dashboard/:path*",
     ],
 };
