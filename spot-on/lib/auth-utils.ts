@@ -10,6 +10,7 @@
  * @since 1.0.0
  */
 
+
 /**
  * Validates if an email address belongs to the allowed domain.
  *
@@ -44,4 +45,23 @@ export function isEmailAllowed(email: string | null | undefined)
     }
     return normalizedEmail.endsWith(
         `@${process.env.ALLOWED_EMAIL_DOMAIN}`);
+}
+
+/**
+    * Extracts the student ID from an email address if it follows the expected format.
+    * The expected format is an email prefix that starts with 'a' followed by digits (e.g., "a123456").
+    *
+ * @param email - The email address to extract the student ID from
+ * @returns The extracted student ID as a string, or null if the format is invalid
+ *
+ * @example
+ * extractStudentId("a123456@ualg.pt") // returns "123456"
+ * extractStudentId("user@ualg.pt") // returns null
+ * extractStudentId(null) // returns null
+ */
+export function extractStudentId(email: string | null | undefined): string | null {
+    const prefix = email?.split("@")[0];
+    if (!prefix) return null;
+    if (/^a\d+$/.test(prefix)) return prefix.slice(1);
+    return null;
 }
