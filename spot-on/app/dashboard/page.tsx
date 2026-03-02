@@ -1,67 +1,65 @@
-import OccupyButton from '@/components/dashboard/OccupyButton';
-import StudyDesk from '@/components/study-desk/StudyDesk';
-import { prisma } from '@/lib/prisma';
-import Link from "next/link"
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import FloorFilter from "@/components/floor/FloorFilter";
+import SpaceCard from "@/components/space/SpaceCard";
+import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
 
 export const dynamic = 'force-dynamic';
 
-export default async function DashboardPage() {
-    const spaces = await prisma.space.findMany({
-        include: {
-            sessions: {
-                where: {
-                    status: 'ACTIVE',
-                    expectedEndTime: {
-                        gt: new Date(),
-                    },
+export default async function DashboardPage({ searchParams }: Readonly<{ searchParams: Promise<{ floor?: string }> }>) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+        redirect('/api/auth/signin?callbackUrl=/dashboard');
+    }
+
+    const { floor } = await searchParams;
+    const selectedFloor = floor ?? null;
+
+    const [spaces, floorPlans] = await Promise.all([
+        prisma.space.findMany({
+            include: {
+                floorPlan: { select: { name: true } },
+                sessions: {
+                    where: { status: 'ACTIVE', expectedEndTime: { gt: new Date() } },
+                    select: { id: true },
+                    take: 1,
                 },
-                select: { id: true },
-                take: 1,
             },
-        },
-        orderBy: {
-            createdAt: 'desc',
-        },
-    });
+            where: selectedFloor ? { floorPlan: { name: selectedFloor } } : undefined,
+            orderBy: { createdAt: 'desc' },
+        }),
+        prisma.floorPlan.findMany({
+            select: { name: true },
+            orderBy: { name: 'asc' },
+        }),
+    ]);
 
     return (
-        <main className="min-h-screen p-8">
+        <main className="min-h-screen bg-gray-950 p-8 text-white">
             <section className="mx-auto max-w-6xl">
-                <div className="mb-6 flex items-center justify-between">
-                    <h1 className="text-3xl font-bold">Study Desks</h1>
-                    <Link href="/profile" className="rounded-lg border px-4 py-2 text-sm hover:bg-white/10">
-                        Ver perfil
-                    </Link>
-                </div>
-                {spaces.length === 0
-                    ? (
-                        <p className="text-sm opacity-70">
-                            No study spaces found.
-                        </p>
-                    )
-                    : (
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                            {spaces.map((space) => {
-                                const isOccupied = space.sessions.length > 0;
-                                return (
-                                    <article key={space.id} className="rounded-lg border p-4">
-                                        <h2 className="text-lg font-semibold">
-                                            {space.name}
-                                        </h2>
-                                        <p className="text-sm opacity-70">
-                                            Capacity: {space.capacity}
-                                        </p>
-                                        <StudyDesk
-                                            seats={space.capacity > 1 ? 4 : 1}
-                                            shape={space.type === 'GROUP_ROOM' ? 'rectangular' : 'circular'}
-                                            initialStatus={isOccupied ? 'occupied' : 'available'}
-                                        />
-                                        <OccupyButton spaceId={space.id} isOccupied={isOccupied} />
-                                    </article>
-                                );
-                            })}
-                        </div>
-                    )}
+                <DashboardHeader />
+                <FloorFilter floorPlans={floorPlans} selectedFloor={selectedFloor} />
+
+                {spaces.length === 0 ? (
+                    <p className="text-sm text-gray-500">Nenhum espaço encontrado.</p>
+                ) : (
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {spaces.map((space) => (
+                            <SpaceCard
+                                key={space.id}
+                                id={space.id}
+                                name={space.name}
+                                capacity={space.capacity}
+                                hasPowerOutlet={space.hasPowerOutlet}
+                                type={space.type}
+                                description={space.description}
+                                isOccupied={space.sessions.length > 0}
+                            />
+                        ))}
+                    </div>
+                )}
             </section>
         </main>
     );

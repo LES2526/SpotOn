@@ -1,6 +1,6 @@
 'use client'
 
-import DeskIcon, { DeskStatus } from "./deskIcon";
+import DeskIcon, { DeskStatus } from "./DeskIcon";
 
 interface StudyDeskProps {
     seats: 1 | 4;

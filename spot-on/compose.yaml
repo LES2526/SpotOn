@@ -6,6 +6,7 @@ services:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: spot_on_db
+      POSTGRES_INITDB_ARGS: "--locale=C --encoding=UTF8"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -25,6 +26,8 @@ services:
     env_file: .env
     environment:
       DATABASE_URL: postgresql://admin:admin@db:5432/spot_on_db
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: q/ap6iLt2BciK65X1IyJNxArHC5JdTx2KaR35lM0mtY=
       CHOKIDAR_USEPOLLING: "true"
       WATCHPACK_POLLING: "true"
     volumes:
