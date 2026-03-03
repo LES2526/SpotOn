@@ -26,9 +26,35 @@ import { NextResponse } from 'next/server';
 type Params = { params: { spaceId: string } };
 
 /**
- * POST handler — Occupy a study space.
- *
- * Creates a new active study session for the authenticated user in the specified space.
+ * @swagger
+ * /api/spaces/{spaceId}/sessions:
+ *   post:
+ *     summary: Occupy a study space
+ *     description: Creates a new active study session for the authenticated user in the specified space. Session duration defaults to 1 hour from the time of creation.
+ *     tags:
+ *       - Sessions
+ *     parameters:
+ *       - in: path
+ *         name: spaceId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the space to occupy
+ *     responses:
+ *       201:
+ *         description: Session created successfully
+ *        
+ *       401:
+ *         description: Unauthorized - User is not authenticated
+ *       404:
+ *         description: Not Found - Space does not exist
+ *       409:
+ *         description: Conflict - Space is already occupied or user has an active session in another space
+ *       500:
+ *         description: Internal Server Error - An unexpected error occurred POST handler — Occupy a study space.
+ */ 
+
+/* Creates a new active study session for the authenticated user in the specified space.
  * Session duration defaults to 1 hour from the time of creation.
  *
  * @param {Request} _request - Incoming HTTP request (unused)
@@ -93,7 +119,41 @@ export async function POST(_request: Request, { params }: Params) {
 }
 
 /**
- * DELETE handler — Release a study space.
+ * @swagger
+ * /api/spaces/{spaceId}/sessions:
+ *   delete:
+ *     summary: Release a study space
+ *     description: Marks the authenticated user's active session in the specified space as COMPLETED, effectively freeing the space for other users.
+ *     tags:
+ *       - Sessions
+ *     parameters:
+ *       - in: path
+ *         name: spaceId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the space to release
+ *     responses:
+ *       200:
+ *         description: Session released successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *       401:
+ *         description: Unauthorized - User is not authenticated
+ *       404:
+ *         description: Not Found - No active session exists for the user in this space
+ *       500:
+ *         description: Internal Server Error - An unexpected error occurred
+ */
+
+
+/* DELETE handler — Release a study space.
  *
  * Marks the authenticated user's active session in the specified space as COMPLETED,
  * effectively freeing the space for other users.
