@@ -37,6 +37,7 @@ model User {
 
     hostedStudySessions StudySession[]       @relation("SessionHost")
     participations      UserOnStudySession[]
+    reports             Report[]
 }
 
 /// NextAuth authentication providers.
@@ -100,6 +101,12 @@ enum SpaceType {
     GROUP_ROOM
 }
 
+enum ReportStatus {
+    OPEN
+    RESOLVED
+    EXPIRED
+}
+
 /// Floor plan canvas. Spaces are positioned relative to this container.
 model FloorPlan {
     id          String @id @default(cuid()) @db.VarChar(30)
@@ -156,6 +163,7 @@ model StudySession {
     host  User  @relation("SessionHost", fields: [hostId], references: [id])
 
     participants UserOnStudySession[]
+    reports      Report[]
 }
 
 /// User participation in study session (pivot table).
@@ -170,4 +178,21 @@ model UserOnStudySession {
     session StudySession @relation(fields: [sessionId], references: [id])
 
     @@id([userId, sessionId])
+}
+
+/// User report about a study session.
+model Report {
+    id         String       @id @default(cuid()) @db.VarChar(30)
+    reporterId String       @db.VarChar(30)
+    sessionId  String       @db.VarChar(30)
+    reason     String       @db.VarChar(255)
+    status     ReportStatus @default(OPEN)
+
+    createdAt     DateTime  @default(now())
+    updatedAt     DateTime  @default(now()) @updatedAt
+    timeToConfirm DateTime  @default(dbgenerated("now() + interval '10 minutes'")) /// 10 minutes to confirm the report
+    confirmedAt   DateTime?
+
+    reporter User         @relation(fields: [reporterId], references: [id])
+    session  StudySession @relation(fields: [sessionId], references: [id])
 }
