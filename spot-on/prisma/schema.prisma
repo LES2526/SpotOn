@@ -84,6 +84,12 @@ model VerificationToken {
 // Spot-On Domain Models
 // ============================================
 
+// --------------------------------------------
+// Enums
+// - SessionStatus, InvitationStatus, SpaceType,
+//   ReportStatus
+// --------------------------------------------
+
 enum SessionStatus {
     ACTIVE
     COMPLETED
@@ -108,6 +114,9 @@ enum ReportStatus {
 }
 
 /// Floor plan canvas. Spaces are positioned relative to this container.
+// --------------------------------------------
+// Floor plan & Spaces
+// --------------------------------------------
 model FloorPlan {
     id          String @id @default(cuid()) @db.VarChar(30)
     name        String @db.VarChar(255)
@@ -123,6 +132,9 @@ model FloorPlan {
 }
 
 /// Study space
+// --------------------------------------------
+// Space model
+// --------------------------------------------
 model Space {
     id             String    @id @default(cuid()) @db.VarChar(30)
     floorPlanId    String    @db.VarChar(30)
@@ -145,6 +157,9 @@ model Space {
 }
 
 /// Study session in a space.
+// --------------------------------------------
+// Sessions
+// --------------------------------------------
 model StudySession {
     id      String @id @default(cuid()) @db.VarChar(30)
     spaceId String @db.VarChar(30)
@@ -167,6 +182,9 @@ model StudySession {
 }
 
 /// User participation in study session (pivot table).
+// --------------------------------------------
+// Participation (pivot) models
+// --------------------------------------------
 model UserOnStudySession {
     userId    String @db.VarChar(30)
     sessionId String @db.VarChar(30)
@@ -181,6 +199,9 @@ model UserOnStudySession {
 }
 
 /// User report about a study session.
+// --------------------------------------------
+// Reports
+// --------------------------------------------
 model Report {
     id         String       @id @default(cuid()) @db.VarChar(30)
     reporterId String       @db.VarChar(30)
