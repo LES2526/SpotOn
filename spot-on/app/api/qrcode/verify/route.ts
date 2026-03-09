@@ -14,6 +14,7 @@
 
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { prisma } from '@/lib/prisma';
+import { verifyQrCode, VerifyResult } from '@/lib/qr-utils';
 import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 
@@ -131,69 +132,55 @@ export async function GET(_request: Request, { params }: Params) {
 
 /**
  * @swagger
- * /api/qrcode/{token}:
+ * /api/qrcode/verify:
  *   post:
- *     summary: Occupy a space via QR code
+ *     summary: Occupy a space via HMAC-signed QR code
  *     description: >
- *       Creates a new active study session for the authenticated user in the space
- *       identified by the QR token. Semantically equivalent to
- *       POST /api/spaces/{spaceId}/sessions but keyed by QR token, which supports
- *       future token rotation without exposing internal IDs in printed codes.
- *       Session duration defaults to 1 hour if no end time is provided.
+ *       Verifies the HMAC signature and time window of a scanned QR code,
+ *       then creates a new active study session for the authenticated user
+ *       in the identified space. Session duration defaults to 1 hour if no
+ *       end time is provided.
  *     tags:
  *       - QR Code
- *     parameters:
- *       - in: path
- *         name: token
- *         required: true
- *         schema:
- *           type: string
- *         description: The QR token printed on the space's label
  *     requestBody:
- *       required: false
+ *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - spaceId
+ *               - qrWindow
+ *               - sig
  *             properties:
+ *               spaceId:
+ *                 type: string
+ *                 description: The space's database ID, embedded in the QR code URL.
+ *                 example: "abc123"
+ *               qrWindow:
+ *                 type: integer
+ *                 description: The time window the QR was generated in (Math.floor(Date.now() / 5000)).
+ *                 example: 348305280
+ *               sig:
+ *                 type: string
+ *                 description: HMAC-SHA256 signature hex string proving the QR is genuine.
+ *                 example: "a3f9c2d1e4b5..."
  *               expectedEndTime:
  *                 type: string
  *                 format: date-time
- *                 description: Optional ISO 8601 datetime for when the session should end. Defaults to 1 hour from now.
+ *                 description: Optional ISO 8601 end time. Defaults to 1 hour from now.
  *                 example: "2026-03-09T15:00:00.000Z"
  *     responses:
  *       201:
  *         description: Session created successfully
  *       400:
- *         description: Bad Request - expectedEndTime is in the past
+ *         description: Bad Request - invalid/expired QR signature, or expectedEndTime is in the past
  *       401:
- *         description: Unauthorized - User is not authenticated
- *       404:
- *         description: Not Found - No space matches this QR token
+ *         description: Unauthorized - user is not authenticated
  *       409:
- *         description: Conflict - Space is already occupied, or user already has an active session
+ *         description: Conflict - space is already occupied, or user already has an active session
  *       500:
  *         description: Internal Server Error
- */
-
-/**
- * POST handler — Occupy a space via QR token.
- *
- * Resolves the QR token to a space, then creates a new ACTIVE study session
- * for the authenticated user with a 1-hour expected duration.
- *
- * Rejects with 409 if:
- * - The space already has an ACTIVE session
- * - The user already has an ACTIVE session in any other space
- *
- * @param {Request} _request - Incoming HTTP request (unused)
- * @param {Params} params - Route parameters containing the QR token
- * @returns {Promise<NextResponse>} The created session object with status 201, or an error response
- *
- * @throws {401} If the user is not authenticated
- * @throws {404} If no space matches the given token
- * @throws {409} If the space is already occupied or the user has an active session
- * @throws {500} If an unexpected error occurs
  */
 export async function POST(_request: Request, { params }: Params) {
     try {
@@ -202,26 +189,21 @@ export async function POST(_request: Request, { params }: Params) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { token } = await params;
+        const { spaceId, qrWindow, sig, expectedEndTime } = await _request.json();
 
-        const body = await _request.json().catch(() => ({}));
-        const expectedEndTime = body.expectedEndTime 
-            ? new Date(body.expectedEndTime) 
-            : new Date(Date.now() + 60 * 60 * 1000);
+        const qrCode: VerifyResult = verifyQrCode(spaceId, qrWindow, sig);
 
-        // Resolve QR token → space
-        const space = await prisma.space.findUnique({
-            where: { currentQrToken: token },
-            select: { id: true },
-        });
-
-        if (!space) {
-            return NextResponse.json({ error: 'QR code not recognised' }, { status: 404 });
+        if (qrCode.valid === false) {
+            return NextResponse.json({ error: qrCode.reason }, { status: 400 });
         }
+
+        const rawEndTime = expectedEndTime
+        ? new Date(expectedEndTime)
+        : new Date(Date.now() + 60 * 60 * 1000);
 
         // Check if the space is already occupied by an active session
         const spaceOccupied = await prisma.studySession.findFirst({
-            where: { spaceId: space.id, status: 'ACTIVE' },
+            where: { spaceId: qrCode.spaceId, status: 'ACTIVE' },
         });
         if (spaceOccupied) {
             return NextResponse.json({ error: 'Space is already occupied' }, { status: 409 });
@@ -238,7 +220,7 @@ export async function POST(_request: Request, { params }: Params) {
             );
         }
 
-        if (expectedEndTime <= new Date()) {
+        if (rawEndTime <= new Date()) {
             return NextResponse.json(
                 { error: 'expectedEndTime must be in the future' },
                 { status: 400 },
@@ -248,9 +230,9 @@ export async function POST(_request: Request, { params }: Params) {
         // Create the study session with a default 1-hour window
         const newSession = await prisma.studySession.create({
             data: {
-                spaceId: space.id,
+                spaceId: qrCode.spaceId,
                 hostId: session.user.id,
-                expectedEndTime,
+                expectedEndTime: rawEndTime,
             },
         });
 
