@@ -73,7 +73,7 @@ export const PATCH = async (_request: Request, { params }: Params) => {
                             actualEndTime: new Date()
                         }
                     });
-                    throw new Error('EXPIRED');
+                    return { expired: true };
                 }
                 return await tx.report.update({
                     where: { id: existingReport.id },
@@ -97,6 +97,11 @@ export const PATCH = async (_request: Request, { params }: Params) => {
                 }
                 throw error;
             }
+        }
+        if (report && 'expired' in report) {
+            return NextResponse.json({
+                error: 'The time to confirm this report has expired'
+            }, { status: 400 });
         }
         return NextResponse.json(report, { status: 200 });
     } catch (error) {
