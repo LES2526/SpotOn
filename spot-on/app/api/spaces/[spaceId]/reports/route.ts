@@ -95,7 +95,7 @@ export const POST = async (_request: Request, { params }: Params) => {
                 if (error.message === 'COOLDOWN') {
                     return NextResponse.json({
                         error: 'This space has already been reported in the last 30 minutes'
-                    }, { status: 429 });
+                    }, { status: 409 });
                 }
             }
             throw error;
