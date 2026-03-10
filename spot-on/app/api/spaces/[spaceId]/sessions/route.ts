@@ -43,7 +43,7 @@ type Params = { params: { spaceId: string } };
  *     responses:
  *       201:
  *         description: Session created successfully
- *        
+ *
  *       401:
  *         description: Unauthorized - User is not authenticated
  *       404:
@@ -52,7 +52,7 @@ type Params = { params: { spaceId: string } };
  *         description: Conflict - Space is already occupied or user has an active session in another space
  *       500:
  *         description: Internal Server Error - An unexpected error occurred POST handler — Occupy a study space.
- */ 
+ */
 
 /* Creates a new active study session for the authenticated user in the specified space.
  * Session duration defaults to 1 hour from the time of creation.
@@ -74,7 +74,7 @@ export async function POST(_request: Request, { params }: Params) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { spaceId } = await params;
+        const { spaceId } = params;
 
         // Verify the space exists
         const space = await prisma.space.findUnique({ where: { id: spaceId } });
@@ -175,7 +175,7 @@ export async function DELETE(_request: Request, { params }: Params) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { spaceId } = await params;
+        const { spaceId } = params;
 
         // Find the user's active session in this space
         const activeSession = await prisma.studySession.findFirst({
@@ -187,7 +187,9 @@ export async function DELETE(_request: Request, { params }: Params) {
         });
 
         if (!activeSession) {
-            return NextResponse.json({ error: 'No active session found for this space' }, { status: 404 });
+            return NextResponse.json({
+                error: 'No active session found for this space'
+            }, { status: 404 });
         }
 
         // Mark the session as completed and set the end time to now

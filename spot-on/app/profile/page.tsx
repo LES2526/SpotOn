@@ -8,7 +8,7 @@ import { redirect } from "next/navigation";
 
 export default async function ProfilePage() {
     const session = await getServerSession(authOptions);
-    console.log("SESSION NO PROFILE:", JSON.stringify(session));
+
     if (!session?.user?.id) {
         redirect("/api/auth/signin?callbackUrl=/dashboard");
     }
