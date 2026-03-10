@@ -63,6 +63,7 @@ export const config = {
      * - `/qrcode/:path*` - All QR code scanning and generation routes
      */
     matcher: [
-        "/qrcode/:path*",
+        "/dashboard/:path*",
+        "/profile/:path*",
     ],
 };
