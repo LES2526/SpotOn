@@ -1,9 +1,65 @@
+/**
+ * @fileoverview API route handler for confirming reports in a specific space.
+ *
+ * Allows session host or accepted participants to confirm an open report.
+ * Requires authentication via NextAuth.js session.
+ *
+ * @module app/api/spaces/[spaceId]/reports/confirm/route
+ * @requires next-auth
+ * @requires @/lib/prisma
+ *
+ * @author Spot-On Team
+ * @since 1.0.0
+ */
+
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
 type Params = { params: { spaceId: string } };
+
+/**
+ * @swagger
+ * /api/spaces/{spaceId}/reports/confirm:
+ *   patch:
+ *     summary: Confirm an open report
+ *     description: Confirms an open report for the active session in the space. Only the host or accepted participants of the active session can confirm.
+ *     tags:
+ *       - Reports
+ *     parameters:
+ *       - in: path
+ *         name: spaceId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the space where the report is being confirmed
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - qrToken
+ *             properties:
+ *               qrToken:
+ *                 type: string
+ *                 description: Current QR token displayed in the target space
+ *     responses:
+ *       200:
+ *         description: Report confirmed successfully
+ *       400:
+ *         description: Bad Request - Invalid QR token or report confirmation window has expired
+ *       401:
+ *         description: Unauthorized - User is not authenticated
+ *       403:
+ *         description: Forbidden - User is not host or accepted participant of the active session
+ *       404:
+ *         description: Not Found - Space, active session, or open report not found
+ *       500:
+ *         description: Internal Server Error - An unexpected error occurred
+ */
 
 export const PATCH = async (_request: Request, { params }: Params) => {
     try {
