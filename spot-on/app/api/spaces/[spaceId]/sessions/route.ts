@@ -187,7 +187,9 @@ export async function DELETE(_request: Request, { params }: Params) {
         });
 
         if (!activeSession) {
-            return NextResponse.json({ error: 'No active session found for this space' }, { status: 404 });
+            return NextResponse.json({
+                error: 'No active session found for this space'
+            }, { status: 404 });
         }
 
         // Mark the session as completed and set the end time to now

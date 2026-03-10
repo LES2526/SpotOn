@@ -25,6 +25,9 @@ export const POST = async (_request: Request, { params }: Params) => {
             return NextResponse.json({ error: 'Invalid QR token' },
                 { status: 400 });
         }
+        if (!body.reason || body.reason.trim() === '') {
+            return NextResponse.json({ error: 'Reason is required' }, { status: 400 });
+        }
         const activeSession = await prisma.studySession.findFirst({
             where: { spaceId, status: 'ACTIVE' },
         });
@@ -42,6 +45,7 @@ export const POST = async (_request: Request, { params }: Params) => {
             where: {
                 userId: session.user.id,
                 sessionId: activeSession.id,
+                status: 'ACCEPTED',
             }
         });
         if (isParticipant) {
@@ -49,36 +53,53 @@ export const POST = async (_request: Request, { params }: Params) => {
                 error: 'Participants cannot report the session'
             }, { status: 403 });
         }
-        const existingReport = await prisma.report.findFirst({
-            where: {
-                reporterId: session.user.id,
-                sessionId: activeSession.id,
-                status: 'OPEN',
+        let report;
+        try {
+            report = await prisma.$transaction(async (tx) => {
+                const existingReport = await tx.report.findFirst({
+                    where: {
+                        sessionId: activeSession.id,
+                        status: 'OPEN',
+                    }
+                });
+                if (existingReport) {
+                    throw new Error('DUPLICATE');
+                }
+                const recentReport = await tx.report.findFirst({
+                    where: {
+                        session: { spaceId },
+                        status: 'OPEN',
+                        createdAt: {
+                            gt: new Date(Date.now() - 1000 * 60 * 30)
+                        },
+                    }
+                });
+                if (recentReport) {
+                    throw new Error('COOLDOWN');
+                }
+                return await tx.report.create({
+                    data: {
+                        reporterId: session.user.id,
+                        sessionId: activeSession.id,
+                        reason: body.reason,
+                    }
+                });
+            });
+        } catch (error) {
+            if (error instanceof Error) {
+                if (error.message === 'DUPLICATE') {
+                    return NextResponse.json({
+                        error: 'This session has already been reported'
+                    }, { status: 409 });
+                }
+                if (error.message === 'COOLDOWN') {
+                    return NextResponse.json({
+                        error: 'This space has already been reported in the last 30 minutes'
+                    }, { status: 429 });
+                }
             }
-        });
-        if (existingReport) {
-            return NextResponse.json({
-                error: 'You have already reported this session'
-            }, { status: 409 });
+            throw error;
         }
-        const recentReport = await prisma.report.findFirst({
-            where: {
-                session: { spaceId },
-                createdAt: { gt: new Date(Date.now() - 1000 * 60 * 30) },
-            }
-        });
-        if (recentReport) {
-            return NextResponse.json({
-                error: 'This space has already been reported in the last 30 minutes'
-            }, { status: 429 });
-        }
-        const report = await prisma.report.create({
-            data: {
-                reporterId: session.user.id,
-                sessionId: activeSession.id,
-                reason: body.reason,
-            }
-        });
         return NextResponse.json(report, { status: 201 });
     } catch (error) {
         console.error('Error creating report:', error);
