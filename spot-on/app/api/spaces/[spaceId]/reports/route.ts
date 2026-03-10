@@ -1,9 +1,70 @@
+/**
+ * @fileoverview API route handler for creating reports about active study sessions in a specific space.
+ *
+ * Requires authentication via NextAuth.js session.
+ *
+ * @module app/api/spaces/[spaceId]/reports/route
+ * @requires next-auth
+ * @requires @/lib/prisma
+ *
+ * @author Spot-On Team
+ * @since 1.0.0
+ */
+
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
 type Params = { params: { spaceId: string } };
+
+/**
+ * @swagger
+ * /api/spaces/{spaceId}/reports:
+ *   post:
+ *     summary: Create a report for an active session
+ *     description: Allows an authenticated external user to report an active study session in a space by validating the QR token and providing a reason.
+ *     tags:
+ *       - Reports
+ *     parameters:
+ *       - in: path
+ *         name: spaceId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the space where the report is being submitted
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - qrToken
+ *               - reason
+ *             properties:
+ *               qrToken:
+ *                 type: string
+ *                 description: Current QR token displayed in the target space
+ *               reason:
+ *                 type: string
+ *                 description: Report reason provided by the user
+ *     responses:
+ *       201:
+ *         description: Report created successfully
+ *       400:
+ *         description: Bad Request - Invalid QR token, missing reason, or self-report attempt
+ *       401:
+ *         description: Unauthorized - User is not authenticated
+ *       403:
+ *         description: Forbidden - Accepted participants cannot report the session
+ *       404:
+ *         description: Not Found - Space or active session not found
+ *       409:
+ *         description: Conflict - Session already reported or report cooldown is active
+ *       500:
+ *         description: Internal Server Error - An unexpected error occurred
+ */
 
 export const POST = async (_request: Request, { params }: Params) => {
     try {
