@@ -39,6 +39,7 @@ export const PATCH = async (_request: Request, { params }: Params) => {
             where: {
                 userId: session.user.id,
                 sessionId: activeSession.id,
+                status: 'ACCEPTED',
             }
         });
         if (!isParticipant && activeSession.hostId !== session.user.id) {
@@ -46,45 +47,58 @@ export const PATCH = async (_request: Request, { params }: Params) => {
                 { error: 'Only participants and host can confirm reports' },
                 { status: 403 });
         }
-        const report = await prisma.report.findFirst({
-            where: {
-                sessionId: activeSession.id,
-                status: 'OPEN',
-            }
-        });
-        if (!report) {
-            return NextResponse.json({
-                error: 'No open report found for this session'
-            }, { status: 404 });
-        }
-        if (report.timeToConfirm < new Date()) {
-            await prisma.report.update({
-                where: { id: report.id },
-                data: {
-                    status: 'EXPIRED',
+        let report;
+        try {
+            report = await prisma.$transaction(async (tx) => {
+                const existingReport = await tx.report.findFirst({
+                    where: {
+                        sessionId: activeSession.id,
+                        status: 'OPEN',
+                    }
+                });
+                if (!existingReport) {
+                    throw new Error('NOT_FOUND');
                 }
-            });
-            await prisma.studySession.update({
-                where: { id: activeSession.id },
-                data: {
-                    status: 'EXPIRED',
-                    actualEndTime: new Date()
+                if (existingReport.timeToConfirm < new Date()) {
+                    await tx.report.update({
+                        where: { id: existingReport.id },
+                        data: {
+                            status: 'EXPIRED',
+                        }
+                    });
+                    await tx.studySession.update({
+                        where: { id: activeSession.id },
+                        data: {
+                            status: 'EXPIRED',
+                            actualEndTime: new Date()
+                        }
+                    });
+                    throw new Error('EXPIRED');
                 }
+                return await tx.report.update({
+                    where: { id: existingReport.id },
+                    data: {
+                        status: 'RESOLVED',
+                        confirmedAt: new Date(),
+                    }
+                });
             });
-            return NextResponse.json({
-                error: 'The time to confirm this report has expired'
-            }, { status: 400 });
-        }
-        await prisma.report.update({
-            where: { id: report.id },
-            data: {
-                status: 'RESOLVED',
-                confirmedAt: new Date(),
+        } catch (error) {
+            if (error instanceof Error) {
+                if (error.message === 'NOT_FOUND') {
+                    return NextResponse.json({
+                        error: 'No open report found for this session'
+                    }, { status: 404 });
+                }
+                if (error.message === 'EXPIRED') {
+                    return NextResponse.json({
+                        error: 'The time to confirm this report has expired'
+                    }, { status: 400 });
+                }
+                throw error;
             }
-        });
-        return NextResponse.json({
-            message: 'Report confirmed successfully'
-        }, { status: 200 });
+        }
+        return NextResponse.json(report, { status: 200 });
     } catch (error) {
         console.error('Error updating report:', error);
         return NextResponse.json({ error: 'Failed to update report' }, { status: 500 });
