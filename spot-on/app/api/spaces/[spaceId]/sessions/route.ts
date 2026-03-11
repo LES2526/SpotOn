@@ -172,7 +172,8 @@ export async function DELETE(_request: Request, { params }: Params) {
     try {
         const session = await getServerSession(authOptions);
         if (!session?.user?.id) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json(
+                { error: 'Unauthorized' }, { status: 401 });
         }
 
         const { spaceId } = await Promise.resolve(params);

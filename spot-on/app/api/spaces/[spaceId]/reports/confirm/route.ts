@@ -60,7 +60,6 @@ type Params = { params: { spaceId: string } };
  *       500:
  *         description: Internal Server Error - An unexpected error occurred
  */
-
 export const PATCH = async (_request: Request, { params }: Params) => {
     try {
         const session = await getServerSession(authOptions);
