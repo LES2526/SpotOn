@@ -1,5 +1,6 @@
 import OccupyButton from "@/components/button/OccupyButton";
 import StudyDesk from "@/components/study-desk/StudyDesk";
+import Link from "next/link";
 
 type SpaceCardProps = {
     id: string;
@@ -44,6 +45,14 @@ export default function SpaceCard({ id, name, capacity, hasPowerOutlet, type, de
 
             <div className="mt-auto pt-4">
                 <OccupyButton spaceId={id} isOccupied={isOccupied} />
+                {isOccupied && (
+                    <Link
+                        href={`/spaces/${id}/report`}
+                        className="block w-full rounded px-4 py-2 text-center text-sm font-medium text-red-400 border border-red-900 hover:bg-red-950 transition-colors"
+                    >
+                        Denunciar mesa vazia
+                    </Link>
+                )}
             </div>
         </article>
     );
