@@ -23,7 +23,7 @@ import { NextResponse } from 'next/server';
  * @typedef {Object} Params
  * @property {Promise<{ spaceId: string }>} params - Resolved route parameters
  */
-type Params = { params: { spaceId: string } };
+type Params = { params: { spaceId: string } | Promise<{ spaceId: string }> };
 
 /**
  * @swagger
@@ -74,7 +74,7 @@ export async function POST(_request: Request, { params }: Params) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { spaceId } = params;
+        const { spaceId } = await Promise.resolve(params);
 
         // Verify the space exists
         const space = await prisma.space.findUnique({ where: { id: spaceId } });
@@ -175,7 +175,7 @@ export async function DELETE(_request: Request, { params }: Params) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { spaceId } = params;
+        const { spaceId } = await Promise.resolve(params);
 
         // Find the user's active session in this space
         const activeSession = await prisma.studySession.findFirst({

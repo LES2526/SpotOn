@@ -95,7 +95,7 @@ export async function GET(_request: Request, { params }: Params) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { token } = await params;
+    const { token } = params;
 
     const space = await prisma.space.findUnique({
         where: { currentQrToken: token },
@@ -182,7 +182,7 @@ export async function GET(_request: Request, { params }: Params) {
  *       500:
  *         description: Internal Server Error
  */
-export async function POST(_request: Request, { params }: Params) {
+export async function POST(_request: Request) {
     try {
         const session = await getServerSession(authOptions);
         if (!session?.user?.id) {
