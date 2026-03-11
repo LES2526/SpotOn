@@ -189,8 +189,6 @@ export async function POST(_request: Request, { params }: Params) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-
-
         const { spaceId, qrWindow, sig, expectedEndTime } = await _request.json();
 
         const qrCode: VerifyResult = verifyQrCode(spaceId, qrWindow, sig);

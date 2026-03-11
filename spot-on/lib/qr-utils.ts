@@ -15,7 +15,7 @@
 import { createHmac, timingSafeEqual } from 'crypto';
 
 /** Duration of each QR window in milliseconds. */
-const WINDOW_MS = 5000;
+const WINDOW_MS = 30000;
 
 /**
  * Returns the current window number.
@@ -135,18 +135,21 @@ export function verifyQrCode(
     sig: string | null,
 ): VerifyResult {
     // Step 1 — all params must be present
+    
     if (!spaceId || !window || !sig) {
         return { valid: false, reason: 'missing_params' };
     }
 
+    const windowNumber = window !== null ? Number(window) : null;
+
     // Step 2 — window must be current or previous (grace period)
     const now = currentWindow();
-    if (window !== now && window !== previousWindow()) {
+    if (windowNumber !== now && windowNumber !== previousWindow()) {
         return { valid: false, reason: 'expired' };
     }
 
     // Step 3 — timing-safe HMAC comparison
-    const expected = generateSignature(spaceId, window);
+    const expected = generateSignature(spaceId, windowNumber);
 
     try {
         const sigBuffer = Buffer.from(sig, 'hex');
@@ -159,7 +162,7 @@ export function verifyQrCode(
 
         const match = timingSafeEqual(sigBuffer, expectedBuffer);
         return match
-            ? { valid: true, spaceId, window }
+            ? { valid: true, spaceId, window: windowNumber }
             : { valid: false, reason: 'invalid_signature' };
     } catch {
         return { valid: false, reason: 'invalid_signature' };
