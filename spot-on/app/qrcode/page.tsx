@@ -1,8 +1,7 @@
 'use client'
 
-import axios from "axios";
-import { SessionProvider, useSession } from "next-auth/react"
-import { redirect, useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react"
+import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { useState } from "react";
 import SuccessStatus from "./Success";
@@ -76,7 +75,9 @@ export default function OccupySpacePage() {
             )}
             {status === 'success' && (
                 <>
+                    
                     <SuccessStatus spaceId={spaceId} />
+                    
                 </>
             )}
             {status === 'occupied' && (
