@@ -90,6 +90,14 @@ describe('Reports API', () => {
         });
         const sessionIds = sessions.map(s => s.id);
 
+        const reportIds = (
+            await prisma.report.findMany({
+                where: { sessionId: { in: sessionIds } },
+                select: { id: true },
+            })
+        ).map(r => r.id);
+
+        await prisma.reportConfirmation.deleteMany({ where: { reportId: { in: reportIds } } });
         await prisma.report.deleteMany({ where: { sessionId: { in: sessionIds } } });
         await prisma.userOnStudySession.deleteMany({ where: { sessionId: { in: sessionIds } } });
         await prisma.studySession.deleteMany({ where: { spaceId: testSpace.id } });
@@ -267,6 +275,17 @@ describe('Reports API', () => {
             expect(response.status).toBe(401);
         });
 
+        it('deve devolver 404 se o espaço não existir', async () => {
+            (getServerSession as jest.Mock).mockResolvedValue({ user: { id: hostUser.id } });
+
+            const response = await PATCH(
+                mockRequest({ qrToken: 'any' }),
+                { params: { spaceId: 'nonexistent' } }
+            );
+
+            expect(response.status).toBe(404);
+        });
+
         it('deve devolver 400 se o QR token for inválido', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({ user: { id: hostUser.id } });
 
@@ -300,7 +319,30 @@ describe('Reports API', () => {
             expect(response.status).toBe(404);
         });
 
-        it('deve confirmar denúncia com host válido', async () => {
+        it('deve devolver 409 se utilizador já confirmou', async () => {
+            (getServerSession as jest.Mock).mockResolvedValue({ user: { id: hostUser.id } });
+
+            const report = await prisma.report.create({
+                data: {
+                    reporterId: reporterUser.id,
+                    sessionId: activeSession.id,
+                    reason: 'Mesa ocupada',
+                    timeToConfirm: new Date(Date.now() + 1000 * 60 * 10),
+                },
+            });
+            await prisma.reportConfirmation.create({
+                data: { reportId: report.id, userId: hostUser.id },
+            });
+
+            const response = await PATCH(
+                mockRequest({ qrToken: testSpace.currentQrToken }),
+                { params: { spaceId: testSpace.id } }
+            );
+
+            expect(response.status).toBe(409);
+        });
+
+        it('deve devolver 200 com pending se nem todos confirmaram', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({ user: { id: hostUser.id } });
 
             await prisma.report.create({
@@ -318,15 +360,11 @@ describe('Reports API', () => {
             );
 
             const body = await response.json();
-
             expect(response.status).toBe(200);
-            expect(body.status).toBe('RESOLVED');
-            expect(body.confirmedAt).toBeTruthy();
+            expect(body.message).toBe('Confirmation registered, waiting for others');
         });
 
-        it('deve confirmar denúncia com participante ACCEPTED', async () => {
-            (getServerSession as jest.Mock).mockResolvedValue({ user: { id: acceptedParticipant.id } });
-
+        it('deve marcar denúncia como RESOLVED quando todos os participantes confirmam', async () => {
             await prisma.report.create({
                 data: {
                     reporterId: reporterUser.id,
@@ -336,15 +374,26 @@ describe('Reports API', () => {
                 },
             });
 
+            // acceptedParticipant confirma primeiro
+            (getServerSession as jest.Mock).mockResolvedValue({ user: { id: acceptedParticipant.id } });
+            await PATCH(
+                mockRequest({ qrToken: testSpace.currentQrToken }),
+                { params: { spaceId: testSpace.id } }
+            );
+
+            // host confirma por último — todos confirmaram
+            (getServerSession as jest.Mock).mockResolvedValue({ user: { id: hostUser.id } });
             const response = await PATCH(
                 mockRequest({ qrToken: testSpace.currentQrToken }),
                 { params: { spaceId: testSpace.id } }
             );
 
+            const body = await response.json();
             expect(response.status).toBe(200);
+            expect(body.status).toBe('RESOLVED');
         });
 
-        it('deve expirar denúncia e terminar sessão se timeToConfirm passou (lazy expiration)', async () => {
+        it('deve expirar denúncia e encerrar sessão se timeToConfirm passou sem confirmações', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({ user: { id: hostUser.id } });
 
             const report = await prisma.report.create({
@@ -361,7 +410,9 @@ describe('Reports API', () => {
                 { params: { spaceId: testSpace.id } }
             );
 
-            expect(response.status).toBe(400);
+            const body = await response.json();
+            expect(response.status).toBe(200);
+            expect(body.message).toBe('Session expired, space is now free');
 
             const updatedReport = await prisma.report.findUnique({ where: { id: report.id } });
             expect(updatedReport?.status).toBe('EXPIRED');
@@ -369,6 +420,40 @@ describe('Reports API', () => {
             const updatedSession = await prisma.studySession.findUnique({ where: { id: activeSession.id } });
             expect(updatedSession?.status).toBe('EXPIRED');
             expect(updatedSession?.actualEndTime).toBeTruthy();
+        });
+
+        it('deve expirar denúncia mas manter sessão com utilizadores que confirmaram (lazy expiration)', async () => {
+            const report = await prisma.report.create({
+                data: {
+                    reporterId: reporterUser.id,
+                    sessionId: activeSession.id,
+                    reason: 'Mesa ocupada',
+                    timeToConfirm: new Date(Date.now() - 1000 * 60 * 5),
+                },
+            });
+
+            // acceptedParticipant já confirmou antes da expiração
+            await prisma.reportConfirmation.create({
+                data: { reportId: report.id, userId: acceptedParticipant.id },
+            });
+
+            // host tenta confirmar depois da expiração
+            (getServerSession as jest.Mock).mockResolvedValue({ user: { id: hostUser.id } });
+            const response = await PATCH(
+                mockRequest({ qrToken: testSpace.currentQrToken }),
+                { params: { spaceId: testSpace.id } }
+            );
+
+            const body = await response.json();
+            expect(response.status).toBe(200);
+            expect(body.message).toBe('Time expired, session continues with confirmed users');
+
+            const updatedReport = await prisma.report.findUnique({ where: { id: report.id } });
+            expect(updatedReport?.status).toBe('EXPIRED');
+
+            // host não confirmou → novo host passa a ser o primeiro que confirmou
+            const updatedSession = await prisma.studySession.findUnique({ where: { id: activeSession.id } });
+            expect(updatedSession?.hostId).toBe(acceptedParticipant.id);
         });
     });
 });
