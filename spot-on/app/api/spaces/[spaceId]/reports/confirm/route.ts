@@ -1,3 +1,20 @@
+/**
+ * @fileoverview API route handler for confirming open reports on active study sessions.
+ *
+ * Implements lazy expiration: if the report's confirmation deadline has passed,
+ * the first PATCH call expires the report and either ends the session (no confirmations)
+ * or removes non-confirming participants and optionally transfers host (partial confirmations).
+ *
+ * Requires authentication via NextAuth.js session.
+ *
+ * @module app/api/spaces/[spaceId]/reports/confirm/route
+ * @requires next-auth
+ * @requires @/lib/prisma
+ *
+ * @author Spot-On Team
+ * @since 1.0.0
+ */
+
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { Prisma } from "@/app/generated/prisma";
 import { prisma } from "@/lib/prisma";
@@ -70,6 +87,83 @@ async function handleActiveReport(tx: Tx, reportId: string, sessionId: string, h
     return { pending: true };
 }
 
+/**
+ * @swagger
+ * /api/spaces/{spaceId}/reports/confirm:
+ *   patch:
+ *     summary: Confirm an open report for an active session
+ *     description: |
+ *       Allows the session host or an accepted participant to confirm an open report
+ *       by presenting the current QR token of the space.
+ *
+ *       **Confirmation flow:**
+ *       - All accepted participants **and** the host must confirm.
+ *       - Once all required users confirm, the report is marked as `RESOLVED`.
+ *       - Before that, each confirmation returns a `pending` acknowledgement.
+ *
+ *       **Lazy expiration (deadline passed):**
+ *       - If `timeToConfirm` has elapsed and **nobody** confirmed previously,
+ *         the session is marked as `EXPIRED` and the space becomes free.
+ *       - If `timeToConfirm` has elapsed but **some** users confirmed previously,
+ *         non-confirming participants are removed (`REJECTED`) and, if the host
+ *         did not confirm, leadership is transferred to the earliest confirmer.
+ *         The session itself continues.
+ *     tags:
+ *       - Reports
+ *     parameters:
+ *       - in: path
+ *         name: spaceId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the space whose active session report is being confirmed
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - qrToken
+ *             properties:
+ *               qrToken:
+ *                 type: string
+ *                 description: Current QR token displayed on the space's tablet
+ *     responses:
+ *       200:
+ *         description: |
+ *           Successful response — one of three possible outcomes:
+ *           - `{ status: "RESOLVED" }` — all required users confirmed.
+ *           - `{ message: "Confirmation registered, waiting for others" }` — confirmation saved, still waiting.
+ *           - `{ message: "Session expired, space is now free" }` — deadline passed, no prior confirmations.
+ *           - `{ message: "Time expired, session continues with confirmed users" }` — deadline passed, some prior confirmations existed.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               oneOf:
+ *                 - type: object
+ *                   properties:
+ *                     status:
+ *                       type: string
+ *                       example: RESOLVED
+ *                 - type: object
+ *                   properties:
+ *                     message:
+ *                       type: string
+ *                       example: Confirmation registered, waiting for others
+ *       400:
+ *         description: Bad Request — invalid QR token
+ *       401:
+ *         description: Unauthorized — user is not authenticated
+ *       403:
+ *         description: Forbidden — user is not the host or an accepted participant of the active session
+ *       404:
+ *         description: Not Found — space, active session, or open report not found
+ *       409:
+ *         description: Conflict — user has already confirmed this report
+ *       500:
+ *         description: Internal Server Error — an unexpected error occurred
+ */
 export const PATCH = async (_request: Request, { params }: Params) => {
     try {
         const session = await getServerSession(authOptions);
