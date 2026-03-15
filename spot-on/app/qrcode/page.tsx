@@ -13,12 +13,12 @@ import LoadingStatus from "./Loading";
 
 export default function OccupySpacePage() {
 
-    const { data: session } = useSession({
-        required: true,
-        onUnauthenticated() {
-            window.location.href = `/api/auth/signin?callbackUrl=/qrcode`;
-        },
-    });
+    // const { data: session } = useSession({
+    //     required: true,
+    //     onUnauthenticated() {
+    //         window.location.href = `/api/auth/signin?callbackUrl=/qrcode`;
+    //     },
+    // });
 
     const [status, setStatus] = useState<
 'loading' | 'success' | 'occupied' | 'user_occupied' | 'expired' | 'error'>('loading');
