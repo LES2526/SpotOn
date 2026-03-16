@@ -63,7 +63,8 @@ async function handleExpiredReport(tx: Tx, reportId: string,
     return { expired: true, sessionEnded: false };
 }
 
-async function handleActiveReport(tx: Tx, reportId: string, sessionId: string, hostId: string, userId: string) {
+async function handleActiveReport(tx: Tx, reportId: string,
+    sessionId: string, hostId: string, userId: string) {
     await tx.reportConfirmation.create({
         data: { reportId, userId }
     });
