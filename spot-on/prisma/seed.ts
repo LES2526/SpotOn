@@ -11,21 +11,12 @@ const prisma = new PrismaClient();
 
 async function main() {
     console.log('Seeding database...');
-    await prisma.report.deleteMany({});
-    await prisma.userOnStudySession.deleteMany({});
-    await prisma.studySession.deleteMany({});
-    await prisma.session.deleteMany({});
-    await prisma.account.deleteMany({});
-    await prisma.verificationToken.deleteMany({});
-    await prisma.space.deleteMany({});
-    await prisma.floorPlan.deleteMany({});
-    await prisma.user.deleteMany({});
-
-    const now = new Date();
-
-    const floorPlan0 = await prisma.floorPlan.create({
-        data: {
-            name: 'Piso 0',
+    const floorPlan = await prisma.floorPlan.upsert({
+        where: { id: '0' },
+        update: {},
+        create: {
+            id: '0',
+            name: 'Piso 1',
             floor: 0,
             imageUrl: '/PISO_1.svg',
             imageWidth: 2074,
@@ -84,236 +75,49 @@ async function main() {
                 shape: s.shape ?? null,
             },
         });
-        spaces.push(space);
+        console.log(`Mesa individual criada: ${space.name}`);
     }
 
-    const usersData = [
-        { email: 'a1234@ualg.pt', studentId: 'a1234', points: 120, image: '/images/users/a1234.png' },
-        { email: 'alice.occupied@ualg.pt', studentId: 'a2345', points: 85, image: '/images/users/alice.png' },
-        { email: 'bruno.host@ualg.pt', studentId: 'a3456', points: 230, image: '/images/users/bruno.png' },
-        { email: 'carla.reporter@ualg.pt', studentId: 'a4567', points: 42, image: '/images/users/carla.png' },
-        { email: 'diogo.participant@ualg.pt', studentId: 'a5678', points: 57, image: '/images/users/diogo.png' },
-        { email: 'eva.pending@ualg.pt', studentId: 'a6789', points: 12, image: '/images/users/eva.png' },
-        { email: 'filipe.rejected@ualg.pt', studentId: 'a7890', points: 8, image: '/images/users/filipe.png' },
-        { email: 'gabriela.viewer@ualg.pt', studentId: 'a8901', points: 64, image: '/images/users/gabriela.png' },
-        { email: 'henrique.mentor@ualg.pt', studentId: 'a9012', points: 310, image: '/images/users/henrique.png' },
-        { email: 'isabel.new@ualg.pt', studentId: null, points: 0, image: null },
+    const groupRooms = [
+        { name: 'Sala de Grupo 1', posX: 410, posY: 159, width: 84, height: 109, rotation: 0, capacity: 6 },
+        { name: 'Sala de Grupo 2', posX: 501, posY: 156, width: 139, height: 112, rotation: 0, capacity: 6 },
+        { name: 'Sala de Grupo 3', posX: 748, posY: 154, width: 100, height: 114, rotation: 0, capacity: 6 },
+        { name: 'Sala de Grupo 4', posX: 846, posY: 156, width: 112, height: 115, rotation: 0, capacity: 6 },
+        { name: 'Sala de Grupo 5', posX: 961, posY: 145, width: 92, height: 125, rotation: 0, capacity: 6 },
+        { name: 'Sala de Grupo 6', posX: 1063, posY: 155, width: 124, height: 113, rotation: 0, capacity: 6 },
+        { name: 'Sala de Grupo 7', posX: 1192, posY: 160, width: 107, height: 110, rotation: 0, capacity: 6 },
+        { name: 'Sala de Grupo 8', posX: 1326, posY: 222, width: 146, height: 100, rotation: -40, capacity: 6 },
     ];
 
-    const users = [];
-    for (const u of usersData) {
-        users.push(
-            await prisma.user.create({
-                data: {
-                    email: u.email,
-                    studentId: u.studentId,
-                    points: u.points,
-                    image: u.image,
-                    emailVerified: now,
-                },
-            })
-        );
+    for (const room of groupRooms) {
+        const space = await prisma.space.upsert({
+            where: { currentQrToken: `qr-${room.name.toLowerCase().replaceAll(' ', '-')}` },
+            update: {
+                posX: room.posX,
+                posY: room.posY,
+                width: room.width,
+                height: room.height,
+                rotation: room.rotation,
+            },
+            create: {
+                floorPlanId: floorPlan.id,
+                name: room.name,
+                posX: room.posX,
+                posY: room.posY,
+                width: room.width,
+                height: room.height,
+                rotation: room.rotation,
+                capacity: room.capacity,
+                currentQrToken: `qr-${room.name.toLowerCase().replaceAll(' ', '-')}`,
+                type: SpaceType.GROUP_ROOM,
+                hasPowerOutlet: true,
+                description: `Sala de estudo em grupo para ${room.capacity} pessoas`,
+            },
+        });
+        console.log(`Sala de grupo criada: ${space.name}`);
     }
 
-    const userByEmail = Object.fromEntries(users.map((u) => [u.email, u]));
-    const spaceByName = Object.fromEntries(spaces.map((s) => [s.name, s]));
-
-    await prisma.account.createMany({
-        data: [
-            {
-                userId: userByEmail['a1234@ualg.pt'].id,
-                type: 'email',
-                provider: 'email',
-                providerAccountId: 'a1234@ualg.pt',
-            },
-            {
-                userId: userByEmail['alice.occupied@ualg.pt'].id,
-                type: 'email',
-                provider: 'email',
-                providerAccountId: 'alice.occupied@ualg.pt',
-            },
-            {
-                userId: userByEmail['bruno.host@ualg.pt'].id,
-                type: 'oauth',
-                provider: 'google',
-                providerAccountId: 'google-bruno-host',
-                access_token: 'seed-google-token-bruno',
-                token_type: 'Bearer',
-                scope: 'openid email profile',
-            },
-            {
-                userId: userByEmail['carla.reporter@ualg.pt'].id,
-                type: 'oauth',
-                provider: 'github',
-                providerAccountId: 'github-carla-reporter',
-                access_token: 'seed-github-token-carla',
-                token_type: 'Bearer',
-                scope: 'read:user user:email',
-            },
-        ],
-    });
-
-    await prisma.session.createMany({
-        data: [
-            {
-                sessionToken: 'seed-session-a1234',
-                userId: userByEmail['a1234@ualg.pt'].id,
-                expires: new Date(now.getTime() + 1000 * 60 * 60 * 24 * 7),
-            },
-            {
-                sessionToken: 'seed-session-bruno',
-                userId: userByEmail['bruno.host@ualg.pt'].id,
-                expires: new Date(now.getTime() + 1000 * 60 * 60 * 24 * 3),
-            },
-            {
-                sessionToken: 'seed-session-carla',
-                userId: userByEmail['carla.reporter@ualg.pt'].id,
-                expires: new Date(now.getTime() + 1000 * 60 * 60 * 24 * 2),
-            },
-        ],
-    });
-
-    await prisma.verificationToken.createMany({
-        data: [
-            {
-                identifier: 'isabel.new@ualg.pt',
-                token: 'seed-magic-token-isabel',
-                expires: new Date(now.getTime() + 1000 * 60 * 5),
-            },
-            {
-                identifier: 'gabriela.viewer@ualg.pt',
-                token: 'seed-magic-token-gabriela',
-                expires: new Date(now.getTime() + 1000 * 60 * 4),
-            },
-        ],
-    });
-
-    const activeA1 = await prisma.studySession.create({
-        data: {
-            spaceId: spaceByName['Mesa A1'].id,
-            hostId: userByEmail['a1234@ualg.pt'].id,
-            startTime: new Date(now.getTime() - 1000 * 60 * 20),
-            expectedEndTime: new Date(now.getTime() + 1000 * 60 * 40),
-            status: SessionStatus.ACTIVE,
-        },
-    });
-
-    const activeB2 = await prisma.studySession.create({
-        data: {
-            spaceId: spaceByName['Mesa B2'].id,
-            hostId: userByEmail['alice.occupied@ualg.pt'].id,
-            startTime: new Date(now.getTime() - 1000 * 60 * 12),
-            expectedEndTime: new Date(now.getTime() + 1000 * 60 * 50),
-            status: SessionStatus.ACTIVE,
-        },
-    });
-
-    const activeGroup = await prisma.studySession.create({
-        data: {
-            spaceId: spaceByName['Sala de Grupo 1'].id,
-            hostId: userByEmail['bruno.host@ualg.pt'].id,
-            startTime: new Date(now.getTime() - 1000 * 60 * 35),
-            expectedEndTime: new Date(now.getTime() + 1000 * 60 * 55),
-            status: SessionStatus.ACTIVE,
-        },
-    });
-
-    const completedSession = await prisma.studySession.create({
-        data: {
-            spaceId: spaceByName['Sala de Grupo 2'].id,
-            hostId: userByEmail['henrique.mentor@ualg.pt'].id,
-            startTime: new Date(now.getTime() - 1000 * 60 * 180),
-            expectedEndTime: new Date(now.getTime() - 1000 * 60 * 120),
-            actualEndTime: new Date(now.getTime() - 1000 * 60 * 110),
-            status: SessionStatus.COMPLETED,
-        },
-    });
-
-    const expiredSession = await prisma.studySession.create({
-        data: {
-            spaceId: spaceByName['Mesa C1'].id,
-            hostId: userByEmail['gabriela.viewer@ualg.pt'].id,
-            startTime: new Date(now.getTime() - 1000 * 60 * 140),
-            expectedEndTime: new Date(now.getTime() - 1000 * 60 * 80),
-            actualEndTime: new Date(now.getTime() - 1000 * 60 * 60),
-            status: SessionStatus.EXPIRED,
-        },
-    });
-
-    await prisma.userOnStudySession.createMany({
-        data: [
-            {
-                userId: userByEmail['diogo.participant@ualg.pt'].id,
-                sessionId: activeGroup.id,
-                status: InvitationStatus.ACCEPTED,
-            },
-            {
-                userId: userByEmail['eva.pending@ualg.pt'].id,
-                sessionId: activeGroup.id,
-                status: InvitationStatus.PENDING,
-            },
-            {
-                userId: userByEmail['filipe.rejected@ualg.pt'].id,
-                sessionId: activeGroup.id,
-                status: InvitationStatus.REJECTED,
-            },
-            {
-                userId: userByEmail['carla.reporter@ualg.pt'].id,
-                sessionId: activeA1.id,
-                status: InvitationStatus.ACCEPTED,
-            },
-        ],
-    });
-
-    await prisma.report.createMany({
-        data: [
-            {
-                reporterId: userByEmail['carla.reporter@ualg.pt'].id,
-                sessionId: activeB2.id,
-                reason: 'Mesa marcada como ocupada, mas vazia há mais de 10 minutos.',
-                status: ReportStatus.OPEN,
-                timeToConfirm: new Date(now.getTime() + 1000 * 60 * 10),
-            },
-            {
-                reporterId: userByEmail['diogo.participant@ualg.pt'].id,
-                sessionId: completedSession.id,
-                reason: 'Sala estava sinalizada como ocupada após saída do grupo.',
-                status: ReportStatus.RESOLVED,
-                timeToConfirm: new Date(now.getTime() - 1000 * 60 * 30),
-                confirmedAt: new Date(now.getTime() - 1000 * 60 * 35),
-            },
-            {
-                reporterId: userByEmail['isabel.new@ualg.pt'].id,
-                sessionId: expiredSession.id,
-                reason: 'Sessão não confirmada dentro da janela de tempo.',
-                status: ReportStatus.EXPIRED,
-                timeToConfirm: new Date(now.getTime() - 1000 * 60 * 50),
-            },
-        ],
-    });
-
-    const counts = await Promise.all([
-        prisma.user.count(),
-        prisma.account.count(),
-        prisma.session.count(),
-        prisma.verificationToken.count(),
-        prisma.floorPlan.count(),
-        prisma.space.count(),
-        prisma.studySession.count(),
-        prisma.userOnStudySession.count(),
-        prisma.report.count(),
-    ]);
-
-    console.log('Seed completed successfully!');
-    console.log(`Users: ${counts[0]}`);
-    console.log(`Accounts: ${counts[1]}`);
-    console.log(`Sessions (NextAuth): ${counts[2]}`);
-    console.log(`VerificationTokens: ${counts[3]}`);
-    console.log(`FloorPlans: ${counts[4]}`);
-    console.log(`Spaces: ${counts[5]}`);
-    console.log(`StudySessions: ${counts[6]}`);
-    console.log(`Participations: ${counts[7]}`);
-    console.log(`Reports: ${counts[8]}`);
+    console.log('Seed concluído!');
 }
 
 async function runSeed() {
