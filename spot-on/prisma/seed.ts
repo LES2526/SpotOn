@@ -11,21 +11,12 @@ const prisma = new PrismaClient();
 
 async function main() {
     console.log('Seeding database...');
-    await prisma.report.deleteMany({});
-    await prisma.userOnStudySession.deleteMany({});
-    await prisma.studySession.deleteMany({});
-    await prisma.session.deleteMany({});
-    await prisma.account.deleteMany({});
-    await prisma.verificationToken.deleteMany({});
-    await prisma.space.deleteMany({});
-    await prisma.floorPlan.deleteMany({});
-    await prisma.user.deleteMany({});
-
-    const now = new Date();
-
-    const floorPlan0 = await prisma.floorPlan.create({
-        data: {
-            name: 'Piso 0',
+    const floorPlan = await prisma.floorPlan.upsert({
+        where: { id: '0' },
+        update: {},
+        create: {
+            id: '0',
+            name: 'Piso 1',
             floor: 0,
             imageUrl: '/PISO_1.svg',
             imageWidth: 2074,
@@ -84,7 +75,7 @@ async function main() {
                 shape: s.shape ?? null,
             },
         });
-        spaces.push(space);
+        console.log(`Mesa individual criada: ${space.name}`);
     }
 
     const usersData = [
@@ -273,58 +264,25 @@ async function main() {
                 sessionId: activeA1.id,
                 status: InvitationStatus.ACCEPTED,
             },
-        ],
-    });
-
-    await prisma.report.createMany({
-        data: [
-            {
-                reporterId: userByEmail['carla.reporter@ualg.pt'].id,
-                sessionId: activeB2.id,
-                reason: 'Mesa marcada como ocupada, mas vazia há mais de 10 minutos.',
-                status: ReportStatus.OPEN,
-                timeToConfirm: new Date(now.getTime() + 1000 * 60 * 10),
+            create: {
+                floorPlanId: floorPlan.id,
+                name: room.name,
+                posX: room.posX,
+                posY: room.posY,
+                width: room.width,
+                height: room.height,
+                rotation: room.rotation,
+                capacity: room.capacity,
+                currentQrToken: `qr-${room.name.toLowerCase().replaceAll(' ', '-')}`,
+                type: SpaceType.GROUP_ROOM,
+                hasPowerOutlet: true,
+                description: `Sala de estudo em grupo para ${room.capacity} pessoas`,
             },
-            {
-                reporterId: userByEmail['diogo.participant@ualg.pt'].id,
-                sessionId: completedSession.id,
-                reason: 'Sala estava sinalizada como ocupada após saída do grupo.',
-                status: ReportStatus.RESOLVED,
-                timeToConfirm: new Date(now.getTime() - 1000 * 60 * 30),
-                confirmedAt: new Date(now.getTime() - 1000 * 60 * 35),
-            },
-            {
-                reporterId: userByEmail['isabel.new@ualg.pt'].id,
-                sessionId: expiredSession.id,
-                reason: 'Sessão não confirmada dentro da janela de tempo.',
-                status: ReportStatus.EXPIRED,
-                timeToConfirm: new Date(now.getTime() - 1000 * 60 * 50),
-            },
-        ],
-    });
+        });
+        console.log(`Sala de grupo criada: ${space.name}`);
+    }
 
-    const counts = await Promise.all([
-        prisma.user.count(),
-        prisma.account.count(),
-        prisma.session.count(),
-        prisma.verificationToken.count(),
-        prisma.floorPlan.count(),
-        prisma.space.count(),
-        prisma.studySession.count(),
-        prisma.userOnStudySession.count(),
-        prisma.report.count(),
-    ]);
-
-    console.log('Seed completed successfully!');
-    console.log(`Users: ${counts[0]}`);
-    console.log(`Accounts: ${counts[1]}`);
-    console.log(`Sessions (NextAuth): ${counts[2]}`);
-    console.log(`VerificationTokens: ${counts[3]}`);
-    console.log(`FloorPlans: ${counts[4]}`);
-    console.log(`Spaces: ${counts[5]}`);
-    console.log(`StudySessions: ${counts[6]}`);
-    console.log(`Participations: ${counts[7]}`);
-    console.log(`Reports: ${counts[8]}`);
+    console.log('Seed concluído!');
 }
 
 async function runSeed() {
