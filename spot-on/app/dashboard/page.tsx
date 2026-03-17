@@ -20,7 +20,7 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
 
     // Read the selected floor from the URL query param (?floor=Piso 1)
     const { floor } = await searchParams;
-    const selectedFloor = floor ?? null;
+    const selectedFloor = floor != undefined ? Number(floor) : null;
 
     // Fetch all data in parallel to avoid waterfall requests
     const [spaces, floorPlans, floorPlan] = await Promise.all([
@@ -34,17 +34,17 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
                     take: 1,
                 },
             },
-            where: selectedFloor ? { floorPlan: { name: selectedFloor } } : undefined,
+            where: selectedFloor ? { floorPlan: { floor: selectedFloor } } : undefined,
             orderBy: { createdAt: 'desc' },
         }),
-        // All floor names — used to populate the floor selector
+        // All floor — used to populate the floor selector
         prisma.floorPlan.findMany({
-            select: { name: true },
-            orderBy: { name: 'asc' },
+            select: { floor: true },
+            orderBy: { floor: 'asc' },
         }),
         // SVG image info for the selected floor — used to render the floor plan
         prisma.floorPlan.findFirst({
-            where: selectedFloor ? { name: selectedFloor} : undefined,
+            where: selectedFloor ? { floor: Number(selectedFloor)} : undefined,
             select: { imageUrl: true, imageWidth: true, imageHeight: true},
         })
     ]);
