@@ -9,32 +9,49 @@ async function main() {
         update: {},
         create: {
             id: '0',
-            name: 'Piso 0',
+            name: 'Piso 1',
             floor: 0,
-            imageUrl: '/images/floorplan-piso0.png',
-            imageWidth: 1200,
-            imageHeight: 800,
+            imageUrl: '/PISO_1.svg',
+            imageWidth: 2074,
+            imageHeight: 1593,
         },
     });
+    const floorPlan2 = await prisma.floorPlan.upsert({
+    where: { id: '2' },
+    update: {},
+    create: {
+        id: '2',
+        name: 'Piso 2',
+        floor: 1,
+        imageUrl: '/PISO_2.svg',
+        imageWidth: 2074,
+        imageHeight: 1593,
+    },
+});
 
     console.log(`FloorPlan criado: ${floorPlan.name}`);
 
     // Individual desks
     const individualDesks = [
-        { name: 'Mesa A1', posX: 10, posY: 20, width: 5, height: 5 },
-        { name: 'Mesa A2', posX: 20, posY: 20, width: 5, height: 5 },
-        { name: 'Mesa A3', posX: 30, posY: 20, width: 5, height: 5 },
-        { name: 'Mesa A4', posX: 40, posY: 20, width: 5, height: 5 },
-        { name: 'Mesa B1', posX: 10, posY: 40, width: 5, height: 5 },
-        { name: 'Mesa B2', posX: 20, posY: 40, width: 5, height: 5 },
-        { name: 'Mesa B3', posX: 30, posY: 40, width: 5, height: 5 },
-        { name: 'Mesa B4', posX: 40, posY: 40, width: 5, height: 5 },
+    
+        { name: 'Mesa1', posX: 1418, posY: 904, width: 101, height: 30, rotation: 0, capacity: 4 },
+        { name: 'Mesa2', posX: 476, posY: 309, width: 48, height: 196, rotation: 0, capacity: 1 },
+        { name: 'Mesa3', posX: 656, posY: 321, width: 47, height: 149, rotation: 0, capacity: 1 },
+        { name: 'Mesa4', posX: 900, posY: 602, width: 48, height: 100, rotation: 0, capacity: 1 },
+        { name: 'Mesa5', posX: 1000, posY: 602, width: 52, height: 100, rotation: 0, capacity: 1 },
+        { name: 'Mesa6', posX: 769, posY: 602, width: 52, height: 48, rotation: 0, capacity: 1 },
+        { name: 'Mesa7', posX: 659, posY: 602, width: 48, height: 48, rotation: 0, capacity: 1 },
     ];
 
     for (const desk of individualDesks) {
         const space = await prisma.space.upsert({
             where: { currentQrToken: `qr-${desk.name.toLowerCase().replaceAll(' ', '-')}` },
-            update: {},
+            update: {
+                posX: desk.posX,
+                posY: desk.posY,
+                width: desk.width,
+                height: desk.height,
+            },
             create: {
                 floorPlanId: floorPlan.id,
                 name: desk.name,
@@ -42,6 +59,7 @@ async function main() {
                 posY: desk.posY,
                 width: desk.width,
                 height: desk.height,
+                rotation: desk.rotation,
                 capacity: 1,
                 currentQrToken: `qr-${desk.name.toLowerCase().replaceAll(' ', '-')}`,
                 type: SpaceType.INDIVIDUAL_DESK,
@@ -53,16 +71,26 @@ async function main() {
     }
 
     const groupRooms = [
-        { name: 'Sala de Grupo 1', posX: 60, posY: 20, width: 12, height: 10, capacity: 6 },
-        { name: 'Sala de Grupo 2', posX: 75, posY: 20, width: 12, height: 10, capacity: 6 },
-        { name: 'Sala de Grupo 3', posX: 60, posY: 50, width: 15, height: 12, capacity: 8 },
-        { name: 'Sala de Grupo 4', posX: 78, posY: 50, width: 15, height: 12, capacity: 8 },
+        { name: 'Sala de Grupo 1', posX: 410, posY: 159, width: 84, height: 109, rotation: 0, capacity: 6 },
+        { name: 'Sala de Grupo 2', posX: 501, posY: 156, width: 139, height: 112, rotation: 0, capacity: 6 },
+        { name: 'Sala de Grupo 3', posX: 748, posY: 154, width: 100, height: 114, rotation: 0, capacity: 6 },
+        { name: 'Sala de Grupo 4', posX: 846, posY: 156, width: 112, height: 115, rotation: 0, capacity: 6 },
+        { name: 'Sala de Grupo 5', posX: 961, posY: 145, width: 92, height: 125, rotation: 0, capacity: 6 },
+        { name: 'Sala de Grupo 6', posX: 1063, posY: 155, width: 124, height: 113, rotation: 0, capacity: 6 },
+        { name: 'Sala de Grupo 7', posX: 1192, posY: 160, width: 107, height: 110, rotation: 0, capacity: 6 },
+        { name: 'Sala de Grupo 8', posX: 1326, posY: 222, width: 146, height: 100, rotation: -40, capacity: 6 },
     ];
 
     for (const room of groupRooms) {
         const space = await prisma.space.upsert({
             where: { currentQrToken: `qr-${room.name.toLowerCase().replaceAll(' ', '-')}` },
-            update: {},
+            update: {
+                posX: room.posX,
+                posY: room.posY,
+                width: room.width,
+                height: room.height,
+                rotation: room.rotation,
+            },
             create: {
                 floorPlanId: floorPlan.id,
                 name: room.name,
@@ -70,6 +98,7 @@ async function main() {
                 posY: room.posY,
                 width: room.width,
                 height: room.height,
+                rotation: room.rotation,
                 capacity: room.capacity,
                 currentQrToken: `qr-${room.name.toLowerCase().replaceAll(' ', '-')}`,
                 type: SpaceType.GROUP_ROOM,
