@@ -104,7 +104,7 @@ enum SpaceType {
 model FloorPlan {
     id          String @id @default(cuid()) @db.VarChar(30)
     name        String @db.VarChar(255)
-    floor       Int    @default(0)
+    floor       Int    @unique @default(0)
     imageUrl    String @db.VarChar(255) /// URL or path to the floor plan image
     imageWidth  Int
     imageHeight Int
@@ -124,6 +124,7 @@ model Space {
     posY           Float /// Y position on floor plan (0.0–100.0 %)
     width          Float /// Width on floor plan (0.0–100.0 %)
     height         Float /// Height on floor plan (0.0–100.0 %)
+    rotation       Float
     capacity       Int
     currentQrToken String    @unique @db.VarChar(255) /// Rotates periodically; displayed on the space's tablet
     description    String?   @db.VarChar(255)
