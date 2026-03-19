@@ -1,6 +1,7 @@
 "use client"
 
 import { SpaceMarker } from "./type";
+import OccupyButton from "../button/OccupyButton";
 
 type Props = {
     space: SpaceMarker | null;
@@ -16,12 +17,15 @@ export default function SpaceDetailPanel({ space }: Readonly<Props>) {
                 {space.isOccupied ? "Ocupado" : "Livre"}
             </p>
             <p className="text-sm text-gray-400">Capacidade: {space.capacity}</p>
-            <p className="text-sm text-gray-400">Tomada: {space.hasPowerOutlet ? "Sim" : "Não"}</p>
+            <p className="text-sm text-gray-400">{space.hasPowerOutlet ? '⚡ Tomada' : 'Sem tomada'}</p>
             {space.isOccupied && space.expectedEndTime && (
                 <p className="text-sm text-gray-400">
                     Livre às: {new Date(space.expectedEndTime).toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}
                 </p>
             )}
+            <div className="pt-4">
+                <OccupyButton spaceId={space.id} isOccupied={space.isOccupied} />
+            </div>
         </div>
     );
 }

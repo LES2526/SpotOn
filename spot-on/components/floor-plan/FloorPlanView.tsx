@@ -28,7 +28,7 @@ export default function FloorPlanView({ floorPlan, selectedSpace, onSelectSpace 
     }
     return (
     <div className="w-full overflow-auto rounded-lg border border-gray-700 bg-white">
-            <svg ref={svgRef} viewBox={floorPlan.viewBox} fill = "none" className="w-full" onClick={handleSvgClick}>
+        <svg ref={svgRef} viewBox={floorPlan.viewBox} fill = "none" className="w-full" onClick={handleSvgClick}>
             <g dangerouslySetInnerHTML={{ __html: floorPlan.svgContent}} />
             {floorPlan.spaces.map(space => (
                 <SpaceMarkerDot
