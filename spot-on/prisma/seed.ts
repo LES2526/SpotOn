@@ -1,4 +1,4 @@
-import { PrismaClient, SpaceType } from '../app/generated/prisma';
+import { PrismaClient, SpaceType, SpaceShape } from '../app/generated/prisma';
 
 const prisma = new PrismaClient();
 
@@ -69,6 +69,28 @@ async function main() {
         });
         console.log(`Mesa individual criada: ${space.name}`);
     }
+
+    // Circular desks
+    const circularDesk = await prisma.space.upsert({
+        where: { currentQrToken: 'qr-mesa-circular-1' },
+        update: { posX: 256, posY: 218, width: 60, height: 60, shape: SpaceShape.CIRCULAR_DESK },
+        create: {
+            floorPlanId: floorPlan.id,
+            name: 'Mesa Circular 1',
+            posX: 256,
+            posY: 218,
+            width: 60,
+            height: 60,
+            rotation: 0,
+            shape: SpaceShape.CIRCULAR_DESK,
+            capacity: 1,
+            currentQrToken: 'qr-mesa-circular-1',
+            type: SpaceType.INDIVIDUAL_DESK,
+            hasPowerOutlet: false,
+            description: 'Mesa de estudo individual circular',
+        },
+    });
+    console.log(`Mesa circular criada: ${circularDesk.name}`);
 
     const groupRooms = [
         { name: 'Sala de Grupo 1', posX: 410, posY: 159, width: 84, height: 109, rotation: 0, capacity: 6 },
