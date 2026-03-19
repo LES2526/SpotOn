@@ -5,6 +5,7 @@ export type SpaceMarker = {
     type: string;
     hasPowerOutlet: boolean;
     description: string | null;
+    shape: string | null;
     posX: number;
     posY: number;
     width: number;

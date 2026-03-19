@@ -100,6 +100,11 @@ enum SpaceType {
     GROUP_ROOM
 }
 
+enum SpaceShape {
+    CIRCULAR_DESK
+    RETANGULAR_DESK
+}
+
 /// Floor plan canvas. Spaces are positioned relative to this container.
 model FloorPlan {
     id          String @id @default(cuid()) @db.VarChar(30)
@@ -130,6 +135,7 @@ model Space {
     description    String?   @db.VarChar(255)
     hasPowerOutlet Boolean   @default(false)
     type           SpaceType @default(INDIVIDUAL_DESK)
+    shape          SpaceShape?
 
     createdAt DateTime @default(now())
     updatedAt DateTime @default(now()) @updatedAt

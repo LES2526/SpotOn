@@ -44,7 +44,7 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
         }),
         // SVG image info for the selected floor — used to render the floor plan
         prisma.floorPlan.findFirst({
-            where: selectedFloor ? { floor: Number(selectedFloor)} : undefined,
+            where: selectedFloor ? { floor: selectedFloor} : undefined,
             select: { imageUrl: true, imageWidth: true, imageHeight: true},
         })
     ]);
@@ -64,7 +64,7 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
     const svgRaw = fs.readFileSync(svgPath, "utf-8");  
     const viewBoxMatch = svgRaw.match(/viewBox="([^"]+)"/);
     const viewBox = viewBoxMatch?.[1] ?? `0 0 ${floorPlan.imageWidth} ${floorPlan.imageHeight}`;
-    const svgContent = svgRaw.replace(/<svg[^>]*>/, '').replace(/<\/svg>\s*$/, ''); 
+    const svgContent = svgRaw.replace(/<svg[^>]*>/, '').replace(/<\/svg>\s*$/, ''); //strip
     
     // Map Prisma result to the FloorPlanData DTO (Data Transfer Object) used by the floor plan components
     const floorPlanData: FloorPlanData = {
@@ -87,6 +87,7 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
             rotation: space.rotation,
             isOccupied: space.sessions.length > 0,
             expectedEndTime: space.sessions[0]?.expectedEndTime ?? null,
+            shape: space.shape,
     })),
 };
     return (
