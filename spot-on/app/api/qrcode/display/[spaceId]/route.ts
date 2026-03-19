@@ -5,6 +5,8 @@ import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 
 import { buildQrUrl, verifyQrCode, VerifyResult } from '@/lib/qr-utils';
+import { scheduleSessionExpiry } from '@/lib/session-expiry';
+import { clampToClosingTime } from '@/lib/library-hours';
 
 
 /**
@@ -149,10 +151,14 @@ export async function PATCH(request: Request, { params }: { params: { spaceId: s
             );
         }
 
+        var expectedEndDate = await clampToClosingTime(new Date(expectedEndTime));
+
         const updatedSession = await prisma.studySession.update({
             where: { id: activeSession.id },
-            data: { expectedEndTime: new Date(expectedEndTime) },
+            data: { expectedEndTime: expectedEndDate },
         });
+
+        scheduleSessionExpiry(updatedSession.id, expectedEndDate);
 
         return NextResponse.json(updatedSession, { status: 200 });
     } catch (error) {
