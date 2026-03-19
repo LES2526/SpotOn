@@ -13,6 +13,7 @@
  */
 
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { clampToClosingTime } from '@/lib/library-hours';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
@@ -191,9 +192,11 @@ export async function PATCH(request: Request, { params }: { params: { spaceId: s
             );
         }
 
+        let clampedExpectedEndTime = clampToClosingTime(new Date(expectedEndTime));
+
         const updatedSession = await prisma.studySession.update({
             where: { id: activeSession.id },
-            data: { expectedEndTime: new Date(expectedEndTime) },
+            data: { expectedEndTime: clampedExpectedEndTime },
         });
 
         return NextResponse.json(updatedSession, { status: 200 });
