@@ -136,11 +136,11 @@ export function verifyQrCode(
 ): VerifyResult {
     // Step 1 — all params must be present
     
-    if (!spaceId || !window || !sig) {
+    if (!spaceId || window === null || window === undefined || !sig) {
         return { valid: false, reason: 'missing_params' };
     }
 
-    const windowNumber = window !== null ? Number(window) : null;
+    const windowNumber = Number(window);
 
     // Step 2 — window must be current or previous (grace period)
     const now = currentWindow();
