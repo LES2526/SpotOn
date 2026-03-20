@@ -94,10 +94,8 @@ export async function GET(_request: Request, props: Params) {
     if (!session?.user?.id) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
     const params = await props.params;
     const { token } = params;
-
     const space = await prisma.space.findUnique({
         where: { currentQrToken: token },
         select: {
@@ -118,13 +116,10 @@ export async function GET(_request: Request, props: Params) {
             },
         },
     });
-
     if (!space) {
         return NextResponse.json({ error: 'QR code not recognised' }, { status: 404 });
     }
-
     const { sessions, ...rest } = space;
-
     return NextResponse.json({
         ...rest,
         isOccupied: sessions.length > 0,
