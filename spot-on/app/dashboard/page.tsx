@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { FloorPlanData } from "@/components/floor-plan/type";
 import fs from "fs"
 import path from "path"
+import OccupanceCard from "@/components/occupance/SpacesOccupance";
 
 
 // Disable caching so occupancy status is always up to date
@@ -89,16 +90,21 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
             expectedEndTime: space.sessions[0]?.expectedEndTime ?? null,
             shape: space.shape,
     })),
-};
+};  
+    const totalDesks: number = floorPlanData.spaces.filter(s => s.type === "INDIVIDUAL_DESK").length
+    const occupiedDesks: number = floorPlanData.spaces.filter(s => s.type === "INDIVIDUAL_DESK" && s.isOccupied).length
+    const totalRooms: number = floorPlanData.spaces.filter(s => s.type === "GROUP_ROOM").length
+    const occupiedRooms: number = floorPlanData.spaces.filter(s => s.type === "GROUP_ROOM" && s.isOccupied).length
+
     return (
         <main className="min-h-screen bg-gray-950 p-8 text-white">
             <section className="mx-auto max-w-6xl">
                 <DashboardHeader />
                 <FloorFilter floorPlans={floorPlans} selectedFloor={selectedFloor} />
                 <FloorPlanSection floorPlan={floorPlanData} />
-
-                {spaces.length === 0 ? (
-                    <p className="text-sm text-gray-500">Nenhum espaço encontrado.</p>
+                <OccupanceCard totalDesks={totalDesks} occupiedDesks={occupiedDesks} totalRooms={totalRooms} occupiedRooms={occupiedRooms} />
+          {/*       {{spaces.length === 0 ? (
+                    <p className="text-sm text-gray-500">Nenhum pllzespaço encontrado.</p>
                 ) : (
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         {spaces.map((space) => (
@@ -114,7 +120,7 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
                             />
                         ))}
                     </div>
-                )}
+                )} }    */}
             </section>
         </main>
     );
