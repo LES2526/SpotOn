@@ -2,6 +2,28 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+## Makefile Commands
+
+This project now ships with a `Makefile` to centralize local and Docker workflows.
+
+```bash
+make help
+```
+
+Most useful targets:
+
+- `make install` - install dependencies (`npm ci` when lockfile exists)
+- `make dev` - start Next.js in development mode
+- `make test` - run Jest tests once
+- `make lint` - run ESLint
+- `make prisma-seed` - seed local database
+- `make docker-recreate` - replacement for old `run.sh` flow (down/build/up/wait/seed/logs)
+- `make swagger-url` - print Swagger UI URL
+- `make swagger-check` - check if Swagger endpoint is reachable
+- `make swagger-open` - open Swagger UI in browser
+
+Swagger UI is available at `http://localhost:3000/api-doc` (or the port shown by Next.js logs).
+
 First, run the development server:
 
 ```bash
