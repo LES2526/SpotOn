@@ -24,7 +24,7 @@ import { NextResponse } from 'next/server';
  * @typedef {Object} Params
  * @property {Promise<{ token: string }>} params - Resolved route parameters
  */
-type Params = { params: { token: string } };
+type Params = { params: Promise<{ token: string }> };
 
 /**
  * @swagger
@@ -89,12 +89,13 @@ type Params = { params: { token: string } };
  * @throws {401} If the user is not authenticated
  * @throws {404} If no space matches the given token
  */
-export async function GET(_request: Request, { params }: Params) {
+export async function GET(_request: Request, props: Params) {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const params = await props.params;
     const { token } = params;
 
     const space = await prisma.space.findUnique({
