@@ -18,7 +18,7 @@ import { verifyQrCode, VerifyResult } from '@/lib/qr-utils';
 import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 
-import { markSessionOverdue, scheduleSessionExpiry } from '@/lib/session-expiry'; // Import the session expiry scheduler
+import { scheduleSessionExpiry } from '@/lib/session-expiry'; // Import the session expiry scheduler
 import { clampToClosingTime } from '@/lib/library-hours';
 /**
  * Route parameter type containing the QR token.
