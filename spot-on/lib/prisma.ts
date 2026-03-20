@@ -16,6 +16,8 @@
 
 import { PrismaClient as PrismaClientType } from "@/app/generated/prisma";
 
+
+
 /**
  * Global augmentation for Prisma Client instance.
  *
@@ -48,6 +50,9 @@ export const prisma =
     globalThis.prisma ||
     new PrismaClientType();
 
+prisma.$connect()
+    .then(() => console.log('Prisma connected successfully'))
+    .catch((e) => console.error('Prisma connection error:', e));
 /**
  * Store Prisma Client in global scope during development.
  *
