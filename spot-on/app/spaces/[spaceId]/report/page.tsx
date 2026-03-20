@@ -1,6 +1,6 @@
 
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import ReportForm from "@/components/report/ReportForm";
+import ReportForm from "@/components/space/report/ReportForm";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
