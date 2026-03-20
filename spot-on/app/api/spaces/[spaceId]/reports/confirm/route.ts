@@ -21,7 +21,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
-type Params = { params: { spaceId: string } };
+type Params = { params: Promise<{ spaceId: string }> };
 type Tx = Prisma.TransactionClient;
 
 async function handleExpiredReport(tx: Tx, reportId: string,
@@ -165,8 +165,9 @@ async function handleActiveReport(tx: Tx, reportId: string,
  *       500:
  *         description: Internal Server Error — an unexpected error occurred
  */
-export const PATCH = async (_request: Request, { params }: Params) => {
+export const PATCH = async (_request: Request, props: Params) => {
     try {
+        const params = await props.params;
         const session = await getServerSession(authOptions);
         if (!session?.user?.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
