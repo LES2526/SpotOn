@@ -410,7 +410,7 @@ describe('Sprint 3 — QR Code & Session API', () => {
         describe('Library hours clamping', () => {
             it('should clamp expectedEndTime to closing time if it exceeds it', async () => {
                 const closingTime = process.env.LIBRARY_CLOSING_TIME ?? '20:30';
-                const [hours, minutes] = closingTime.split(':').map(Number);
+                const [hours] = closingTime.split(':').map(Number);
 
                 const afterClosing = new Date();
                 afterClosing.setHours(hours + 1, 0, 0, 0); // 1 hour after closing
