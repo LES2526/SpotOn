@@ -16,6 +16,9 @@ export default function FloorPlanSection( { floorPlan }: Readonly<{ floorPlan: F
     }
         */
 
+    if(floorPlan.spaces.length === 0){
+        return <p className="text-sm text-gray-500">Nenhum espaço encontrado neste piso.</p>
+    }
     return (
         <div>
             <FloorPlanView
