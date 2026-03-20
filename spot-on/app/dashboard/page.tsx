@@ -8,21 +8,32 @@ import { redirect } from "next/navigation";
 
 export const dynamic = 'force-dynamic';
 
+type DashboardSpace = {
+    id: string;
+    name: string;
+    capacity: number;
+    hasPowerOutlet: boolean;
+    type: string;
+    description: string | null;
+    sessions: Array<{ id: string }>;
+};
+
 export default async function DashboardPage({ searchParams }: Readonly<{ searchParams: Promise<{ floor?: string }> }>) {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
         redirect('/api/auth/signin?callbackUrl=/dashboard');
     }
-
     const { floor } = await searchParams;
     const selectedFloor = floor ?? null;
-
     const [spaces, floorPlans] = await Promise.all([
         prisma.space.findMany({
             include: {
                 floorPlan: { select: { name: true } },
                 sessions: {
-                    where: { status: 'ACTIVE', expectedEndTime: { gt: new Date() } },
+                    where: {
+                        status: 'ACTIVE',
+                        expectedEndTime: { gt: new Date() }
+                    },
                     select: { id: true },
                     take: 1,
                 },
@@ -43,10 +54,12 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
                 <FloorFilter floorPlans={floorPlans} selectedFloor={selectedFloor} />
 
                 {spaces.length === 0 ? (
-                    <p className="text-sm text-gray-500">Nenhum espaço encontrado.</p>
+                    <p className="text-sm text-gray-500">
+                        Nenhum espaço encontrado.
+                    </p>
                 ) : (
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        {spaces.map((space) => (
+                        {spaces.map((space: DashboardSpace) => (
                             <SpaceCard
                                 key={space.id}
                                 id={space.id}
