@@ -21,3 +21,6 @@ EXPOSE 3000
 
 # Run the production server
 CMD ["npm", "start"]
+
+# Install Node.js type definitions for TypeScript
+RUN npm i --save-dev @types/node
