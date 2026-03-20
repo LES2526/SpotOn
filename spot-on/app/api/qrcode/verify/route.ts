@@ -18,6 +18,8 @@ import { verifyQrCode, VerifyResult } from '@/lib/qr-utils';
 import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 
+import { scheduleSessionExpiry } from '@/lib/session-expiry'; // Import the session expiry scheduler
+import { clampToClosingTime } from '@/lib/library-hours';
 /**
  * Route parameter type containing the QR token.
  *
@@ -184,6 +186,7 @@ export async function GET(_request: Request, { params }: Params) {
  */
 export async function POST(_request: Request, { params }: Params) {
     try {
+
         const session = await getServerSession(authOptions);
         if (!session?.user?.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -205,14 +208,17 @@ export async function POST(_request: Request, { params }: Params) {
         const spaceOccupied = await prisma.studySession.findFirst({
             where: { spaceId: qrCode.spaceId, status: 'ACTIVE' },
         });
+
         if (spaceOccupied) {
             return NextResponse.json({ error: 'Space is already occupied' }, { status: 409 });
         }
+
 
         // Check if the user already has an active session elsewhere
         const userOccupied = await prisma.studySession.findFirst({
             where: { hostId: session.user.id, status: 'ACTIVE' },
         });
+        
         if (userOccupied) {
             return NextResponse.json(
                 { error: 'You already have an active session. Please release it first.' },
@@ -227,6 +233,8 @@ export async function POST(_request: Request, { params }: Params) {
             );
         }
 
+        rawEndTime = clampToClosingTime(rawEndTime); // Ensure the session doesn't extend past library closing time
+
         // Create the study session with a default 1-hour window
         const newSession = await prisma.studySession.create({
             data: {
@@ -236,7 +244,10 @@ export async function POST(_request: Request, { params }: Params) {
             },
         });
 
+        scheduleSessionExpiry(newSession.id, rawEndTime);
+
         return NextResponse.json(newSession, { status: 201 });
+
     } catch (error) {
         console.error('Error creating session via QR code:', error);
         return NextResponse.json({ error: 'Failed to create session' }, { status: 500 });
