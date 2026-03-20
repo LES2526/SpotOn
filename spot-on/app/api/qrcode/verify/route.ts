@@ -200,9 +200,9 @@ export async function POST(_request: Request, { params }: Params) {
             return NextResponse.json({ error: qrCode.reason }, { status: 400 });
         }
 
-        var rawEndTime = expectedEndTime
-        ? new Date(expectedEndTime)
-        : new Date(Date.now() + 60 * 60 * 1000);
+        const rawEndTime = expectedEndTime
+            ? new Date(expectedEndTime)
+            : new Date(Date.now() + 60 * 60 * 1000);
 
         // Check if the space is already occupied by an active session
         const spaceOccupied = await prisma.studySession.findFirst({
