@@ -3,14 +3,15 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
-type Params = { params: { spaceId: string } };
+type Params = { params: Promise<{ spaceId: string }> };
 
-export const GET = async (_request: Request, { params }: Params) => {
+export const GET = async (_request: Request, props: Params) => {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
         return NextResponse.json(
             { error: 'Unauthorized' }, { status: 401 });
     }
+    const params = await props.params;
     const { spaceId } = params;
     const space = await prisma.space.findUnique({
         where: { id: spaceId }
