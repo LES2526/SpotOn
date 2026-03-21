@@ -35,34 +35,28 @@ export default function SuccessStatus({ spaceId }: Readonly<SuccessStatusProps>)
         }
     };
 
-    // Percentage for the slider fill
     const fillPercent = ((durationMinutes - MIN_DURATION) / (MAX_DURATION - MIN_DURATION)) * 100;
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-950 text-white px-4">
             <div className="flex flex-col items-center gap-6 rounded-2xl border border-gray-800 bg-gray-900 p-10 shadow-xl max-w-sm w-full">
-
-                {/* Icon */}
                 <div className="flex items-center justify-center w-14 h-14 rounded-full bg-green-950 border border-green-800">
                     <svg className="w-7 h-7 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                 </div>
 
-                {/* Heading */}
                 <div className="text-center">
                     <h1 className="text-xl font-semibold text-white mb-2">Space Occupied!</h1>
                     <p className="text-sm text-gray-500">How long do you plan to stay?</p>
                 </div>
 
-                {/* Duration display */}
                 <div className="flex items-center justify-center w-full py-2">
                     <span className="text-3xl font-bold text-green-400">
                         {formatDuration(durationMinutes)}
                     </span>
                 </div>
 
-                {/* Slider */}
                 <div className="w-full px-1">
                     <style>{`
                         .duration-slider {
@@ -111,14 +105,12 @@ export default function SuccessStatus({ spaceId }: Readonly<SuccessStatusProps>)
                         onChange={(e) => setDurationMinutes(Number(e.target.value))}
                         className="duration-slider"
                     />
-                    {/* Min / Max labels */}
                     <div className="flex justify-between mt-2">
                         <span className="text-xs text-gray-600">{formatDuration(MIN_DURATION)}</span>
                         <span className="text-xs text-gray-600">{formatDuration(MAX_DURATION)}</span>
                     </div>
                 </div>
 
-                {/* Confirm button */}
                 <button
                     onClick={handleConfirmDuration}
                     className="w-full rounded-lg bg-green-500 hover:bg-green-600 px-4 py-3 text-sm font-semibold text-white transition-colors"
