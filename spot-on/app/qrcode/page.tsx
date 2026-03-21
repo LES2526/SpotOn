@@ -1,42 +1,30 @@
 'use client'
 
+import ErrorStatus from "@/components/qrcode/Error";
+import ExpiredStatus from "@/components/qrcode/Expired";
+import LoadingStatus from "@/components/qrcode/Loading";
+import OccupiedStatus from "@/components/qrcode/Occupied";
+import SuccessStatus from "@/components/qrcode/Success";
+import UserOccupiedStatus from "@/components/qrcode/UserOccupied";
 import { useSearchParams } from "next/navigation";
-import { useEffect } from "react";
-import { useState } from "react";
-import SuccessStatus from "./Success";
-import OccupiedStatus from "./Occupied";
-import UserOccupiedStatus from "./UserOccupied";
-import ExpiredStatus from "./Expired";
-import ErrorStatus from "./Error";
-import LoadingStatus from "./Loading";
+import { useEffect, useState } from "react";
 
 export default function OccupySpacePage() {
 
-    // const { data: session } = useSession({
-    //     required: true,
-    //     onUnauthenticated() {
-    //         window.location.href = `/api/auth/signin?callbackUrl=/qrcode`;
-    //     },
-    // });
-
     const [status, setStatus] = useState<
-'loading' | 'success' | 'occupied' | 'user_occupied' | 'expired' | 'error'>('loading');
+        'loading' | 'success' | 'occupied' | 'user_occupied' | 'expired' | 'error'>('loading');
 
     const searchParams = useSearchParams();
     const spaceId = searchParams.get('spaceId');
     const qrWindow = searchParams.get('window');
     const sig = searchParams.get('sig');
-
-    if (!spaceId || !qrWindow || !sig) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-                <h1 className="text-2xl font-bold mb-4">Invalid QR Code</h1>
-                <p className="text-gray-500">The QR code you scanned is invalid. Contact the library's administrator for assistance.</p>
-            </div>
-        );
-    }
+    const isInvalidQr = !spaceId || !qrWindow || !sig;
 
     useEffect(() => {
+        if (isInvalidQr) {
+            return;
+        }
+
         const occupySpace = async () => {
             try {
                 const response = await fetch('/api/qrcode/verify', {
@@ -65,7 +53,16 @@ export default function OccupySpacePage() {
         };
 
         occupySpace();
-    }, [spaceId, qrWindow, sig]);
+    }, [isInvalidQr, spaceId, qrWindow, sig]);
+
+    if (isInvalidQr) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+                <h1 className="text-2xl font-bold mb-4">Invalid QR Code</h1>
+                <p className="text-gray-500">The QR code you scanned is invalid. Contact the library&apos;s administrator for assistance.</p>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
@@ -73,40 +70,28 @@ export default function OccupySpacePage() {
                 <LoadingStatus />
             )}
             {status === 'success' && (
-                <>
-                    
-                    <SuccessStatus spaceId={spaceId} />
-                    
-                </>
+                <SuccessStatus spaceId={spaceId} />
             )}
             {status === 'occupied' && (
-                <>
-                    <OccupiedStatus />
-                </>
-            )}            
+                <OccupiedStatus />
+            )}
             {status === 'user_occupied' && (
-                <>
-                    <UserOccupiedStatus />
-                </>
+                <UserOccupiedStatus />
             )}
             {status === 'expired' && (
-                <>
-                    <ExpiredStatus />
-                </>
+                <ExpiredStatus />
             )}
             {status === 'error' && (
-                <>
-                    <ErrorStatus />
-                </>
+                <ErrorStatus />
             )}
         </div>
     );
 
-    
 
 
 
-    
+
+
 
 
 
