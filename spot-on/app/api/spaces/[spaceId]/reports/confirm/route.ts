@@ -82,7 +82,7 @@ async function handleActiveReport(tx: Tx, reportId: string,
     if (allConfirmed) {
         return await tx.report.update({
             where: { id: reportId },
-            data: { status: 'RESOLVED' }
+            data: { status: 'RESOLVED', confirmedAt: new Date() }
         });
     }
     return { pending: true };
