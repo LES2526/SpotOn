@@ -10,9 +10,10 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function OccupySpacePage() {
-
     const [status, setStatus] = useState<
-        'loading' | 'success' | 'occupied' | 'user_occupied' | 'expired' | 'error'>('loading');
+        'loading' | 'success' | 'occupied' | 'user_occupied' | 'expired' | 'error'
+    >('loading');
+    const [reportToken, setReportToken] = useState<string | null>(null);
 
     const searchParams = useSearchParams();
     const spaceId = searchParams.get('spaceId');
@@ -21,13 +22,11 @@ export default function OccupySpacePage() {
     const isInvalidQr = !spaceId || !qrWindow || !sig;
 
     useEffect(() => {
-        if (isInvalidQr) {
-            return;
-        }
+        if (isInvalidQr) return;
 
         const occupySpace = async () => {
             try {
-                const response = await fetch('/api/qrcode/verify', {
+                const response = await fetch(`/api/qrcode/verify`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ spaceId, qrWindow, sig }),
@@ -38,6 +37,9 @@ export default function OccupySpacePage() {
                 } else {
                     const errorData = await response.json();
                     if (response.status === 409 && errorData.error.match(/occupied/i)) {
+                        const spaceRes = await fetch(`/api/qrcode/display/${spaceId}`);
+                        const spaceData = await spaceRes.json();
+                        setReportToken(spaceData.currentQrToken ?? null);
                         setStatus('occupied');
                     } else if (response.status === 409 && errorData.error.match(/active session/i)) {
                         setStatus('user_occupied');
@@ -49,11 +51,27 @@ export default function OccupySpacePage() {
                 }
             } catch (error) {
                 console.error('Network error:', error);
+                setStatus('error');
             }
         };
-
         occupySpace();
     }, [isInvalidQr, spaceId, qrWindow, sig]);
+
+    const joinSession = async () => {
+        try {
+            const response = await fetch(`/api/spaces/${spaceId}/participations`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+            if (response.ok) {
+                setStatus('success');
+            } else {
+                setStatus('error');
+            }
+        } catch {
+            setStatus('error');
+        }
+    };
 
     if (isInvalidQr) {
         return (
@@ -66,40 +84,17 @@ export default function OccupySpacePage() {
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-            {status === 'loading' && (
-                <LoadingStatus />
-            )}
-            {status === 'success' && (
-                <SuccessStatus spaceId={spaceId} />
-            )}
+            {status === 'loading' && <LoadingStatus />}
+            {status === 'success' && <SuccessStatus spaceId={spaceId} />}
             {status === 'occupied' && (
-                <OccupiedStatus />
+                <OccupiedStatus
+                    reportHref={reportToken ? `/spaces/${spaceId}/report?qrToken=${encodeURIComponent(reportToken)}` : undefined}
+                    onJoinSession={joinSession}
+                />
             )}
-            {status === 'user_occupied' && (
-                <UserOccupiedStatus />
-            )}
-            {status === 'expired' && (
-                <ExpiredStatus />
-            )}
-            {status === 'error' && (
-                <ErrorStatus />
-            )}
+            {status === 'user_occupied' && <UserOccupiedStatus />}
+            {status === 'expired' && <ExpiredStatus />}
+            {status === 'error' && <ErrorStatus />}
         </div>
     );
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
