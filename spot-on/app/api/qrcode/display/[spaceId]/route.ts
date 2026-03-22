@@ -4,9 +4,9 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 
-import { buildQrUrl, verifyQrCode, VerifyResult } from '@/lib/qr-utils';
-import { scheduleSessionExpiry } from '@/lib/session-expiry';
 import { clampToClosingTime } from '@/lib/library-hours';
+import { buildQrUrl } from '@/lib/qr-utils';
+import { scheduleSessionExpiry } from '@/lib/session-expiry';
 
 
 /**
@@ -15,7 +15,7 @@ import { clampToClosingTime } from '@/lib/library-hours';
  * @typedef {Object} Params
  * @property {Promise<{ spaceId: string }>} params - Resolved route parameters
  */
-type Params = { params: { spaceId: string } };
+type Params = { params: Promise<{ spaceId: string }> };
 
 
 /**
@@ -58,12 +58,12 @@ type Params = { params: { spaceId: string } };
  *       500:
  *         description: Internal Server Error
  */
-export async function GET(_request: Request, { params }: { params: { spaceId: string } }) {
+export async function GET(_request: Request, { params }: Params) {
     const { spaceId } = await params;
 
     console.log(`Received request for QR code of space ${spaceId}`);
 
-    if(!spaceId) {
+    if (!spaceId) {
         return NextResponse.json({ error: 'Missing spaceId parameter' }, { status: 400 });
     }
 
@@ -73,9 +73,22 @@ export async function GET(_request: Request, { params }: { params: { spaceId: st
         return NextResponse.json({ error: 'Space not found' }, { status: 404 });
     }
 
+    const activeSession = await prisma.studySession.findFirst({
+        where: {
+            spaceId,
+            status: 'ACTIVE',
+            expectedEndTime: { gt: new Date() },
+        },
+        select: { id: true },
+    });
+
     const qrCodeURL: string = buildQrUrl(spaceId, process.env.NEXTAUTH_URL || 'http://localhost:3000');
 
-    return NextResponse.json({ qrCodeURL });
+    return NextResponse.json({
+        qrCodeURL,
+        isOccupied: Boolean(activeSession),
+        currentQrToken: existingSpace.currentQrToken,
+    });
 }
 
 /**
@@ -124,7 +137,7 @@ export async function GET(_request: Request, { params }: { params: { spaceId: st
  */
 export async function PATCH(request: Request, { params }: { params: { spaceId: string } }) {
     const { expectedEndTime } = await request.json();
-    const { spaceId } = await params;
+    const { spaceId } = params;
 
     try {
         const session = await getServerSession(authOptions);
@@ -151,7 +164,7 @@ export async function PATCH(request: Request, { params }: { params: { spaceId: s
             );
         }
 
-        var expectedEndDate = await clampToClosingTime(new Date(expectedEndTime));
+        const expectedEndDate = await clampToClosingTime(new Date(expectedEndTime));
 
         const updatedSession = await prisma.studySession.update({
             where: { id: activeSession.id },

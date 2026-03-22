@@ -50,7 +50,7 @@ export default function SpaceCard({ id, name, capacity, hasPowerOutlet, type, de
                         href={`/spaces/${id}/report`}
                         className="block w-full rounded px-4 py-2 text-center text-sm font-medium text-red-400 border border-red-900 hover:bg-red-950 transition-colors"
                     >
-                        Denunciar mesa vazia
+                        Denunciar
                     </Link>
                 )}
             </div>
