@@ -74,15 +74,12 @@ export async function POST(_request: Request, { params }: Params) {
         if (!session?.user?.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
-
         const { spaceId } = await Promise.resolve(params);
-
         // Verify the space exists
         const space = await prisma.space.findUnique({ where: { id: spaceId } });
         if (!space) {
             return NextResponse.json({ error: 'Space not found' }, { status: 404 });
         }
-
         // Check if the space is already occupied by an active session
         const spaceOccupied = await prisma.studySession.findFirst({
             where: {
@@ -92,7 +89,6 @@ export async function POST(_request: Request, { params }: Params) {
         if (spaceOccupied) {
             return NextResponse.json({ error: 'Space is already occupied' }, { status: 409 });
         }
-
         // Check if the user already has an active session in another space
         const userOccupied = await prisma.studySession.findFirst({
             where: {
@@ -102,7 +98,6 @@ export async function POST(_request: Request, { params }: Params) {
         if (userOccupied) {
             return NextResponse.json({ error: 'You already have an active session. Please release it first.' }, { status: 409 });
         }
-
         // Create the new study session with a 1-hour duration
         const newSession = await prisma.studySession.create({
             data: {
@@ -111,7 +106,6 @@ export async function POST(_request: Request, { params }: Params) {
                 expectedEndTime: new Date(Date.now() + 60 * 60 * 1000)
             }
         });
-
         return NextResponse.json(newSession, { status: 201 });
     } catch (error) {
         console.error('Error creating session:', error);
