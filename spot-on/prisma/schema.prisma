@@ -38,6 +38,7 @@ model User {
     hostedStudySessions StudySession[]       @relation("SessionHost")
     participations      UserOnStudySession[]
     reports             Report[]
+    reportConfirmations ReportConfirmation[]
 }
 
 /// NextAuth authentication providers.
@@ -217,6 +218,18 @@ model Report {
     timeToConfirm DateTime  @default(dbgenerated("now() + interval '10 minutes'")) /// 10 minutes to confirm the report
     confirmedAt   DateTime?
 
-    reporter User         @relation(fields: [reporterId], references: [id])
-    session  StudySession @relation(fields: [sessionId], references: [id])
+    reporter            User                 @relation(fields: [reporterId], references: [id])
+    session             StudySession         @relation(fields: [sessionId], references: [id])
+    reportConfirmations ReportConfirmation[]
+}
+
+model ReportConfirmation {
+    reportId    String   @db.VarChar(30)
+    userId      String   @db.VarChar(30)
+    confirmedAt DateTime @default(now())
+
+    report Report @relation(fields: [reportId], references: [id])
+    user   User   @relation(fields: [userId], references: [id])
+
+    @@id([reportId, userId])
 }
