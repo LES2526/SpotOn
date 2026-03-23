@@ -6,11 +6,7 @@ export type SpaceMarker = {
     hasPowerOutlet: boolean;
     description: string | null;
     shape: string | null;
-    posX: number;
-    posY: number;
-    width: number;
-    height: number;
-    rotation: number;
+    points: string;
     isOccupied: boolean;
     expectedEndTime: Date | null;
 };
