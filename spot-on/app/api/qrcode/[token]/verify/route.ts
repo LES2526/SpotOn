@@ -26,7 +26,7 @@ import { clampToClosingTime } from '@/lib/library-hours';
  * @typedef {Object} Params
  * @property {Promise<{ token: string }>} params - Resolved route parameters
  */
-type Params = { params: { token: string } };
+type Params = { params: Promise<{ token: string }> };
 
 /**
  * @swagger
@@ -91,14 +91,13 @@ type Params = { params: { token: string } };
  * @throws {401} If the user is not authenticated
  * @throws {404} If no space matches the given token
  */
-export async function GET(_request: Request, { params }: Params) {
+export async function GET(_request: Request, props: Params) {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    const { token } = await params;
-
+    const params = await props.params;
+    const { token } = params;
     const space = await prisma.space.findUnique({
         where: { currentQrToken: token },
         select: {
@@ -119,13 +118,10 @@ export async function GET(_request: Request, { params }: Params) {
             },
         },
     });
-
     if (!space) {
         return NextResponse.json({ error: 'QR code not recognised' }, { status: 404 });
     }
-
     const { sessions, ...rest } = space;
-
     return NextResponse.json({
         ...rest,
         isOccupied: sessions.length > 0,
@@ -184,7 +180,7 @@ export async function GET(_request: Request, { params }: Params) {
  *       500:
  *         description: Internal Server Error
  */
-export async function POST(_request: Request, { params }: Params) {
+export async function POST(_request: Request) {
     try {
 
         const session = await getServerSession(authOptions);
