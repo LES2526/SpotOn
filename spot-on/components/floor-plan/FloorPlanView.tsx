@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { FloorPlanData, SpaceMarker } from "./type";
 import SpaceMarkerDot from "./SpaceMarkerDot";
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 type Props = {
     floorPlan: FloorPlanData;
@@ -27,18 +28,22 @@ export default function FloorPlanView({ floorPlan, selectedSpace, onSelectSpace 
         console.log(`x: ${Math.round(coords.x)}, y: ${Math.round(coords.y)}`);
     }
     return (
-    <div className="w-full overflow-auto rounded-lg border border-gray-700 bg-white">
-        <svg ref={svgRef} viewBox={floorPlan.viewBox} fill = "none" className="w-full" onClick={handleSvgClick}>
-            <g dangerouslySetInnerHTML={{ __html: floorPlan.svgContent}} />
-            {floorPlan.spaces.map(space => (
-                <SpaceMarkerDot
-                    key={space.id}
-                    space={space}
-                    isSelected={selectedSpace?.id === space.id}
-                    onClick={onSelectSpace}
-                />
-            ))}
-        </svg>  
+    <div className="w-full overflow-hidden rounded-lg border border-gray-700 bg-white">
+        <TransformWrapper>
+            <TransformComponent wrapperStyle={{ width: "100%" }} contentStyle={{ width: "100%" }}>
+                <svg ref={svgRef} viewBox={floorPlan.viewBox} fill = "none" className="w-full" onClick={handleSvgClick}>
+                    <g dangerouslySetInnerHTML={{ __html: floorPlan.svgContent}} />
+                    {floorPlan.spaces.map(space => (
+                        <SpaceMarkerDot
+                            key={space.id}
+                            space={space}
+                            isSelected={selectedSpace?.id === space.id}
+                            onClick={onSelectSpace}
+                        />
+                    ))}
+                </svg> 
+            </TransformComponent> 
+        </TransformWrapper>
     </div>
 
     );
