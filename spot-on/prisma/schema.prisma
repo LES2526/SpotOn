@@ -37,6 +37,7 @@ model User {
 
     hostedStudySessions StudySession[]       @relation("SessionHost")
     participations      UserOnStudySession[]
+    reports             Report[]
 }
 
 /// NextAuth authentication providers.
@@ -83,10 +84,16 @@ model VerificationToken {
 // Spot-On Domain Models
 // ============================================
 
+// --------------------------------------------
+// Enums
+// - SessionStatus, InvitationStatus, SpaceType,
+//   ReportStatus
+// --------------------------------------------
+
 enum SessionStatus {
     ACTIVE
     COMPLETED
-    OVERDUE
+    EXPIRED
 }
 
 enum InvitationStatus {
@@ -105,7 +112,16 @@ enum SpaceShape {
     RETANGULAR_DESK
 }
 
+enum ReportStatus {
+    OPEN
+    RESOLVED
+    EXPIRED
+}
+
 /// Floor plan canvas. Spaces are positioned relative to this container.
+// --------------------------------------------
+// Floor plan & Spaces
+// --------------------------------------------
 model FloorPlan {
     id          String @id @default(cuid()) @db.VarChar(30)
     name        String @db.VarChar(255)
@@ -121,6 +137,9 @@ model FloorPlan {
 }
 
 /// Study space
+// --------------------------------------------
+// Space model
+// --------------------------------------------
 model Space {
     id             String    @id @default(cuid()) @db.VarChar(30)
     floorPlanId    String    @db.VarChar(30)
@@ -141,6 +160,9 @@ model Space {
 }
 
 /// Study session in a space.
+// --------------------------------------------
+// Sessions
+// --------------------------------------------
 model StudySession {
     id      String @id @default(cuid()) @db.VarChar(30)
     spaceId String @db.VarChar(30)
@@ -159,9 +181,13 @@ model StudySession {
     host  User  @relation("SessionHost", fields: [hostId], references: [id])
 
     participants UserOnStudySession[]
+    reports      Report[]
 }
 
 /// User participation in study session (pivot table).
+// --------------------------------------------
+// Participation (pivot) models
+// --------------------------------------------
 model UserOnStudySession {
     userId    String @db.VarChar(30)
     sessionId String @db.VarChar(30)
@@ -173,4 +199,24 @@ model UserOnStudySession {
     session StudySession @relation(fields: [sessionId], references: [id])
 
     @@id([userId, sessionId])
+}
+
+/// User report about a study session.
+// --------------------------------------------
+// Reports
+// --------------------------------------------
+model Report {
+    id         String       @id @default(cuid()) @db.VarChar(30)
+    reporterId String       @db.VarChar(30)
+    sessionId  String       @db.VarChar(30)
+    reason     String       @db.VarChar(255)
+    status     ReportStatus @default(OPEN)
+
+    createdAt     DateTime  @default(now())
+    updatedAt     DateTime  @default(now()) @updatedAt
+    timeToConfirm DateTime  @default(dbgenerated("now() + interval '10 minutes'")) /// 10 minutes to confirm the report
+    confirmedAt   DateTime?
+
+    reporter User         @relation(fields: [reporterId], references: [id])
+    session  StudySession @relation(fields: [sessionId], references: [id])
 }
