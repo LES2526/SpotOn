@@ -31,36 +31,26 @@ async function main() {
 
     console.log(`FloorPlan criado: ${floorPlan.name}`);
 
-    // Individual desks
+    // Individual desks — points: "x1,y1 x2,y2 x3,y3 x4,y4" clockwise from top-left
     const individualDesks = [
-    
-        { name: 'Mesa1', posX: 1418, posY: 904, width: 101, height: 30, rotation: 0, capacity: 4 },
-        { name: 'Mesa2', posX: 476, posY: 309, width: 48, height: 196, rotation: 0, capacity: 1 },
-        { name: 'Mesa3', posX: 656, posY: 321, width: 47, height: 149, rotation: 0, capacity: 1 },
-        { name: 'Mesa4', posX: 900, posY: 602, width: 48, height: 100, rotation: 0, capacity: 1 },
-        { name: 'Mesa5', posX: 1000, posY: 602, width: 52, height: 100, rotation: 0, capacity: 1 },
-        { name: 'Mesa6', posX: 769, posY: 602, width: 52, height: 48, rotation: 0, capacity: 1 },
-        { name: 'Mesa7', posX: 659, posY: 602, width: 48, height: 48, rotation: 0, capacity: 1 },
+        { name: 'Mesa1', points: '1418,904 1519,904 1519,934 1418,934', capacity: 4 },
+        { name: 'Mesa2', points: '476,309 524,309 524,505 476,505',     capacity: 1 },
+        { name: 'Mesa3', points: '656,321 703,321 703,470 656,470',     capacity: 1 },
+        { name: 'Mesa4', points: '900,602 948,602 948,702 900,702',     capacity: 1 },
+        { name: 'Mesa5', points: '1000,602 1052,602 1052,702 1000,702', capacity: 1 },
+        { name: 'Mesa6', points: '769,602 821,602 821,650 769,650',     capacity: 1 },
+        { name: 'Mesa7', points: '659,602 707,602 707,650 659,650',     capacity: 1 },
     ];
 
     for (const desk of individualDesks) {
         const space = await prisma.space.upsert({
             where: { currentQrToken: `qr-${desk.name.toLowerCase().replaceAll(' ', '-')}` },
-            update: {
-                posX: desk.posX,
-                posY: desk.posY,
-                width: desk.width,
-                height: desk.height,
-            },
+            update: { points: desk.points },
             create: {
                 floorPlanId: floorPlan.id,
                 name: desk.name,
-                posX: desk.posX,
-                posY: desk.posY,
-                width: desk.width,
-                height: desk.height,
-                rotation: desk.rotation,
-                capacity: 1,
+                points: desk.points,
+                capacity: desk.capacity,
                 currentQrToken: `qr-${desk.name.toLowerCase().replaceAll(' ', '-')}`,
                 type: SpaceType.INDIVIDUAL_DESK,
                 hasPowerOutlet: Math.random() > 0.5,
@@ -70,18 +60,14 @@ async function main() {
         console.log(`Mesa individual criada: ${space.name}`);
     }
 
-    // Circular desks
+    // Circular desks — bounding box corners (cx/cy/rx/ry derived at render time)
     const circularDesk = await prisma.space.upsert({
         where: { currentQrToken: 'qr-mesa-circular-1' },
-        update: { posX: 256, posY: 218, width: 60, height: 60, shape: SpaceShape.CIRCULAR_DESK },
+        update: { points: '256,218 316,218 316,278 256,278', shape: SpaceShape.CIRCULAR_DESK },
         create: {
             floorPlanId: floorPlan.id,
             name: 'Mesa Circular 1',
-            posX: 256,
-            posY: 218,
-            width: 60,
-            height: 60,
-            rotation: 0,
+            points: '256,218 316,218 316,278 256,278',
             shape: SpaceShape.CIRCULAR_DESK,
             capacity: 1,
             currentQrToken: 'qr-mesa-circular-1',
@@ -92,35 +78,26 @@ async function main() {
     });
     console.log(`Mesa circular criada: ${circularDesk.name}`);
 
+    // Group rooms
     const groupRooms = [
-        { name: 'Sala de Grupo 1', posX: 410, posY: 159, width: 84, height: 109, rotation: 0, capacity: 6 },
-        { name: 'Sala de Grupo 2', posX: 501, posY: 156, width: 139, height: 112, rotation: 0, capacity: 6 },
-        { name: 'Sala de Grupo 3', posX: 748, posY: 154, width: 100, height: 114, rotation: 0, capacity: 6 },
-        { name: 'Sala de Grupo 4', posX: 846, posY: 156, width: 112, height: 115, rotation: 0, capacity: 6 },
-        { name: 'Sala de Grupo 5', posX: 961, posY: 145, width: 92, height: 125, rotation: 0, capacity: 6 },
-        { name: 'Sala de Grupo 6', posX: 1063, posY: 155, width: 124, height: 113, rotation: 0, capacity: 6 },
-        { name: 'Sala de Grupo 7', posX: 1192, posY: 160, width: 107, height: 110, rotation: 0, capacity: 6 },
-        { name: 'Sala de Grupo 8', posX: 1326, posY: 222, width: 146, height: 100, rotation: -40, capacity: 6 },
+        { name: 'Sala de Grupo 1', points: '410,160 494,160 494,271 410,271',     capacity: 6 },
+        { name: 'Sala de Grupo 2', points: '501,160 640,160 640,271 501,271',     capacity: 6 },
+        { name: 'Sala de Grupo 3', points: '748,160 848,160 848,271 748,271',     capacity: 6 },
+        { name: 'Sala de Grupo 4', points: '846,160 958,160 958,271 846,271',     capacity: 6 },
+        { name: 'Sala de Grupo 5', points: '961,160 1053,160 1053,271 961,271',   capacity: 6 },
+        { name: 'Sala de Grupo 6', points: '1063,160 1187,160 1187,271 1063,271', capacity: 6 },
+        { name: 'Sala de Grupo 7', points: '1192,160 1299,160 1299,271 1192,271', capacity: 6 },
+        { name: 'Sala de Grupo 8', points: '1305,160 1403,160 1488,261 1375,367 1303,274', capacity: 6 },
     ];
 
     for (const room of groupRooms) {
         const space = await prisma.space.upsert({
             where: { currentQrToken: `qr-${room.name.toLowerCase().replaceAll(' ', '-')}` },
-            update: {
-                posX: room.posX,
-                posY: room.posY,
-                width: room.width,
-                height: room.height,
-                rotation: room.rotation,
-            },
+            update: { points: room.points },
             create: {
                 floorPlanId: floorPlan.id,
                 name: room.name,
-                posX: room.posX,
-                posY: room.posY,
-                width: room.width,
-                height: room.height,
-                rotation: room.rotation,
+                points: room.points,
                 capacity: room.capacity,
                 currentQrToken: `qr-${room.name.toLowerCase().replaceAll(' ', '-')}`,
                 type: SpaceType.GROUP_ROOM,
