@@ -12,6 +12,16 @@ import OccupanceCard from "@/components/occupance/SpacesOccupance";
 // Disable caching so occupancy status is always up to date
 export const dynamic = 'force-dynamic';
 
+type DashboardSpace = {
+    id: string;
+    name: string;
+    capacity: number;
+    hasPowerOutlet: boolean;
+    type: string;
+    description: string | null;
+    sessions: Array<{ id: string }>;
+};
+
 export default async function DashboardPage({ searchParams }: Readonly<{ searchParams: Promise<{ floor?: string }> }>) {
     // TODO: re-enable auth redirect
     // const session = await getServerSession(authOptions);
@@ -103,7 +113,7 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
                     <p className="text-sm text-gray-500">Nenhum pllzespaço encontrado.</p>
                 ) : (
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        {spaces.map((space) => (
+                        {spaces.map((space: DashboardSpace) => (
                             <SpaceCard
                                 key={space.id}
                                 id={space.id}

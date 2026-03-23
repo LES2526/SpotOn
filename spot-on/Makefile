@@ -89,19 +89,24 @@ docker-ps: ## Show running docker services
 docker-seed: ## Run seed inside web container
 	$(COMPOSE) exec $(WEB_SERVICE) npx prisma db seed
 
-docker-wait-web: ## Wait until web service reports readiness
+docker-wait-web: ## Wait until web service responds over HTTP
 	@echo "Waiting for $(WEB_SERVICE) to be ready..."
 	@timeout_sec=$(WAIT_TIMEOUT); \
 	start_time=$$(date +%s); \
 	while true; do \
-		if $(COMPOSE) logs $(WEB_SERVICE) 2>&1 | grep -q "$(READY_PATTERN)"; then \
-			echo "$(WEB_SERVICE) is ready."; \
-			break; \
+		container_id=$$($(COMPOSE) ps -q $(WEB_SERVICE) 2>/dev/null || true); \
+		if [ -n "$$container_id" ] && [ "$$(docker inspect -f '{{.State.Running}}' $$container_id 2>/dev/null || true)" = "true" ]; then \
+			if $(COMPOSE) exec -T $(WEB_SERVICE) sh -lc 'wget -q -O /dev/null http://127.0.0.1:3000' >/dev/null 2>&1; then \
+				echo "$(WEB_SERVICE) is ready at $(APP_URL)."; \
+				break; \
+			fi; \
 		fi; \
 		now=$$(date +%s); \
 		elapsed=$$((now - start_time)); \
 		if [ $$elapsed -ge $$timeout_sec ]; then \
-			echo "Timeout waiting for $(WEB_SERVICE) logs to contain '$(READY_PATTERN)'."; \
+			echo "Timeout waiting for $(WEB_SERVICE) to respond at $(APP_URL)."; \
+			$(COMPOSE) ps; \
+			$(COMPOSE) logs --tail=50 $(WEB_SERVICE); \
 			exit 1; \
 		fi; \
 		sleep 2; \
