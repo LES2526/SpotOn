@@ -148,6 +148,8 @@ model Space {
     currentQrToken String    @unique @db.VarChar(255) /// Rotates periodically; displayed on the space's tablet
     description    String?   @db.VarChar(255)
     hasPowerOutlet Boolean   @default(false)
+    hasComputer    Boolean   @default(false)
+    hasInteractiveBoard Boolean   @default(false)
     type           SpaceType @default(INDIVIDUAL_DESK)
 
     createdAt DateTime @default(now())
