@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import SpacePanel from "@/components/dashboard/SpacePanel";
 import FloorFilter from "@/components/floor/FloorFilter";
 import FloorPlanSection from "@/components/floor-plan/FloorPlanSection";
 import SpaceCard from "@/components/space/SpaceCard";
@@ -15,17 +16,19 @@ import OccupanceCard from "@/components/occupance/SpacesOccupance";
 // Disable caching so occupancy status is always up to date
 export const dynamic = 'force-dynamic';
 
-type DashboardSpace = {
-    id: string;
-    name: string;
-    capacity: number;
-    hasPowerOutlet: boolean;
-    type: string;
-    description: string | null;
-    sessions: Array<{ id: string }>;
+type SearchParams = {
+    floor?: string;
+    type?: string;
+    hasPowerOutlet?: string;
+    hasComputer?: string;
+    hasInteractiveBoard?: string;
+    isOccupied?: string;
+    capacity?: string;
 };
 
-export default async function DashboardPage({ searchParams }: Readonly<{ searchParams: Promise<{ floor?: string }> }>) {
+export default async function DashboardPage({
+    searchParams,
+}: Readonly<{ searchParams: Promise<SearchParams> }>) {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
         redirect('/api/auth/signin?callbackUrl=/dashboard');
@@ -105,8 +108,9 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
     const occupiedRooms: number = floorPlanData.spaces.filter(s => s.type === "GROUP_ROOM" && s.isOccupied).length
 
     return (
-        <main className="min-h-screen bg-gray-950 p-8 text-white">
-            <section className="mx-auto max-w-6xl">
+        <main className="relative min-h-screen bg-gray-950 text-white overflow-hidden">
+            {/* Header */}
+            <div className="relative z-10 px-8 pt-8">
                 <DashboardHeader />
                 <FloorFilter floorPlans={floorPlans} selectedFloor={selectedFloor} />
                 <FloorPlanSection floorPlan={floorPlanData} />
