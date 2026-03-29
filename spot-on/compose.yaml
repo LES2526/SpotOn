@@ -20,7 +20,7 @@ services:
 
   web:
     build: .
-    command: sh -c "rm -rf .next && until npx prisma db push; do echo 'Waiting for database...'; sleep 2; done; npm run dev:docker"
+    command: sh -c "rm -rf .next && until npx prisma db push; do echo 'Waiting for database...'; sleep 2; done; npx prisma db seed; npm run dev:docker"
     ports:
       - "3000:3000"
     env_file: .env
@@ -34,6 +34,7 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
+      - /app/.next
     depends_on:
       db:
         condition: service_healthy
