@@ -1,45 +1,32 @@
 'use client'
 
+import ErrorStatus from "@/components/qrcode/Error";
+import ExpiredStatus from "@/components/qrcode/Expired";
+import LoadingStatus from "@/components/qrcode/Loading";
+import OccupiedStatus from "@/components/qrcode/Occupied";
+import SuccessStatus from "@/components/qrcode/Success";
+import UserOccupiedStatus from "@/components/qrcode/UserOccupied";
 import { useSearchParams } from "next/navigation";
-import { useEffect } from "react";
-import { useState } from "react";
-import SuccessStatus from "./Success";
-import OccupiedStatus from "./Occupied";
-import UserOccupiedStatus from "./UserOccupied";
-import ExpiredStatus from "./Expired";
-import ErrorStatus from "./Error";
-import LoadingStatus from "./Loading";
+import { useEffect, useState } from "react";
 
 export default function OccupySpacePage() {
-
-    // const { data: session } = useSession({
-    //     required: true,
-    //     onUnauthenticated() {
-    //         window.location.href = `/api/auth/signin?callbackUrl=/qrcode`;
-    //     },
-    // });
-
     const [status, setStatus] = useState<
-'loading' | 'success' | 'occupied' | 'user_occupied' | 'expired' | 'error'>('loading');
+        'loading' | 'success' | 'occupied' | 'user_occupied' | 'expired' | 'error'
+    >('loading');
+    const [reportToken, setReportToken] = useState<string | null>(null);
 
     const searchParams = useSearchParams();
     const spaceId = searchParams.get('spaceId');
     const qrWindow = searchParams.get('window');
     const sig = searchParams.get('sig');
-
-    if (!spaceId || !qrWindow || !sig) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-                <h1 className="text-2xl font-bold mb-4">Invalid QR Code</h1>
-                <p className="text-gray-500">The QR code you scanned is invalid. Contact the library's administrator for assistance.</p>
-            </div>
-        );
-    }
+    const isInvalidQr = !spaceId || !qrWindow || !sig;
 
     useEffect(() => {
+        if (isInvalidQr) return;
+
         const occupySpace = async () => {
             try {
-                const response = await fetch('/api/qrcode/verify', {
+                const response = await fetch(`/api/qrcode/verify`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ spaceId, qrWindow, sig }),
@@ -50,6 +37,9 @@ export default function OccupySpacePage() {
                 } else {
                     const errorData = await response.json();
                     if (response.status === 409 && errorData.error.match(/occupied/i)) {
+                        const spaceRes = await fetch(`/api/qrcode/display/${spaceId}`);
+                        const spaceData = await spaceRes.json();
+                        setReportToken(spaceData.currentQrToken ?? null);
                         setStatus('occupied');
                     } else if (response.status === 409 && errorData.error.match(/active session/i)) {
                         setStatus('user_occupied');
@@ -61,60 +51,50 @@ export default function OccupySpacePage() {
                 }
             } catch (error) {
                 console.error('Network error:', error);
+                setStatus('error');
             }
         };
-
         occupySpace();
-    }, [spaceId, qrWindow, sig]);
+    }, [isInvalidQr, spaceId, qrWindow, sig]);
+
+    const joinSession = async () => {
+        try {
+            const response = await fetch(`/api/spaces/${spaceId}/join-session`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+            if (response.ok) {
+                setStatus('success');
+            } else {
+                setStatus('error');
+            }
+        } catch {
+            setStatus('error');
+        }
+    };
+
+    if (isInvalidQr) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+                <h1 className="text-2xl font-bold mb-4">Invalid QR Code</h1>
+                <p className="text-gray-500">The QR code you scanned is invalid. Contact the library&apos;s administrator for assistance.</p>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-            {status === 'loading' && (
-                <LoadingStatus />
-            )}
-            {status === 'success' && (
-                <>
-                    
-                    <SuccessStatus spaceId={spaceId} />
-                    
-                </>
-            )}
+            {status === 'loading' && <LoadingStatus />}
+            {status === 'success' && <SuccessStatus spaceId={spaceId} />}
             {status === 'occupied' && (
-                <>
-                    <OccupiedStatus />
-                </>
-            )}            
-            {status === 'user_occupied' && (
-                <>
-                    <UserOccupiedStatus />
-                </>
+                <OccupiedStatus
+                    reportHref={reportToken ? `/spaces/${spaceId}/report?qrToken=${encodeURIComponent(reportToken)}` : undefined}
+                    onJoinSession={joinSession}
+                />
             )}
-            {status === 'expired' && (
-                <>
-                    <ExpiredStatus />
-                </>
-            )}
-            {status === 'error' && (
-                <>
-                    <ErrorStatus />
-                </>
-            )}
+            {status === 'user_occupied' && <UserOccupiedStatus />}
+            {status === 'expired' && <ExpiredStatus />}
+            {status === 'error' && <ErrorStatus />}
         </div>
     );
-
-    
-
-
-
-    
-
-
-
-
-
-
-
-
-
-
 }
