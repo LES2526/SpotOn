@@ -15,17 +15,19 @@ import path from "path";
 // Disable caching so occupancy status is always up to date
 export const dynamic = 'force-dynamic';
 
-type DashboardSpace = {
-    id: string;
-    name: string;
-    capacity: number;
-    hasPowerOutlet: boolean;
-    type: string;
-    description: string | null;
-    sessions: Array<{ id: string }>;
+type SearchParams = {
+    floor?: string;
+    type?: string;
+    hasPowerOutlet?: string;
+    hasComputer?: string;
+    hasInteractiveBoard?: string;
+    isOccupied?: string;
+    capacity?: string;
 };
 
-export default async function DashboardPage({ searchParams }: Readonly<{ searchParams: Promise<{ floor?: string }> }>) {
+export default async function DashboardPage({
+    searchParams,
+}: Readonly<{ searchParams: Promise<SearchParams> }>) {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
         redirect('/api/auth/signin?callbackUrl=/dashboard');
