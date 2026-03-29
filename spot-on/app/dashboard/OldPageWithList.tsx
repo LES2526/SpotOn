@@ -28,6 +28,26 @@ type SearchParams = {
 export default async function DashboardPage({
     searchParams,
 }: Readonly<{ searchParams: Promise<SearchParams> }>) {
+=======
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { redirect } from "next/navigation";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import FloorFilter from "@/components/floor/FloorFilter";
+import FloorPlanSection from "@/components/floor-plan/FloorPlanSection";
+import SpaceCard from "@/components/space/SpaceCard";
+import { prisma } from "@/lib/prisma";
+import { FloorPlanData } from "@/components/floor-plan/type";
+import fs from "fs"
+import path from "path"
+import OccupanceCard from "@/components/occupance/SpacesOccupance";
+
+
+// Disable caching so occupancy status is always up to date
+export const dynamic = 'force-dynamic';
+
+export default async function DashboardPage({ searchParams }: Readonly<{ searchParams: Promise<{ floor?: string }> }>) {
+>>>>>>> 6b5c2cf (Avoid Merge Conflict with new Page layout)
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
         redirect('/api/auth/signin?callbackUrl=/dashboard');
@@ -120,7 +140,7 @@ export default async function DashboardPage({
                     <p className="text-sm text-gray-500">Nenhum pllzespaço encontrado.</p>
                 ) : (
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        {spaces.map((space: DashboardSpace) => (
+                        {spaces.map((space) => (
                             <SpaceCard
                                 key={space.id}
                                 id={space.id}
