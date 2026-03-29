@@ -1,6 +1,7 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import FloorFilter from "@/components/floor/FloorFilter";
+import NotificationBell from "@/components/notifications/NotificationBell";
 import SpaceCard from "@/components/space/SpaceCard";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
@@ -50,9 +51,11 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
     return (
         <main className="min-h-screen bg-gray-950 p-8 text-white">
             <section className="mx-auto max-w-6xl">
-                <DashboardHeader />
+                <div className="flex items-center justify-between mb-6">
+                    <DashboardHeader />
+                    <NotificationBell />
+                </div>
                 <FloorFilter floorPlans={floorPlans} selectedFloor={selectedFloor} />
-
                 {spaces.length === 0 ? (
                     <p className="text-sm text-gray-500">
                         Nenhum espaço encontrado.

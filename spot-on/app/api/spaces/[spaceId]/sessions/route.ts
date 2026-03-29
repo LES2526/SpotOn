@@ -159,7 +159,7 @@ export async function POST(_request: Request, { params }: Params) {
  */
 export async function PATCH(request: Request, { params }: { params: { spaceId: string } }) {
     const { expectedEndTime } = await request.json();
-    const { spaceId } = await params;
+    const { spaceId } = params;
 
     try {
         const session = await getServerSession(authOptions);
@@ -186,7 +186,7 @@ export async function PATCH(request: Request, { params }: { params: { spaceId: s
             );
         }
 
-        let clampedExpectedEndTime = clampToClosingTime(new Date(expectedEndTime));
+        const clampedExpectedEndTime = clampToClosingTime(new Date(expectedEndTime));
 
         const updatedSession = await prisma.studySession.update({
             where: { id: activeSession.id },
