@@ -82,14 +82,14 @@ async function main() {
 
     const usersData = [
         { email: 'a1234@ualg.pt', studentId: 'a1234', points: 120, image: '/images/users/a1234.png' },
-        { email: 'alice.occupied@ualg.pt', studentId: 'a2345', points: 85, image: '/images/users/alice.png' },
-        { email: 'bruno.host@ualg.pt', studentId: 'a3456', points: 230, image: '/images/users/bruno.png' },
-        { email: 'carla.reporter@ualg.pt', studentId: 'a4567', points: 42, image: '/images/users/carla.png' },
-        { email: 'diogo.participant@ualg.pt', studentId: 'a5678', points: 57, image: '/images/users/diogo.png' },
-        { email: 'eva.pending@ualg.pt', studentId: 'a6789', points: 12, image: '/images/users/eva.png' },
-        { email: 'filipe.rejected@ualg.pt', studentId: 'a7890', points: 8, image: '/images/users/filipe.png' },
-        { email: 'gabriela.viewer@ualg.pt', studentId: 'a8901', points: 64, image: '/images/users/gabriela.png' },
-        { email: 'henrique.mentor@ualg.pt', studentId: 'a9012', points: 310, image: '/images/users/henrique.png' },
+        { email: 'alice.occupied@ualg.pt', studentId: null, points: 85, image: '/images/users/alice.png' },
+        { email: 'bruno.host@ualg.pt', studentId: null, points: 230, image: '/images/users/bruno.png' },
+        { email: 'carla.reporter@ualg.pt', studentId: null, points: 42, image: '/images/users/carla.png' },
+        { email: 'tsmachado40@gmail.com', studentId: null, points: 57, image: '/images/users/diogo.png' },
+        { email: 'eva.pending@ualg.pt', studentId: null, points: 12, image: '/images/users/eva.png' },
+        { email: 'filipe.rejected@ualg.pt', studentId: null, points: 8, image: '/images/users/filipe.png' },
+        { email: 'gabriela.viewer@ualg.pt', studentId: null, points: 64, image: '/images/users/gabriela.png' },
+        { email: 'henrique.mentor@ualg.pt', studentId: null, points: 310, image: '/images/users/henrique.png' },
         { email: 'isabel.new@ualg.pt', studentId: null, points: 0, image: null },
     ];
 
@@ -211,6 +211,17 @@ async function main() {
         },
     });
 
+    await prisma.studySession.create({
+        data: {
+            spaceId: spaceByName['Mesa A4'].id,
+            hostId: userByEmail['tsmachado40@gmail.com'].id,
+            startTime: new Date(now.getTime() - 1000 * 60 * 15),
+            expectedEndTime: new Date(now.getTime() + 1000 * 60 * 45),
+            status: SessionStatus.ACTIVE,
+        },
+    });
+
+
     const completedSession = await prisma.studySession.create({
         data: {
             spaceId: spaceByName['Sala de Grupo 2'].id,
@@ -235,11 +246,6 @@ async function main() {
 
     await prisma.userOnStudySession.createMany({
         data: [
-            {
-                userId: userByEmail['diogo.participant@ualg.pt'].id,
-                sessionId: activeGroup.id,
-                status: InvitationStatus.ACCEPTED,
-            },
             {
                 userId: userByEmail['eva.pending@ualg.pt'].id,
                 sessionId: activeGroup.id,
@@ -268,7 +274,7 @@ async function main() {
                 timeToConfirm: new Date(now.getTime() + 1000 * 60 * 10),
             },
             {
-                reporterId: userByEmail['diogo.participant@ualg.pt'].id,
+                reporterId: userByEmail['isabel.new@ualg.pt'].id,
                 sessionId: completedSession.id,
                 reason: 'Sala estava sinalizada como ocupada após saída do grupo.',
                 status: ReportStatus.RESOLVED,
@@ -320,4 +326,4 @@ async function runSeed() {
     }
 }
 
-void runSeed();
+runSeed();

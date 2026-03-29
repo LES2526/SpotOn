@@ -13,6 +13,7 @@
 
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
+import { sendProofOfPresenceEmail } from "@/lib/send-notification-email";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
@@ -162,9 +163,17 @@ export const POST = async (_request: Request, props: Params) => {
             }
             throw error;
         }
+        const host = await prisma.user.findUnique({
+            where: { id: activeSession.hostId },
+            select: { email: true },
+        });
+        if (host?.email) {
+            sendProofOfPresenceEmail(host.email);
+        }
         return NextResponse.json(report, { status: 201 });
     } catch (error) {
         console.error('Error creating report:', error);
-        return NextResponse.json({ error: 'Failed to create report' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to create report' },
+            { status: 500 });
     }
 }
