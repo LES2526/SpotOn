@@ -13,6 +13,9 @@ RUN npm install
 # Copy the Prisma folder specifically (important if it's in a subfolder)
 COPY prisma ./prisma/
 
+# Generate Prisma client
+RUN npx prisma generate
+
 # Copy the rest of your application code
 COPY . .
 
@@ -22,5 +25,3 @@ EXPOSE 3000
 # Run the production server
 CMD ["npm", "start"]
 
-# Install Node.js type definitions for TypeScript
-RUN npm i --save-dev @types/node
