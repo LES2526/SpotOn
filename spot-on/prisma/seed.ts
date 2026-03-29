@@ -263,7 +263,6 @@ async function main() {
             },
         ],
     });
-
     await prisma.report.createMany({
         data: [
             {
