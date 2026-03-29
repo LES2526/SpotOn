@@ -1,3 +1,6 @@
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { redirect } from "next/navigation";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import FloorFilter from "@/components/floor/FloorFilter";
 import FloorPlanSection from "@/components/floor-plan/FloorPlanSection";
@@ -13,11 +16,10 @@ import OccupanceCard from "@/components/occupance/SpacesOccupance";
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage({ searchParams }: Readonly<{ searchParams: Promise<{ floor?: string }> }>) {
-    // TODO: re-enable auth redirect
-    // const session = await getServerSession(authOptions);
-    // if (!session?.user?.id) {
-    //     redirect('/api/auth/signin?callbackUrl=/dashboard');
-    // }
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+        redirect('/api/auth/signin?callbackUrl=/dashboard');
+    }
 
     // Read the selected floor from the URL query param (?floor=Piso 1)
     const { floor } = await searchParams;
