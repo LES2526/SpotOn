@@ -28,10 +28,10 @@ export default function FloorPlanView({ floorPlan, selectedSpace, onSelectSpace 
         console.log(`x: ${Math.round(coords.x)}, y: ${Math.round(coords.y)}`);
     }
     return (
-    <div className="w-full overflow-hidden rounded-lg border border-gray-700 bg-white">
+    <div className="w-full overflow-hidden rounded-lg border border-gray-700" style={{ backgroundColor: "#EFE1C8" }}>
         <TransformWrapper>
             <TransformComponent wrapperStyle={{ width: "100%" }} contentStyle={{ width: "100%" }}>
-                <svg ref={svgRef} viewBox={floorPlan.viewBox} fill = "none" className="w-full" onClick={handleSvgClick}>
+                <svg ref={svgRef} viewBox={floorPlan.viewBox} fill="none" className="w-full" onClick={handleSvgClick}>
                     <g dangerouslySetInnerHTML={{ __html: floorPlan.svgContent}} />
                     {floorPlan.spaces.map(space => (
                         <SpaceMarkerDot
