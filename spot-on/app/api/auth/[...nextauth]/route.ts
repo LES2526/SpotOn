@@ -23,6 +23,27 @@ import NextAuth, { type NextAuthOptions } from "next-auth";
 import EmailProvider from "next-auth/providers/email";
 
 /**
+ * @swagger
+ * /api/auth/{...nextauth}:
+ *   get:
+ *     summary: NextAuth authentication endpoint
+ *     description: Handles authentication callbacks, session retrieval, and sign-in flows for the application.
+ *     tags:
+ *       - Authentication
+ *     responses:
+ *       200:
+ *         description: Authentication response
+ *   post:
+ *     summary: NextAuth authentication endpoint
+ *     description: Handles authentication callbacks, session retrieval, and sign-in flows for the application.
+ *     tags:
+ *       - Authentication
+ *     responses:
+ *       200:
+ *         description: Authentication response
+ */
+
+/**
  * NextAuth.js configuration options.
  *
  * Configures:
