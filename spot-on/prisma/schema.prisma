@@ -108,6 +108,11 @@ enum SpaceType {
     GROUP_ROOM
 }
 
+enum SpaceShape {
+    CIRCULAR_DESK
+    RETANGULAR_DESK
+}
+
 enum ReportStatus {
     OPEN
     RESOLVED
@@ -121,7 +126,7 @@ enum ReportStatus {
 model FloorPlan {
     id          String @id @default(cuid()) @db.VarChar(30)
     name        String @db.VarChar(255)
-    floor       Int    @default(0)
+    floor       Int    @unique @default(0)
     imageUrl    String @db.VarChar(255) /// URL or path to the floor plan image
     imageWidth  Int
     imageHeight Int
@@ -140,15 +145,13 @@ model Space {
     id             String    @id @default(cuid()) @db.VarChar(30)
     floorPlanId    String    @db.VarChar(30)
     name           String    @db.VarChar(255)
-    posX           Float /// X position on floor plan (0.0–100.0 %)
-    posY           Float /// Y position on floor plan (0.0–100.0 %)
-    width          Float /// Width on floor plan (0.0–100.0 %)
-    height         Float /// Height on floor plan (0.0–100.0 %)
+    points         String /// SVG polygon points: "x1,y1 x2,y2 x3,y3 x4,y4" (clockwise from top-left)
     capacity       Int
     currentQrToken String    @unique @db.VarChar(255) /// Rotates periodically; displayed on the space's tablet
     description    String?   @db.VarChar(255)
     hasPowerOutlet Boolean   @default(false)
     type           SpaceType @default(INDIVIDUAL_DESK)
+    shape          SpaceShape?
 
     createdAt DateTime @default(now())
     updatedAt DateTime @default(now()) @updatedAt
