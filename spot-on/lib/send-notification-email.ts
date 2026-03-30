@@ -15,8 +15,26 @@ export async function sendProofOfPresenceEmail(to: string) {
         to,
         subject: 'A tua presença foi questionada!',
         html: `
-            <p>A tua presença no espaço foi questionada.</p>
-            <p><strong>Tens 10 minutos para fazeres scan do QR code ou perdes a reserva.</strong></p>
+            <p>
+            A tua presença no espaço foi questionada.
+            </p>
+            <p>
+            <strong>Tens 10 minutos para fazeres scan do QR code ou perdes a reserva.
+            </strong></p>
+        `,
+    });
+}
+
+export async function sendJoinRequestEmail(to: string,
+    requesterEmail: string) {
+    await transporter.sendMail({
+        from: process.env.EMAIL_FROM,
+        to,
+        subject: 'Alguém quer juntar-se à tua sessão!',
+        html: `
+            <p>
+            <strong>${requesterEmail}</strong> quer juntar-se à tua sessão.
+            </p>
         `,
     });
 }

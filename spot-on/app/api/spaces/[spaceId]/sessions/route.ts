@@ -54,20 +54,6 @@ type Params = { params: { spaceId: string } | Promise<{ spaceId: string }> };
  *       500:
  *         description: Internal Server Error - An unexpected error occurred POST handler — Occupy a study space.
  */
-
-/* Creates a new active study session for the authenticated user in the specified space.
- * Session duration defaults to 1 hour from the time of creation.
- *
- * @param {Request} _request - Incoming HTTP request (unused)
- * @param {Params} params - Route parameters containing the spaceId
- * @returns {Promise<NextResponse>} The created session object with status 201, or an error response
- *
- * @throws {401} If the user is not authenticated
- * @throws {404} If the space does not exist
- * @throws {409} If the space is already occupied
- * @throws {409} If the user already has an active session in another space
- * @throws {500} If an unexpected error occurs
- */
 export async function POST(_request: Request, { params }: Params) {
     try {
         const session = await getServerSession(authOptions);
@@ -106,6 +92,7 @@ export async function POST(_request: Request, { params }: Params) {
                 expectedEndTime: new Date(Date.now() + 60 * 60 * 1000)
             }
         });
+
         return NextResponse.json(newSession, { status: 201 });
     } catch (error) {
         console.error('Error creating session:', error);
