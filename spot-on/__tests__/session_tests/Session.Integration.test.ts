@@ -12,7 +12,7 @@ jest.mock('@/app/api/auth/[...nextauth]/route', () => ({
 
 import { POST } from '@/app/api/spaces/[spaceId]/sessions/route';
 import { prisma } from '@/lib/prisma';
-import type { FloorPlan, Space, User } from '@/app/generated/prisma';
+import type { FloorPlan, Space, User } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 
 describe('POST /api/spaces/[spaceId]/sessions', () => {
@@ -44,7 +44,10 @@ describe('POST /api/spaces/[spaceId]/sessions', () => {
             data: {
                 floorPlanId: testFloorPlan.id,
                 name: 'Test Study Room',
-                points: '10,20 15,20 15,25 10,25',
+                posX: 10,
+                posY: 20,
+                width: 5,
+                height: 5,
                 capacity: 4,
                 currentQrToken: `qr-${Date.now()}`, // unique obrigatório
                 description: 'Integration test space',

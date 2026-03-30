@@ -76,6 +76,11 @@ export async function PATCH(_request: Request, { params }: Params) {
                 status: 'ACTIVE'
             }
         });
+        if (studySession.hostId !== session.user.id) {
+            return NextResponse.json({
+                error: 'You are not the host of this session.'
+            }, { status: 403 });
+        }
         if (!isHost) {
             return NextResponse.json({
                 error: 'You are not the host of this session.'
