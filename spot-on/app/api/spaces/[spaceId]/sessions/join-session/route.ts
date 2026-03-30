@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
-type Params = { params: { spaceId: string } };
+type Params = { params: { spaceId: string } | Promise<{ spaceId: string }> };
 
 /**
  * @swagger
@@ -40,7 +40,7 @@ export async function POST(_request: Request, { params }: Params) {
             return NextResponse.json(
                 { error: 'Unauthorized' }, { status: 401 });
         }
-        const { spaceId } = params;
+        const { spaceId } = await Promise.resolve(params);
         const space = await prisma.space.findUnique({
             where: { id: spaceId }
         });

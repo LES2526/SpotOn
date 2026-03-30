@@ -157,9 +157,9 @@ export async function POST(_request: Request, { params }: Params) {
  *       500:
  *         description: Internal Server Error
  */
-export async function PATCH(request: Request, { params }: { params: { spaceId: string } }) {
+export async function PATCH(request: Request, { params }: Params) {
     const { expectedEndTime } = await request.json();
-    const { spaceId } = params;
+    const { spaceId } = await Promise.resolve(params);
 
     try {
         const session = await getServerSession(authOptions);

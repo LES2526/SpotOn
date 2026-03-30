@@ -20,13 +20,13 @@ services:
 
   web:
     build: .
-    command: sh -c "rm -rf .next && until npx prisma db push; do echo 'Waiting for database...'; sleep 2; done; npx prisma db seed; npm run dev:docker"
+    command: sh -c "rm -rf app/generated/prisma || true; npx prisma generate; until npx prisma db push; do echo 'Waiting for database...'; sleep 2; done; npx prisma db seed; npm run dev:docker"
     ports:
       - "3000:3000"
     env_file: .env
     environment:
       DATABASE_URL: postgresql://admin:admin@db:5432/spot_on_db
-      NEXTAUTH_URL: http://10.180.204.191:3000
+      NEXTAUTH_URL: http://192.168.1.37:3000
       NEXTAUTH_SECRET: "q/ap6iLt2BciK65X1IyJNxArHC5JdTx2KaR35lM0mtY="
       QR_SECRET: "N3LxlmMBZNVOmMuAbOgGHkO++icNQ2Md/ATohwaEQLM="
       CHOKIDAR_USEPOLLING: "true"
