@@ -59,7 +59,7 @@ export default function OccupySpacePage() {
 
     const joinSession = async () => {
         try {
-            const response = await fetch(`/api/spaces/${spaceId}/join-session`, {
+            const response = await fetch(`/api/spaces/${spaceId}/sessions/join-session`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
             });
