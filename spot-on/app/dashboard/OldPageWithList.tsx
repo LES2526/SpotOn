@@ -47,7 +47,6 @@ import OccupanceCard from "@/components/occupance/SpacesOccupance";
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage({ searchParams }: Readonly<{ searchParams: Promise<{ floor?: string }> }>) {
->>>>>>> 6b5c2cf (Avoid Merge Conflict with new Page layout)
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
         redirect('/api/auth/signin?callbackUrl=/dashboard');
