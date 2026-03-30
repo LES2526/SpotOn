@@ -3,6 +3,7 @@ import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import FloorPlanSection from "@/components/floor-plan/FloorPlanSection";
 import { FloorPlanData } from "@/components/floor-plan/type";
 import FloorFilter from "@/components/floor/FloorFilter";
+import NotificationBell from "@/components/notifications/NotificationBell";
 import OccupanceCard from "@/components/occupance/SpacesOccupance";
 import { prisma } from "@/lib/prisma";
 import fs from "fs";
@@ -106,7 +107,10 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
     return (
         <main className="min-h-screen bg-gray-950 p-8 text-white">
             <section className="mx-auto max-w-6xl">
-                <DashboardHeader />
+                <div className="flex items-center justify-between mb-6">
+                    <DashboardHeader />
+                    <NotificationBell />
+                </div>
                 <FloorFilter floorPlans={floorPlans} selectedFloor={selectedFloor} />
                 <FloorPlanSection floorPlan={floorPlanData} />
                 <OccupanceCard totalDesks={totalDesks} occupiedDesks={occupiedDesks} totalRooms={totalRooms} occupiedRooms={occupiedRooms} />
