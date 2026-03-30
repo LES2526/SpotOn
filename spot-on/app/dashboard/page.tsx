@@ -15,6 +15,16 @@ import OccupanceCard from "@/components/occupance/SpacesOccupance";
 // Disable caching so occupancy status is always up to date
 export const dynamic = 'force-dynamic';
 
+type DashboardSpace = {
+    id: string;
+    name: string;
+    capacity: number;
+    hasPowerOutlet: boolean;
+    type: string;
+    description: string | null;
+    sessions: Array<{ id: string }>;
+};
+
 export default async function DashboardPage({ searchParams }: Readonly<{ searchParams: Promise<{ floor?: string }> }>) {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -23,7 +33,7 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
 
     // Read the selected floor from the URL query param (?floor=Piso 1)
     const { floor } = await searchParams;
-    const selectedFloor = floor ?? null;
+    const selectedFloor = floor != undefined ? Number(floor) : null;
 
     // Fetch all data in parallel to avoid waterfall requests
     const [spaces, floorPlans, floorPlan] = await Promise.all([
@@ -37,17 +47,17 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
                     take: 1,
                 },
             },
-            where: selectedFloor ? { floorPlan: { name: selectedFloor } } : undefined,
+            where: selectedFloor ? { floorPlan: { floor: selectedFloor } } : undefined,
             orderBy: { createdAt: 'desc' },
         }),
-        // All floor names — used to populate the floor selector
+        // All floor — used to populate the floor selector
         prisma.floorPlan.findMany({
-            select: { name: true },
-            orderBy: { name: 'asc' },
+            select: { floor: true },
+            orderBy: { floor: 'asc' },
         }),
         // SVG image info for the selected floor — used to render the floor plan
         prisma.floorPlan.findFirst({
-            where: selectedFloor ? { name: selectedFloor} : undefined,
+            where: selectedFloor ? { floor: selectedFloor} : undefined,
             select: { imageUrl: true, imageWidth: true, imageHeight: true},
         })
     ]);
@@ -83,11 +93,7 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
             type: space.type,
             hasPowerOutlet: space.hasPowerOutlet,
             description: space.description,
-            posX: space.posX,
-            posY: space.posY,
-            width: space.width,
-            height: space.height,
-            rotation: space.rotation,
+            points: space.points,
             isOccupied: space.sessions.length > 0,
             expectedEndTime: space.sessions[0]?.expectedEndTime ?? null,
             shape: space.shape,
@@ -109,7 +115,7 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
                     <p className="text-sm text-gray-500">Nenhum pllzespaço encontrado.</p>
                 ) : (
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        {spaces.map((space) => (
+                        {spaces.map((space: DashboardSpace) => (
                             <SpaceCard
                                 key={space.id}
                                 id={space.id}
