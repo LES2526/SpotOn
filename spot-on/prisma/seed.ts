@@ -90,6 +90,7 @@ async function main() {
     const usersData = [
         { email: 'a1234@ualg.pt', studentId: 'a1234', points: 120, image: '/images/users/a1234.png' },
         { email: 'alice.occupied@ualg.pt', studentId: 'a2345', points: 85, image: '/images/users/alice.png' },
+        { email: 'tsmachado40@gmail.com', studentId: null, points: 0, image: null },
         { email: 'bruno.host@ualg.pt', studentId: 'a3456', points: 230, image: '/images/users/bruno.png' },
         { email: 'carla.reporter@ualg.pt', studentId: 'a4567', points: 42, image: '/images/users/carla.png' },
         { email: 'diogo.participant@ualg.pt', studentId: 'a5678', points: 57, image: '/images/users/diogo.png' },
@@ -198,6 +199,16 @@ async function main() {
         },
     });
 
+    await prisma.studySession.create({
+        data: {
+            spaceId: spaceByName['Mesa A4'].id,
+            hostId: userByEmail['tsmachado40@gmail.com'].id,
+            startTime: new Date(now.getTime() - 1000 * 60 * 10),
+            expectedEndTime: new Date(now.getTime() + 1000 * 60 * 45),
+            status: SessionStatus.ACTIVE,
+        },
+    });
+
     const activeB2 = await prisma.studySession.create({
         data: {
             spaceId: spaceByName['Mesa B2'].id,
@@ -231,7 +242,7 @@ async function main() {
 
     const expiredSession = await prisma.studySession.create({
         data: {
-            spaceId: spaceByName['Mesa C1'].id,
+            spaceId: spaceByName['Mesa B1'].id,
             hostId: userByEmail['gabriela.viewer@ualg.pt'].id,
             startTime: new Date(now.getTime() - 1000 * 60 * 140),
             expectedEndTime: new Date(now.getTime() - 1000 * 60 * 80),
