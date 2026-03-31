@@ -28,9 +28,7 @@ export default async function ProfilePage() {
                 points={0}
                 image={user.image ?? undefined}
             />
-            <ButtonDefault href="/dashboard">
-                ← Voltar ao Dashboard
-            </ButtonDefault>
+            <ButtonDefault href="/dashboard">← Voltar ao Dashboard</ButtonDefault>
         </main>
     );
 }
