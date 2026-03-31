@@ -91,6 +91,7 @@ export async function POST(_request: Request, { params }: Params) {
                 status: 'PENDING'
             }
         });
+
         return NextResponse.json(joinSession, { status: 201 });
     } catch (error) {
         console.error('Error joining session:', error);

@@ -8,48 +8,20 @@
  */
 
 import { prisma } from "@/lib/prisma";
+import type { Notification } from '@/types/notification';
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "../auth/[...nextauth]/route";
 
-/**
- * @swagger
- * /api/notifications:
- *   get:
- *     summary: Get notifications for the authenticated user
- *     description: Returns current in-app notifications for the logged-in user.
- *     tags:
- *       - Notifications
- *     responses:
- *       200:
- *         description: Notifications retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   id:
- *                     type: string
- *                   spaceId:
- *                     type: string
- *                   type:
- *                     type: string
- *                     example: PROOF_OF_PRESENCE
- *                   message:
- *                     type: string
- *                   href:
- *                     type: string
- *       401:
- *         description: Unauthorized - user is not authenticated
- */
 export async function GET() {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
         return NextResponse.json(
             { error: 'Unauthorized' }, { status: 401 });
     }
+    const notifications: Notification[] = [];
+
+    // PROOF_OF_PRESENCE — open proof-of-presence reports for the user's active hosted session
     const activeReport = await prisma.report.findFirst({
         where: {
             session: {
@@ -66,14 +38,47 @@ export async function GET() {
             }
         },
     });
-    if (!activeReport) {
-        return NextResponse.json([]);
+    if (activeReport) {
+        notifications.push({
+            id: activeReport.id,
+            spaceId: activeReport.session.spaceId,
+            type: 'PROOF_OF_PRESENCE',
+            message: 'A tua presença foi questionada! Tens 10 minutos para fazeres scan do QR code ou perdes o lugar.',
+            href: `/dashboard`,
+        });
     }
-    return NextResponse.json([{
-        id: activeReport.id,
-        spaceId: activeReport.session.spaceId,
-        type: 'PROOF_OF_PRESENCE',
-        message: 'A tua presença foi questionada! Tens 10 minutos para fazeres scan do QR code ou perdes o lugar.',
-        href: `/dashboard`,
-    }], { status: 200 });
+
+    // JOIN_REQUEST — pending join requests to the host's active session
+    const activeSession = await prisma.studySession.findFirst({
+        where: {
+            hostId: session.user.id,
+            status: 'ACTIVE',
+        },
+        select: {
+            id: true,
+            spaceId: true,
+        },
+    });
+    if (activeSession) {
+        const pendingParticipants = await prisma.userOnStudySession.findMany({
+            where: {
+                sessionId: activeSession.id,
+                status: 'PENDING',
+            },
+            include: {
+                user: { select: { email: true } },
+            },
+        });
+        for (const participant of pendingParticipants) {
+            notifications.push({
+                id: `join-${participant.userId}`,
+                spaceId: activeSession.spaceId,
+                type: 'JOIN_REQUEST',
+                message: `${participant.user.email} quer juntar-se à tua sessão.`,
+                userId: participant.userId,
+                sessionId: activeSession.id,
+            });
+        }
+    }
+    return NextResponse.json(notifications);
 }
