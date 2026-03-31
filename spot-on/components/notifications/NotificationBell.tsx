@@ -1,15 +1,8 @@
 'use client';
 
+import type { Notification } from '@/types/notification';
 import { useRouter } from "next/navigation";
 import React from "react";
-
-type Notification = {
-    id: string;
-    spaceId: string;
-    type: 'PROOF_OF_PRESENCE';
-    message: string;
-    href: string;
-};
 
 export default function NotificationBell() {
     const [notifications, setNotifications] = React.useState<Notification[]>([]);

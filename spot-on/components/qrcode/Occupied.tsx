@@ -8,7 +8,8 @@ type OccupiedStatusProps = {
     onJoinSession: () => void;
 };
 
-export default function OccupiedStatus({ reportHref, onJoinSession }: Readonly<OccupiedStatusProps>) {
+export default function OccupiedStatus(
+    { reportHref, onJoinSession }: Readonly<OccupiedStatusProps>) {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-950 text-white px-4">
             <div className="flex flex-col items-center gap-6 rounded-2xl border border-gray-800 bg-gray-900 p-10 shadow-xl max-w-sm w-full">
