@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 
-import axios from 'axios';
 import { useParams } from 'next/navigation';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -21,11 +20,25 @@ export default function QRCodeDisplayPage() {
             return;
         }
 
+        const currentSpaceId = spaceId;
+        if (!currentSpaceId) {
+            return;
+        }
+
         const fetchQrCode = async () => {
             try {
-                const { data } = await axios.get(`/api/qrcode/display/${spaceId}`);
+                const response = await fetch(`/api/qrcode/display/${currentSpaceId}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    setError(data?.error || 'Failed to load QR code.');
+                    setUrl(null);
+                    return;
+                }
+
                 if (!data?.qrCodeURL) {
                     setError('QR code unavailable for this space.');
+                    setUrl(null);
                     return;
                 }
 
@@ -33,14 +46,14 @@ export default function QRCodeDisplayPage() {
                 setError(null);
             }
 
-            catch (error) {
-                console.error('Error fetching QR code:', error);
+            catch {
                 setError('Failed to load QR code.');
+                setUrl(null);
             }
         };
 
         const interval = setInterval(fetchQrCode, 5000);
-        console.log(`Starting QR code polling for space ${spaceId}`);
+        console.log(`Starting QR code polling for space ${currentSpaceId}`);
         fetchQrCode();
         return () => clearInterval(interval);
     }, [hasValidSpaceId, spaceId]);

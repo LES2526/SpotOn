@@ -1,4 +1,4 @@
-type FloorPlan = { floor : number };
+type FloorPlan = { floor: number };
 
 type FloorFilterProps = {
     floorPlans: FloorPlan[];
