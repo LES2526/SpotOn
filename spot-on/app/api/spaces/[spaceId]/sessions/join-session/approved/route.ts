@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
-type Params = { params: { spaceId: string } };
+type Params = { params: { spaceId: string } | Promise<{ spaceId: string }> };
 
 /**
  * @swagger
@@ -52,7 +52,7 @@ export async function PATCH(_request: Request, { params }: Params) {
             return NextResponse.json(
                 { error: 'Unauthorized' }, { status: 401 });
         }
-        const { spaceId } = params;
+        const { spaceId } = await Promise.resolve(params);
         const space = await prisma.space.findUnique({
             where: { id: spaceId }
         });
@@ -76,6 +76,11 @@ export async function PATCH(_request: Request, { params }: Params) {
                 status: 'ACTIVE'
             }
         });
+        if (studySession.hostId !== session.user.id) {
+            return NextResponse.json({
+                error: 'You are not the host of this session.'
+            }, { status: 403 });
+        }
         if (!isHost) {
             return NextResponse.json({
                 error: 'You are not the host of this session.'

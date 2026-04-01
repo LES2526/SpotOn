@@ -2,7 +2,8 @@
 CREATE TYPE "SpaceType" AS ENUM ('INDIVIDUAL_DESK', 'GROUP_ROOM');
 
 -- AlterTable: Remove points from User
-ALTER TABLE "User" DROP COLUMN "points";
+ALTER TABLE
+    "User" DROP COLUMN "points";
 
 -- CreateTable
 CREATE TABLE "FloorPlan" (
@@ -14,12 +15,12 @@ CREATE TABLE "FloorPlan" (
     "imageHeight" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
     CONSTRAINT "FloorPlan_pkey" PRIMARY KEY ("id")
 );
 
 -- DropForeignKey
-ALTER TABLE "StudySession" DROP CONSTRAINT "StudySession_spaceId_fkey";
+ALTER TABLE
+    "StudySession" DROP CONSTRAINT "StudySession_spaceId_fkey";
 
 -- DropIndex
 DROP INDEX "Space_currentQrToken_key";
@@ -43,7 +44,6 @@ CREATE TABLE "Space" (
     "type" "SpaceType" NOT NULL DEFAULT 'INDIVIDUAL_DESK',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
     CONSTRAINT "Space_pkey" PRIMARY KEY ("id")
 );
 
@@ -51,7 +51,13 @@ CREATE TABLE "Space" (
 CREATE UNIQUE INDEX "Space_currentQrToken_key" ON "Space"("currentQrToken");
 
 -- AddForeignKey
-ALTER TABLE "Space" ADD CONSTRAINT "Space_floorPlanId_fkey" FOREIGN KEY ("floorPlanId") REFERENCES "FloorPlan"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE
+    "Space"
+ADD
+    CONSTRAINT "Space_floorPlanId_fkey" FOREIGN KEY ("floorPlanId") REFERENCES "FloorPlan"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "StudySession" ADD CONSTRAINT "StudySession_spaceId_fkey" FOREIGN KEY ("spaceId") REFERENCES "Space"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE
+    "StudySession"
+ADD
+    CONSTRAINT "StudySession_spaceId_fkey" FOREIGN KEY ("spaceId") REFERENCES "Space"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

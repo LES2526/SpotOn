@@ -12,6 +12,20 @@
 
 
 /**
+ * Checks if any email should be allowed for authentication in development mode.
+ *
+ * This function reads the ALLOW_ANY_EMAIL_IN_DEV environment variable to determine
+ * if email domain restrictions should be bypassed during development. This is useful
+ * for testing with non-institutional email addresses without modifying the allowed domain.
+ *
+ * @function
+ * @returns {boolean} True if any email should be allowed in development, false otherwise
+ */
+export function shouldAllowAnyEmailInDevelopment(): boolean {
+    return process.env.ALLOW_ANY_EMAIL_IN_DEV === "true";
+}
+
+/**
  * Validates if an email address belongs to the allowed domain.
  *
  * Performs case-insensitive validation against the configured allowed domain.
@@ -42,6 +56,9 @@ export function isEmailAllowed(email: string | null | undefined)
     const normalizedEmail = email?.toLowerCase();
     if (!normalizedEmail) {
         return false;
+    }
+    if (shouldAllowAnyEmailInDevelopment()) {
+        return true;
     }
     return normalizedEmail.endsWith(
         `@${process.env.ALLOWED_EMAIL_DOMAIN}`);
