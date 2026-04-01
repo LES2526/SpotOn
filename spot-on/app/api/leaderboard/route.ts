@@ -21,7 +21,7 @@ import { NextResponse } from 'next/server';
  * A single entry in the leaderboard response.
  *
  * @typedef {Object} LeaderboardEntry
- * @property {number} rank - Position in the leaderboard 
+ * @property {number} rank - Position in the leaderboard
  * @property {string} id - User ID
  * @property {string} email - User email
  * @property {string | null} image - User avatar URL
@@ -63,7 +63,7 @@ export type LeaderboardEntry = {
  * @throws {401} If the user is not authenticated
  * @throws {500} If an unexpected error occurs
  */
-export async function GET(_request: Request) {
+export async function GET() {
     try {
         const session = await getServerSession(authOptions);
         if (!session?.user?.id) {//verifica a sessão
@@ -72,7 +72,7 @@ export async function GET(_request: Request) {
         //vai à base de dados
         const users = await prisma.user.findMany({
             orderBy: { points: 'desc' },
-            select: {   
+            select: {
                 id: true,
                 email: true,
                 image: true,
