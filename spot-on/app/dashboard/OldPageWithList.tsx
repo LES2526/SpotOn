@@ -1,3 +1,34 @@
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import FloorPlanSection from "@/components/floor-plan/FloorPlanSection";
+import { FloorPlanData } from "@/components/floor-plan/type";
+import FloorFilter from "@/components/floor/FloorFilter";
+import NotificationBell from "@/components/notifications/NotificationBell";
+import OccupanceCard from "@/components/occupance/SpacesOccupance";
+import { prisma } from "@/lib/prisma";
+import fs from "fs";
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
+import path from "path";
+
+
+// Disable caching so occupancy status is always up to date
+export const dynamic = 'force-dynamic';
+
+type SearchParams = {
+    floor?: string;
+    type?: string;
+    hasPowerOutlet?: string;
+    hasComputer?: string;
+    hasInteractiveBoard?: string;
+    isOccupied?: string;
+    capacity?: string;
+};
+
+export default async function DashboardPage({
+    searchParams,
+}: Readonly<{ searchParams: Promise<SearchParams> }>) {
+=======
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
@@ -14,16 +45,6 @@ import OccupanceCard from "@/components/occupance/SpacesOccupance";
 
 // Disable caching so occupancy status is always up to date
 export const dynamic = 'force-dynamic';
-
-type DashboardSpace = {
-    id: string;
-    name: string;
-    capacity: number;
-    hasPowerOutlet: boolean;
-    type: string;
-    description: string | null;
-    sessions: Array<{ id: string }>;
-};
 
 export default async function DashboardPage({ searchParams }: Readonly<{ searchParams: Promise<{ floor?: string }> }>) {
     const session = await getServerSession(authOptions);
@@ -43,7 +64,7 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
                 // Only fetch active, non-expired sessions — used to determine occupancy
                 sessions: {
                     where: { status: 'ACTIVE', expectedEndTime: { gt: new Date() } },
-                    select: { id: true, expectedEndTime: true},
+                    select: { id: true, expectedEndTime: true },
                     take: 1,
                 },
             },
@@ -57,12 +78,12 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
         }),
         // SVG image info for the selected floor — used to render the floor plan
         prisma.floorPlan.findFirst({
-            where: selectedFloor ? { floor: selectedFloor} : undefined,
-            select: { imageUrl: true, imageWidth: true, imageHeight: true},
+            where: selectedFloor ? { floor: selectedFloor } : undefined,
+            select: { imageUrl: true, imageWidth: true, imageHeight: true },
         })
     ]);
 
-    
+
 
     // No floor plan found means there's nothing to render
     if (!floorPlan) {
@@ -74,11 +95,11 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
     }
 
     const svgPath = path.join(process.cwd(), "public", floorPlan.imageUrl);
-    const svgRaw = fs.readFileSync(svgPath, "utf-8");  
+    const svgRaw = fs.readFileSync(svgPath, "utf-8");
     const viewBoxMatch = svgRaw.match(/viewBox="([^"]+)"/);
     const viewBox = viewBoxMatch?.[1] ?? `0 0 ${floorPlan.imageWidth} ${floorPlan.imageHeight}`;
     const svgContent = svgRaw.replace(/<svg[^>]*>/, '').replace(/<\/svg>\s*$/, ''); //strip
-    
+
     // Map Prisma result to the FloorPlanData DTO (Data Transfer Object) used by the floor plan components
     const floorPlanData: FloorPlanData = {
         imageUrl: floorPlan.imageUrl,
@@ -97,8 +118,8 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
             isOccupied: space.sessions.length > 0,
             expectedEndTime: space.sessions[0]?.expectedEndTime ?? null,
             shape: space.shape,
-    })),
-};  
+        })),
+    };
     const totalDesks: number = floorPlanData.spaces.filter(s => s.type === "INDIVIDUAL_DESK").length
     const occupiedDesks: number = floorPlanData.spaces.filter(s => s.type === "INDIVIDUAL_DESK" && s.isOccupied).length
     const totalRooms: number = floorPlanData.spaces.filter(s => s.type === "GROUP_ROOM").length
@@ -107,15 +128,18 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
     return (
         <main className="min-h-screen bg-gray-950 p-8 text-white">
             <section className="mx-auto max-w-6xl">
-                <DashboardHeader />
+                <div className="flex items-center justify-between mb-6">
+                    <DashboardHeader />
+                    <NotificationBell />
+                </div>
                 <FloorFilter floorPlans={floorPlans} selectedFloor={selectedFloor} />
                 <FloorPlanSection floorPlan={floorPlanData} />
                 <OccupanceCard totalDesks={totalDesks} occupiedDesks={occupiedDesks} totalRooms={totalRooms} occupiedRooms={occupiedRooms} />
-          {/*       {{spaces.length === 0 ? (
+                {/*       {{spaces.length === 0 ? (
                     <p className="text-sm text-gray-500">Nenhum pllzespaço encontrado.</p>
                 ) : (
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        {spaces.map((space: DashboardSpace) => (
+                        {spaces.map((space) => (
                             <SpaceCard
                                 key={space.id}
                                 id={space.id}
