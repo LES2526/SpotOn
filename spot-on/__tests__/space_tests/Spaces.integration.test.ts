@@ -25,7 +25,7 @@ import axios, { AxiosInstance } from 'axios';
 // Setup
 // ---------------------------------------------------------------------------
 
-const BASE_URL = process.env.NEXTAUTH_URL ?? 'localhost:3000';
+const BASE_URL = process.env.NEXTAUTH_URL ?? 'http://localhost:3000';
 const ENDPOINT = '/api/spaces';
 
 jest.setTimeout(15000);
@@ -61,7 +61,6 @@ describe('GET /api/spaces', () => {
     let client: AxiosInstance;
     let unauthClient: AxiosInstance;
 
-    // Space IDs created for testing
     let individualDeskId: string;
     let groupRoomId: string;
     let computerDeskId: string;
@@ -70,6 +69,9 @@ describe('GET /api/spaces', () => {
     let occupiedSpaceId: string;
 
     const timestamp = Date.now();
+
+    // SVG polygon points placeholder — represents a small square on the floor plan
+    const testPoints = '10,10 20,10 20,20 10,20';
 
     beforeAll(async () => {
         unauthClient = axios.create({
@@ -98,7 +100,7 @@ describe('GET /api/spaces', () => {
             data: {
                 floorPlanId,
                 name: 'Individual Desk',
-                posX: 10, posY: 10, width: 5, height: 5,
+                points: testPoints,
                 capacity: 1,
                 currentQrToken: `qr-individual-${timestamp}`,
                 type: 'INDIVIDUAL_DESK',
@@ -114,7 +116,7 @@ describe('GET /api/spaces', () => {
             data: {
                 floorPlanId,
                 name: 'Group Room',
-                posX: 20, posY: 10, width: 10, height: 10,
+                points: testPoints,
                 capacity: 6,
                 currentQrToken: `qr-group-${timestamp}`,
                 type: 'GROUP_ROOM',
@@ -130,7 +132,7 @@ describe('GET /api/spaces', () => {
             data: {
                 floorPlanId,
                 name: 'Computer Desk',
-                posX: 30, posY: 10, width: 5, height: 5,
+                points: testPoints,
                 capacity: 1,
                 currentQrToken: `qr-computer-${timestamp}`,
                 type: 'INDIVIDUAL_DESK',
@@ -146,7 +148,7 @@ describe('GET /api/spaces', () => {
             data: {
                 floorPlanId,
                 name: 'Interactive Board Room',
-                posX: 40, posY: 10, width: 10, height: 10,
+                points: testPoints,
                 capacity: 8,
                 currentQrToken: `qr-board-${timestamp}`,
                 type: 'GROUP_ROOM',
@@ -162,7 +164,7 @@ describe('GET /api/spaces', () => {
             data: {
                 floorPlanId,
                 name: 'Power Outlet Desk',
-                posX: 50, posY: 10, width: 5, height: 5,
+                points: testPoints,
                 capacity: 1,
                 currentQrToken: `qr-outlet-${timestamp}`,
                 type: 'INDIVIDUAL_DESK',
@@ -178,7 +180,7 @@ describe('GET /api/spaces', () => {
             data: {
                 floorPlanId,
                 name: 'Occupied Space',
-                posX: 60, posY: 10, width: 5, height: 5,
+                points: testPoints,
                 capacity: 1,
                 currentQrToken: `qr-occupied-${timestamp}`,
                 type: 'INDIVIDUAL_DESK',
@@ -237,7 +239,9 @@ describe('GET /api/spaces', () => {
         });
 
         it('should include floorPlan and sessions in each space', async () => {
-            const { data } = await client.get(ENDPOINT);
+            const { data } = await client.get(ENDPOINT, {
+                params: { floor: `Spaces Test Floor ${timestamp}` },
+            });
             const space = data.spaces[0];
             expect(space.floorPlan).toBeDefined();
             expect(Array.isArray(space.sessions)).toBe(true);
