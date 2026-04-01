@@ -87,7 +87,7 @@ docker-ps: ## Show running docker services
 	$(COMPOSE) ps
 
 docker-seed: ## Run seed inside web container
-	$(COMPOSE) exec $(WEB_SERVICE) npx prisma db seed
+	$(COMPOSE) exec $(WEB_SERVICE) sh -lc 'rm -rf app/generated/prisma && npx prisma generate && npx prisma db seed'
 
 docker-wait-web: ## Wait until web service responds over HTTP
 	@echo "Waiting for $(WEB_SERVICE) to be ready..."

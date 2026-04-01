@@ -37,9 +37,8 @@ export default function ReportForm(
             setSuccess(true);
         } catch {
             setError('Unexpected error. Please try again.');
-        } finally {
-            setLoading(false);
         }
+        setLoading(false);
     };
     return (
         <div>
