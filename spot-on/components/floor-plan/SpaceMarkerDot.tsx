@@ -1,5 +1,5 @@
-import { SpaceMarker } from "./type";
 import { SpaceType } from "@/app/generated/prisma";
+import { SpaceMarker } from "./type";
 
 type Props = {
     space: SpaceMarker;
