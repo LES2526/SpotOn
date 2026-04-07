@@ -2,20 +2,10 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useState } from 'react';
-
-type Space = {
-    id: string;
-    name: string;
-    type: string;
-    capacity: number;
-    hasPowerOutlet: boolean;
-    hasComputer: boolean;
-    hasInteractiveBoard: boolean;
-    isOccupied: boolean;
-};
+import { SpaceMarker } from '../floor-plan/type';
 
 interface SpacePanelProps {
-    spaces: Space[];
+    spaces: SpaceMarker[];
 }
 
 const FEATURE_FILTERS = [
