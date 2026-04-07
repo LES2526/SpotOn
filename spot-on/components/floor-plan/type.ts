@@ -4,6 +4,8 @@ export type SpaceMarker = {
     capacity: number;
     type: string;
     hasPowerOutlet: boolean;
+    hasComputer : boolean;
+    hasInteractiveBoard : boolean;
     description: string | null;
     shape: string | null;
     points: string;
