@@ -303,6 +303,26 @@ async function main() {
         ],
     });
 
+    await prisma.badge.createMany({
+        data: [
+            {
+                name: 'First Session',
+                description: 'Completed your first study session',
+                iconUrl: '/badges/first-session.png',
+                month: 0,
+                year: 0,
+            },
+            {
+                name: 'Study Streak',
+                description: 'Studied 5 days in a row',
+                iconUrl: '/badges/study-streak.png',
+                month: 0,
+                year: 0,
+            },
+        ],
+        skipDuplicates: true,
+    });
+
     const counts = await Promise.all([
         prisma.user.count(),
         prisma.account.count(),
@@ -313,6 +333,7 @@ async function main() {
         prisma.studySession.count(),
         prisma.userOnStudySession.count(),
         prisma.report.count(),
+        prisma.badge.count(),
     ]);
 
     console.log('Seed completed successfully!');
@@ -325,6 +346,7 @@ async function main() {
     console.log(`StudySessions: ${counts[6]}`);
     console.log(`Participations: ${counts[7]}`);
     console.log(`Reports: ${counts[8]}`);
+    console.log(`Badges: ${counts[9]}`);
 }
 
 async function runSeed() {
