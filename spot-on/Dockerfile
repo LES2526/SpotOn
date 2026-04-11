@@ -5,7 +5,7 @@ FROM node:22-alpine
 WORKDIR /app
 
 # Prisma query engine on Alpine needs OpenSSL runtime libraries.
-RUN apk add --no-cache openssl=3.5.5-r0
+RUN apk add --no-cache openssl
 
 # Copy dependency files first for better caching
 COPY package*.json ./

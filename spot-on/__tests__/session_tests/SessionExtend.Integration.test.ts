@@ -27,10 +27,21 @@ describe('PATCH /api/spaces/[spaceId]/sessions/extend', () => {
             },
         });
 
+        const leftoverFloor = await prisma.floorPlan.findFirst({
+            where: { name: 'Extend Floor' },
+        });
+        if (leftoverFloor) {
+            await prisma.studySession.deleteMany({
+                where: { space: { floorPlanId: leftoverFloor.id } },
+            });
+            await prisma.space.deleteMany({ where: { floorPlanId: leftoverFloor.id } });
+            await prisma.floorPlan.delete({ where: { id: leftoverFloor.id } });
+        }
+
         testFloorPlan = await prisma.floorPlan.create({
             data: {
                 name: 'Extend Floor',
-                floor: 1,
+                floor: 92,
                 imageUrl: '/extend-test.png',
                 imageWidth: 1000,
                 imageHeight: 800,
@@ -41,10 +52,7 @@ describe('PATCH /api/spaces/[spaceId]/sessions/extend', () => {
             data: {
                 floorPlanId: testFloorPlan.id,
                 name: 'Extend Test Space',
-                posX: 10,
-                posY: 20,
-                width: 5,
-                height: 5,
+                points: '10,20 15,20 15,25 10,25',
                 capacity: 4,
                 currentQrToken: `qr-extend-${Date.now()}`,
                 description: 'Integration test space for extending',

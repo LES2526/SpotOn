@@ -17,6 +17,7 @@
 
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { Prisma } from "@/app/generated/prisma";
+import { resolveNotifications } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
@@ -226,6 +227,7 @@ export const PATCH = async (_request: Request, props: Params) => {
             }
         }
         if (report && 'expired' in report) {
+            await resolveNotifications(activeSession.hostId, 'PROOF_OF_PRESENCE');
             const msg = report.sessionEnded
                 ? 'Session expired, space is now free'
                 : 'Time expired, session continues with confirmed users';
@@ -236,6 +238,7 @@ export const PATCH = async (_request: Request, props: Params) => {
                 message: 'Confirmation registered, waiting for others'
             }, { status: 200 });
         }
+        await resolveNotifications(activeSession.hostId, 'PROOF_OF_PRESENCE');
         return NextResponse.json(report, { status: 200 });
     } catch (error) {
         console.error('Error updating report:', error);

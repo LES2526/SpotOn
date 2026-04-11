@@ -1,4 +1,5 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { resolveNotificationsByMessage } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
@@ -100,6 +101,14 @@ export async function PATCH(_request: Request, { params }: Params) {
                 status: 'ACCEPTED'
             }
         });
+        const requester = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { email: true },
+        });
+        if (requester?.email) {
+            await resolveNotificationsByMessage(studySession.hostId,
+                'JOIN_REQUEST', requester.email);
+        }
         return NextResponse.json(updateJoinSession, { status: 200 });
     } catch (error) {
         console.error('Error approving session:', error);

@@ -7,7 +7,7 @@
 generator client {
     provider      = "prisma-client-js"
     output        = "../app/generated/prisma"
-    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
+    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x", "linux-musl-openssl-3.0.x", "darwin-arm64"]
 }
 
 datasource db {
@@ -40,6 +40,7 @@ model User {
     participations      UserOnStudySession[]
     reports             Report[]
     reportConfirmations ReportConfirmation[]
+    notifications       Notification[]
 }
 
 /// NextAuth authentication providers.
@@ -118,6 +119,16 @@ enum ReportStatus {
     OPEN
     RESOLVED
     EXPIRED
+}
+
+enum NotificationType {
+    PROOF_OF_PRESENCE
+    JOIN_REQUEST
+}
+
+enum NotificationStatus {
+    PENDING
+    RESOLVED
 }
 
 /// Floor plan canvas. Spaces are positioned relative to this container.
@@ -233,4 +244,20 @@ model ReportConfirmation {
     user   User   @relation(fields: [userId], references: [id])
 
     @@id([reportId, userId])
+}
+
+/// In-app notification for a user.
+//---------------------------------------------
+// Notifications
+// --------------------------------------------
+model Notification {
+    id      String             @id @default(cuid()) @db.VarChar(30)
+    userId  String             @db.VarChar(30)
+    type    NotificationType
+    status  NotificationStatus @default(PENDING)
+    message String             @db.VarChar(500)
+
+    createdAt DateTime @default(now())
+
+    user User @relation(fields: [userId], references: [id])
 }
