@@ -7,7 +7,7 @@
 generator client {
     provider      = "prisma-client-js"
     output        = "../app/generated/prisma"
-    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
+    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x", "linux-musl-openssl-3.0.x", "windows"]
 }
 
 datasource db {
@@ -27,6 +27,7 @@ model User {
     email         String    @unique @db.VarChar(255)
     emailVerified DateTime?
     image         String?   @db.VarChar(255)
+    bannedUntil   DateTime? 
 
     points Int @default(0)
 
