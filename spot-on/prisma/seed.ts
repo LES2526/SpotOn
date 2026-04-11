@@ -38,8 +38,8 @@ async function main() {
             name: 'Piso 1',
             floor: 1,
             imageUrl: '/PISO_2.svg',
-            imageWidth: 2074,
-            imageHeight: 1593,
+            imageWidth: 2853,
+            imageHeight: 1835,
         },
     });
 
