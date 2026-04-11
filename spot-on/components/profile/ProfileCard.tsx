@@ -5,8 +5,8 @@ import styles from "./ProfileCard.module.css";
 interface ProfileCardProps {
     email: string;
     points: number;
-    image?: string;
-    studentNumber?: string;
+    image?: string | null;
+    studentNumber?: string | null;
 }
 
 export default function ProfileCard({ email, points, image, studentNumber }: Readonly<ProfileCardProps>) {

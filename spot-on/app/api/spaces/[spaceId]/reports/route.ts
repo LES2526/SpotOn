@@ -12,6 +12,7 @@
  */
 
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { createNotification } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { sendProofOfPresenceEmail } from "@/lib/send-notification-email";
 import { getServerSession } from "next-auth";
@@ -170,6 +171,11 @@ export const POST = async (_request: Request, props: Params) => {
         if (host?.email) {
             sendProofOfPresenceEmail(host.email);
         }
+        await createNotification(
+            activeSession.hostId,
+            'PROOF_OF_PRESENCE',
+            'A tua presença foi questionada! Tens 10 minutos para fazeres scan do QR code ou perdes o lugar.',
+        );
         return NextResponse.json(report, { status: 201 });
     } catch (error) {
         console.error('Error creating report:', error);

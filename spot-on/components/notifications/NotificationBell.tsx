@@ -1,13 +1,11 @@
 'use client';
 
-import type { Notification } from '@/types/notification';
-import { useRouter } from "next/navigation";
+import type { Notification } from '@/app/generated/prisma';
 import React from "react";
 
 export default function NotificationBell() {
     const [notifications, setNotifications] = React.useState<Notification[]>([]);
     const [open, setOpen] = React.useState(false);
-    const router = useRouter();
     const ref = React.useRef<HTMLDivElement>(null);
 
     React.useEffect(() => {
@@ -43,9 +41,9 @@ export default function NotificationBell() {
         };
     }, []);
 
-    const handleNotificationClick = (href: string) => {
-        setOpen(false);
-        router.push(href);
+    const handleNotificationDismiss = async (id: string) => {
+        await fetch(`/api/notifications/${id}/resolve`, { method: 'PATCH' });
+        setNotifications(prev => prev.filter(n => n.id !== id));
     };
     return (
         <div ref={ref} className="relative">
@@ -77,7 +75,7 @@ export default function NotificationBell() {
                             {notifications.map(n => (
                                 <li key={n.id}>
                                     <button
-                                        onClick={() => handleNotificationClick(n.href)}
+                                        onClick={() => handleNotificationDismiss(n.id)}
                                         className="w-full text-left px-4 py-4 hover:bg-gray-800 transition-colors flex items-start gap-3"
                                     >
                                         <span className="mt-0.5 h-2 w-2 rounded-full bg-red-500 shrink-0" />

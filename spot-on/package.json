@@ -31,7 +31,7 @@
         "react-dom": "^19.2.3",
         "react-zoom-pan-pinch": "^3.7.0",
         "resend": "^6.9.2",
-        "swagger-ui-react": "^5.32.0"
+        "swagger-ui-react": "^5.32.2"
     },
     "devDependencies": {
         "@tailwindcss/postcss": "^4",
