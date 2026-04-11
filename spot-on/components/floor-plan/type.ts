@@ -17,7 +17,7 @@ export type FloorPlanData = {
     imageUrl: string;
     imageWidth: number;
     imageHeight: number;
-    viewBox: string,
+    viewBox: string;
     svgContent: string;
     spaces: SpaceMarker[];
 };
