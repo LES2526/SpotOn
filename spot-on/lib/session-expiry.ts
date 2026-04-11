@@ -18,7 +18,7 @@ import { prisma } from '@/lib/prisma';
  * @param sessionId - The session's database ID
  */
 export async function markSessionOverdue(sessionId: string): Promise<void> {
-    try {
+    try {   
         await prisma.studySession.update({
             where: {
                 id: sessionId,
@@ -77,7 +77,7 @@ export async function restoreSessionExpiries(): Promise<void> {
             scheduleSessionExpiry(session.id, session.expectedEndTime);
         }
 
-    } catch (error) {
+    } catch (error) {       
         console.error('Failed to restore session expiries:', error);
     }
 }
