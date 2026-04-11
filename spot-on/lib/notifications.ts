@@ -9,26 +9,9 @@ export async function createNotification(userId: string,
     });
 }
 
-export async function resolveNotifications(
-    userId: string,
-    type: NotificationType,
-): Promise<void> {
-    await prisma.notification.updateMany({
-        where: { userId, type, status: 'PENDING' },
-        data: { status: 'RESOLVED' },
-    });
-}
-
-export async function resolveNotificationsByMessage(
-    userId: string,
-    type: NotificationType,
-    message: string,
-): Promise<void> {
-    await prisma.notification.updateMany({
-        where: {
-            userId, type, status: 'PENDING',
-            message: { contains: message }
-        },
+export async function resolveNotificationById(id: string): Promise<void> {
+    await prisma.notification.update({
+        where: { id },
         data: { status: 'RESOLVED' },
     });
 }

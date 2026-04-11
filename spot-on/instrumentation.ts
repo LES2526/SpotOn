@@ -11,18 +11,17 @@
  * @since 1.0.0
  */
 
-import { restoreSessionExpiries } from '@/lib/session-expiry'; 
-
 /**
  * Called once by Next.js when the server starts.
  *
  * Guarded by NEXT_RUNTIME check to ensure Prisma only runs in the
  * Node.js runtime and not in the Edge runtime where it is unsupported.
+ * The import is dynamic so that Prisma is never bundled into the Edge runtime.
  */
 
 export async function register() {
     if (process.env.NEXT_RUNTIME === 'nodejs') {
+        const { restoreSessionExpiries } = await import('@/lib/session-expiry');
         await restoreSessionExpiries();
     }
 }
-

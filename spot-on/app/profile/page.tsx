@@ -8,12 +8,8 @@ import { redirect } from "next/navigation";
 
 export default async function ProfilePage() {
     const session = await getServerSession(authOptions);
-
-    if (!session?.user?.id) {
-        redirect("/api/auth/signin?callbackUrl=/dashboard");
-    }
     const user = await prisma.user.findUnique({
-        where: { id: session.user.id },
+        where: { id: session!.user.id },
         select: { email: true, image: true, studentId: true, points: true },
     });
     if (!user) {
