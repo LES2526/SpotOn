@@ -38,3 +38,29 @@ export async function sendJoinRequestEmail(to: string,
         `,
     });
 }
+
+export async function sendNotAcceptedJoinRequestEmail(to: string) {
+    await transporter.sendMail({
+        from: process.env.EMAIL_FROM,
+        to,
+        subject: 'Pedido para juntar-se à sessão rejeitado',
+        html: `
+            <p>
+            O teu pedido para juntar-se à sessão foi rejeitado.
+            </p>
+        `,
+    });
+}
+
+export async function sendApprovedJoinRequestEmail(to: string) {
+    await transporter.sendMail({
+        from: process.env.EMAIL_FROM,
+        to,
+        subject: 'Pedido para juntar-se à sessão aprovado',
+        html: `
+            <p>
+            O teu pedido para juntar-se à sessão foi aprovado! Vemo-nos lá.
+            </p>
+        `,
+    });
+}

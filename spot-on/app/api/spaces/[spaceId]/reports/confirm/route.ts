@@ -171,16 +171,20 @@ export const PATCH = async (_request: Request, props: Params) => {
         const params = await props.params;
         const session = await getServerSession(authOptions);
         if (!session?.user?.id) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json(
+                { error: 'Unauthorized' },
+                { status: 401 });
         }
         const { spaceId } = params;
         const space = await prisma.space.findUnique({ where: { id: spaceId } });
         if (!space) {
-            return NextResponse.json({ error: 'Space not found' }, { status: 404 });
+            return NextResponse.json(
+                { error: 'Space not found' }, { status: 404 });
         }
         const { qrToken } = await _request.json();
         if (space.currentQrToken !== qrToken) {
-            return NextResponse.json({ error: 'Invalid QR token' }, { status: 400 });
+            return NextResponse.json(
+                { error: 'Invalid QR token' }, { status: 400 });
         }
         const activeSession = await prisma.studySession.findFirst({
             where: { spaceId, status: 'ACTIVE' },
@@ -205,7 +209,6 @@ export const PATCH = async (_request: Request, props: Params) => {
                     where: { reportId: existingReport.id, userId: session.user.id }
                 });
                 if (alreadyConfirmed) throw new Error('DUPLICATE');
-
                 if (existingReport.timeToConfirm < new Date()) {
                     return handleExpiredReport(tx, existingReport.id, activeSession.id, activeSession.hostId);
                 }

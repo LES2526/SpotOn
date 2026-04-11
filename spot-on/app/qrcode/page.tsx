@@ -14,6 +14,7 @@ export default function OccupySpacePage() {
         'loading' | 'success' | 'occupied' | 'user_occupied' | 'expired' | 'error'
     >('loading');
     const [reportToken, setReportToken] = useState<string | null>(null);
+    const [isJoin, setIsJoin] = useState(false);
 
     const searchParams = useSearchParams();
     const spaceId = searchParams.get('spaceId');
@@ -64,6 +65,7 @@ export default function OccupySpacePage() {
                 headers: { 'Content-Type': 'application/json' },
             });
             if (response.ok) {
+                setIsJoin(true);
                 setStatus('success');
             } else {
                 setStatus('error');
@@ -85,7 +87,7 @@ export default function OccupySpacePage() {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
             {status === 'loading' && <LoadingStatus />}
-            {status === 'success' && <SuccessStatus spaceId={spaceId} />}
+            {status === 'success' && <SuccessStatus spaceId={spaceId} isJoin={isJoin} />}
             {status === 'occupied' && (
                 <OccupiedStatus
                     reportHref={reportToken ? `/spaces/${spaceId}/report?qrToken=${encodeURIComponent(reportToken)}` : undefined}

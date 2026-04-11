@@ -2,11 +2,8 @@
 
 import ButtonDefault from '@/components/button/ButtonDefault';
 import Link from 'next/link';
+import { OccupiedStatusProps } from './type';
 
-type OccupiedStatusProps = {
-    reportHref?: string;
-    onJoinSession: () => void;
-};
 
 export default function OccupiedStatus(
     { reportHref, onJoinSession }: Readonly<OccupiedStatusProps>) {

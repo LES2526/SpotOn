@@ -1,7 +1,7 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { resolveNotificationById } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
-import { sendApprovedJoinRequestEmail } from "@/lib/send-notification-email";
+import { sendNotAcceptedJoinRequestEmail } from "@/lib/send-notification-email";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
@@ -9,10 +9,10 @@ type Params = { params: { spaceId: string } | Promise<{ spaceId: string }> };
 
 /**
  * @swagger
- * /api/spaces/{spaceId}/sessions/join-session/approved:
+ * /api/spaces/{spaceId}/sessions/join-session/rejected:
  *   patch:
- *     summary: Approve a join-session request
- *     description: Updates a pending join request to accepted for the active session in the specified space.
+ *     summary: Reject a join-session request
+ *     description: Updates a pending join request to rejected for the active session in the specified space.
  *     tags:
  *       - Sessions
  *     parameters:
@@ -33,10 +33,10 @@ type Params = { params: { spaceId: string } | Promise<{ spaceId: string }> };
  *             properties:
  *               userId:
  *                 type: string
- *                 description: The user ID of the join request to approve
+ *                 description: The user ID of the join request to reject
  *     responses:
  *       200:
- *         description: Join request approved successfully. An email is sent to the requester.
+ *         description: Join request rejected successfully. An email is sent to the requester.
  *         content:
  *           application/json:
  *             schema:
@@ -48,7 +48,7 @@ type Params = { params: { spaceId: string } | Promise<{ spaceId: string }> };
  *                   type: string
  *                 status:
  *                   type: string
- *                   example: ACCEPTED
+ *                   example: REJECTED
  *       400:
  *         description: Bad Request - userId missing from body
  *       401:
@@ -77,31 +77,16 @@ export async function PATCH(_request: Request, { params }: Params) {
                 { status: 404 });
         }
         const studySession = await prisma.studySession.findFirst({
-            where: {
-                spaceId,
-                status: 'ACTIVE'
-            }
+            where: { spaceId, status: 'ACTIVE' }
         });
         if (!studySession) {
             return NextResponse.json({ error: 'Study session not found' },
                 { status: 404 });
         }
-        const isHost = await prisma.studySession.findFirst({
-            where: {
-                hostId: session.user.id,
-                status: 'ACTIVE'
-            }
-        });
         if (studySession.hostId !== session.user.id) {
             return NextResponse.json({
                 error: 'You are not the host of this session.'
             }, { status: 403 });
-        }
-        if (!isHost) {
-            return NextResponse.json({
-                error: 'You are not the host of this session.'
-            },
-                { status: 403 });
         }
         const body = await _request.json();
         const { userId, notificationId } = body;
@@ -112,9 +97,7 @@ export async function PATCH(_request: Request, { params }: Params) {
                     sessionId: studySession.id
                 }
             },
-            data: {
-                status: 'ACCEPTED'
-            }
+            data: { status: 'REJECTED' }
         });
         const requester = await prisma.user.findUnique({
             where: { id: userId },
@@ -122,12 +105,12 @@ export async function PATCH(_request: Request, { params }: Params) {
         });
         if (requester?.email) {
             await resolveNotificationById(notificationId);
-            await sendApprovedJoinRequestEmail(requester.email);
+            await sendNotAcceptedJoinRequestEmail(requester.email);
         }
         return NextResponse.json(updateJoinSession, { status: 200 });
     } catch (error) {
-        console.error('Error approving session:', error);
-        return NextResponse.json({ error: 'Failed to approve session' },
+        console.error('Error rejecting session:', error);
+        return NextResponse.json({ error: 'Failed to reject session' },
             { status: 500 });
     }
 }
