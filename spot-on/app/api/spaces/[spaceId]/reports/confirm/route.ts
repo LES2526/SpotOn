@@ -20,48 +20,10 @@ import { Prisma } from "@/app/generated/prisma";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
+import { handleExpiredReport } from "@/lib/report-expiry";
 
 type Params = { params: Promise<{ spaceId: string }> };
 type Tx = Prisma.TransactionClient;
-
-async function handleExpiredReport(tx: Tx, reportId: string,
-    sessionId: string, hostId: string) {
-    await tx.report.update({
-        where: { id: reportId },
-        data: { status: 'EXPIRED' }
-    });
-    const confirmations = await tx.reportConfirmation.findMany({
-        where: { reportId },
-        orderBy: { confirmedAt: 'asc' },
-    });
-    if (confirmations.length === 0) {
-        await tx.studySession.update({
-            where: { id: sessionId },
-            data: { status: 'EXPIRED', actualEndTime: new Date() }
-        });
-        return { expired: true, sessionEnded: true };
-    }
-    const confirmedUserIds = new Set(confirmations.map(c => c.userId));
-    const participants = await tx.userOnStudySession.findMany({
-        where: { sessionId, status: 'ACCEPTED' }
-    });
-    const notConfirmed = participants
-        .filter(p => !confirmedUserIds.has(p.userId))
-        .map(p => p.userId);
-    if (notConfirmed.length > 0) {
-        await tx.userOnStudySession.updateMany({
-            where: { sessionId, userId: { in: notConfirmed } },
-            data: { status: 'REJECTED' }
-        });
-    }
-    if (!confirmedUserIds.has(hostId)) {
-        await tx.studySession.update({
-            where: { id: sessionId },
-            data: { hostId: confirmations[0].userId }
-        });
-    }
-    return { expired: true, sessionEnded: false };
-}
 
 async function handleActiveReport(tx: Tx, reportId: string,
     sessionId: string, hostId: string, userId: string) {
