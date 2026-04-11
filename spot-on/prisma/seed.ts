@@ -38,8 +38,8 @@ async function main() {
             name: 'Piso 1',
             floor: 1,
             imageUrl: '/PISO_2.svg',
-            imageWidth: 2074,
-            imageHeight: 1593,
+            imageWidth: 2853,
+            imageHeight: 1835,
         },
     });
 
@@ -67,6 +67,13 @@ async function main() {
         { floorPlanId: floorPlan0.id, name: 'Sala 14', points: '1551,1078 1634,976 1749,1070 1666,1172', capacity: 6, qr: 'qr-sala-14', type: SpaceType.GROUP_ROOM, hasPowerOutlet: true, description: 'Sala de grupo piso 0' },
         { floorPlanId: floorPlan0.id, name: 'Sala 15', points: '1465,1185 1548,1084 1661,1180 1580,1279', capacity: 6, qr: 'qr-sala-15', type: SpaceType.GROUP_ROOM, hasPowerOutlet: true, description: 'Sala de grupo piso 0' },
         { floorPlanId: floorPlan0.id, name: 'Sala 16', points: '1379,1291 1462,1190 1577,1283 1493,1384', capacity: 6, qr: 'qr-sala-16', type: SpaceType.GROUP_ROOM, hasPowerOutlet: true, description: 'Sala de grupo piso 0' },
+        // Piso 1
+        { floorPlanId: floorPlan1.id, name: 'Mesa C1', points: '400,400 460,400 460,480 400,480', capacity: 1, qr: 'qr-mesa-c1', type: SpaceType.INDIVIDUAL_DESK, hasPowerOutlet: true, description: 'Mesa individual piso 1' },
+        { floorPlanId: floorPlan1.id, name: 'Mesa C2', points: '500,400 560,400 560,480 500,480', capacity: 1, qr: 'qr-mesa-c2', type: SpaceType.INDIVIDUAL_DESK, hasPowerOutlet: false, description: 'Mesa individual piso 1' },
+        { floorPlanId: floorPlan1.id, name: 'Mesa C3', points: '600,400 660,400 660,480 600,480', capacity: 1, qr: 'qr-mesa-c3', type: SpaceType.INDIVIDUAL_DESK, hasPowerOutlet: true, description: 'Mesa individual piso 1' },
+        { floorPlanId: floorPlan1.id, name: 'Mesa C4', points: '700,400 760,400 760,480 700,480', capacity: 1, qr: 'qr-mesa-c4', type: SpaceType.INDIVIDUAL_DESK, hasPowerOutlet: false, description: 'Mesa individual piso 1' },
+        { floorPlanId: floorPlan1.id, name: 'Sala de Grupo P1-1', points: '400,600 600,600 600,800 400,800', capacity: 8, qr: 'qr-sala-p1-1', type: SpaceType.GROUP_ROOM, hasPowerOutlet: true, description: 'Sala de grupo piso 1', hasComputer: true },
+        { floorPlanId: floorPlan1.id, name: 'Sala de Grupo P1-2', points: '650,600 850,600 850,800 650,800', capacity: 6, qr: 'qr-sala-p1-2', type: SpaceType.GROUP_ROOM, hasPowerOutlet: true, description: 'Sala de grupo piso 1' },
     ];
 
     const spaces = [];
