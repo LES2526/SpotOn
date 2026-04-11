@@ -44,7 +44,30 @@ type Params = { params: { spaceId: string } | Promise<{ spaceId: string }> };
  *     responses:
  *       201:
  *         description: Session created successfully
- *
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 spaceId:
+ *                   type: string
+ *                 hostId:
+ *                   type: string
+ *                 status:
+ *                   type: string
+ *                   enum: [ACTIVE]
+ *                 expectedEndTime:
+ *                   type: string
+ *                   format: date-time
+ *                 actualEndTime:
+ *                   type: string
+ *                   format: date-time
+ *                   nullable: true
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
  *       401:
  *         description: Unauthorized - User is not authenticated
  *       404:

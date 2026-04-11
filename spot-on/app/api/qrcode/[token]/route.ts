@@ -29,6 +29,38 @@ type Params = { params: Promise<{ token: string }> };
  *     responses:
  *       200:
  *         description: Space found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                   description: Space ID
+ *                 name:
+ *                   type: string
+ *                   description: Space name
+ *                 capacity:
+ *                   type: integer
+ *                   description: Maximum number of people
+ *                 hasPowerOutlet:
+ *                   type: boolean
+ *                   description: Whether the space has a power outlet
+ *                 type:
+ *                   type: string
+ *                   nullable: true
+ *                   description: Space type (e.g. desk, room)
+ *                 description:
+ *                   type: string
+ *                   nullable: true
+ *                 floorPlan:
+ *                   type: object
+ *                   properties:
+ *                     name:
+ *                       type: string
+ *                 isOccupied:
+ *                   type: boolean
+ *                   description: Whether the space currently has an active session
  *       401:
  *         description: Unauthorized
  *       404:
