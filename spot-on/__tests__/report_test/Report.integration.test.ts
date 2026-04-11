@@ -28,10 +28,21 @@ describe('Reports API', () => {
     let activeSession: StudySession;
 
     beforeAll(async () => {
+        const leftoverFloor = await prisma.floorPlan.findFirst({
+            where: { name: 'Report Test Floor' },
+        });
+        if (leftoverFloor) {
+            await prisma.studySession.deleteMany({
+                where: { space: { floorPlanId: leftoverFloor.id } },
+            });
+            await prisma.space.deleteMany({ where: { floorPlanId: leftoverFloor.id } });
+            await prisma.floorPlan.delete({ where: { id: leftoverFloor.id } });
+        }
+
         testFloorPlan = await prisma.floorPlan.create({
             data: {
-                name: 'Test Floor',
-                floor: 1,
+                name: 'Report Test Floor',
+                floor: 95,
                 imageUrl: '/test.png',
                 imageWidth: 1000,
                 imageHeight: 800,
@@ -42,10 +53,7 @@ describe('Reports API', () => {
             data: {
                 floorPlanId: testFloorPlan.id,
                 name: 'Test Study Room',
-                posX: 10,
-                posY: 20,
-                width: 5,
-                height: 5,
+                points: '10,20 15,20 15,25 10,25',
                 capacity: 4,
                 currentQrToken: `qr-${Date.now()}`,
                 hasPowerOutlet: true,
@@ -105,6 +113,9 @@ describe('Reports API', () => {
     });
 
     afterAll(async () => {
+        await prisma.notification.deleteMany({
+            where: { userId: { in: [hostUser.id, reporterUser.id, acceptedParticipant.id] } },
+        });
         await prisma.space.delete({ where: { id: testSpace.id } });
         await prisma.floorPlan.delete({ where: { id: testFloorPlan.id } });
         await prisma.user.deleteMany({

@@ -1,4 +1,5 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { createNotification } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
@@ -91,7 +92,11 @@ export async function POST(_request: Request, { params }: Params) {
                 status: 'PENDING'
             }
         });
-
+        await createNotification(
+            studySession.hostId,
+            'JOIN_REQUEST',
+            `${session.user.email} quer juntar-se à tua sessão.`,
+        );
         return NextResponse.json(joinSession, { status: 201 });
     } catch (error) {
         console.error('Error joining session:', error);
