@@ -3,10 +3,7 @@
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-
-interface SuccessStatusProps {
-    spaceId: string;
-}
+import { SuccessStatusProps } from './type';
 
 const MIN_DURATION = 15;
 const MAX_DURATION = 120;
@@ -21,14 +18,16 @@ function formatDuration(minutes: number): string {
     return `${hours}h ${mins}min`;
 }
 
-export default function SuccessStatus({ spaceId }: Readonly<SuccessStatusProps>) {
+export default function SuccessStatus({ spaceId, isJoin }: Readonly<SuccessStatusProps>) {
     const [durationMinutes, setDurationMinutes] = useState<number>(DEFAULT_DURATION);
     const router = useRouter();
 
     const handleConfirmDuration = async () => {
         try {
-            const expectedEndTime = new Date(Date.now() + durationMinutes * 60 * 1000).toISOString();
-            await axios.patch(`/api/spaces/${spaceId}/sessions`, { expectedEndTime });
+            if (!isJoin) {
+                const expectedEndTime = new Date(Date.now() + durationMinutes * 60 * 1000).toISOString();
+                await axios.patch(`/api/spaces/${spaceId}/sessions`, { expectedEndTime });
+            }
             router.push('/dashboard');
         } catch (error) {
             console.error('Error updating session:', error);
@@ -47,18 +46,21 @@ export default function SuccessStatus({ spaceId }: Readonly<SuccessStatusProps>)
                 </div>
 
                 <div className="text-center">
-                    <h1 className="text-xl font-semibold text-white mb-2">Space Occupied!</h1>
-                    <p className="text-sm text-gray-500">How long do you plan to stay?</p>
+                    <h1 className="text-xl font-semibold text-white mb-2">{isJoin ? 'Joined Session!' : 'Space Occupied!'}</h1>
+                    <p className="text-sm text-gray-500">{isJoin ? 'You have successfully joined the session.' : 'How long do you plan to stay?'}</p>
                 </div>
 
-                <div className="flex items-center justify-center w-full py-2">
-                    <span className="text-3xl font-bold text-green-400">
-                        {formatDuration(durationMinutes)}
-                    </span>
-                </div>
+                {!isJoin && (
+                    <div className="flex items-center justify-center w-full py-2">
+                        <span className="text-3xl font-bold text-green-400">
+                            {formatDuration(durationMinutes)}
+                        </span>
+                    </div>
+                )}
 
-                <div className="w-full px-1">
-                    <style>{`
+                {!isJoin && (
+                    <div className="w-full px-1">
+                        <style>{`
                         .duration-slider {
                             -webkit-appearance: none;
                             appearance: none;
@@ -96,26 +98,27 @@ export default function SuccessStatus({ spaceId }: Readonly<SuccessStatusProps>)
                             box-shadow: 0 0 6px rgba(34, 197, 94, 0.4);
                         }
                     `}</style>
-                    <input
-                        type="range"
-                        min={MIN_DURATION}
-                        max={MAX_DURATION}
-                        step={STEP}
-                        value={durationMinutes}
-                        onChange={(e) => setDurationMinutes(Number(e.target.value))}
-                        className="duration-slider"
-                    />
-                    <div className="flex justify-between mt-2">
-                        <span className="text-xs text-gray-600">{formatDuration(MIN_DURATION)}</span>
-                        <span className="text-xs text-gray-600">{formatDuration(MAX_DURATION)}</span>
+                        <input
+                            type="range"
+                            min={MIN_DURATION}
+                            max={MAX_DURATION}
+                            step={STEP}
+                            value={durationMinutes}
+                            onChange={(e) => setDurationMinutes(Number(e.target.value))}
+                            className="duration-slider"
+                        />
+                        <div className="flex justify-between mt-2">
+                            <span className="text-xs text-gray-600">{formatDuration(MIN_DURATION)}</span>
+                            <span className="text-xs text-gray-600">{formatDuration(MAX_DURATION)}</span>
+                        </div>
                     </div>
-                </div>
+                )}
 
                 <button
                     onClick={handleConfirmDuration}
                     className="w-full rounded-lg bg-green-500 hover:bg-green-600 px-4 py-3 text-sm font-semibold text-white transition-colors"
                 >
-                    Confirm — {formatDuration(durationMinutes)}
+                    {isJoin ? 'Go to Dashboard' : `Confirm — ${formatDuration(durationMinutes)}`}
                 </button>
             </div>
         </div>

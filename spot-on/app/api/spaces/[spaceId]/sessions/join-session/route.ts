@@ -1,6 +1,7 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { createNotification } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
+import { sendJoinRequestEmail } from "@/lib/send-notification-email";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
@@ -24,6 +25,24 @@ type Params = { params: { spaceId: string } | Promise<{ spaceId: string }> };
  *     responses:
  *       201:
  *         description: Join request created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 sessionId:
+ *                   type: string
+ *                   description: ID of the study session being joined
+ *                 userId:
+ *                   type: string
+ *                   description: ID of the user who requested to join
+ *                 status:
+ *                   type: string
+ *                   enum: [PENDING]
+ *                   description: Status of the join request
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
  *       401:
  *         description: Unauthorized
  *       404:
@@ -85,8 +104,15 @@ export async function POST(_request: Request, { params }: Params) {
             },
                 { status: 409 });
         }
-        const joinSession = await prisma.userOnStudySession.create({
-            data: {
+        const joinSession = await prisma.userOnStudySession.upsert({
+            where: {
+                userId_sessionId: {
+                    userId: session.user.id,
+                    sessionId: studySession.id,
+                }
+            },
+            update: { status: 'PENDING' },
+            create: {
                 userId: session.user.id,
                 sessionId: studySession.id,
                 status: 'PENDING'
@@ -95,8 +121,20 @@ export async function POST(_request: Request, { params }: Params) {
         await createNotification(
             studySession.hostId,
             'JOIN_REQUEST',
-            `${session.user.email} quer juntar-se à tua sessão.`,
+            JSON.stringify({
+                text: `${session.user.email} quer juntar-se à tua sessão.`,
+                requesterId: session.user.id,
+                requesterEmail: session.user.email,
+                spaceId,
+            }),
         );
+        const host = await prisma.user.findUnique({
+            where: { id: studySession.hostId },
+            select: { email: true },
+        });
+        if (host?.email && session.user.email) {
+            await sendJoinRequestEmail(host.email, session.user.email);
+        }
         return NextResponse.json(joinSession, { status: 201 });
     } catch (error) {
         console.error('Error joining session:', error);

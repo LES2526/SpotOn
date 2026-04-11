@@ -1,4 +1,3 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import FloorPlanSection from "@/components/floor-plan/FloorPlanSection";
 import { FloorPlanData } from "@/components/floor-plan/type";
@@ -7,8 +6,6 @@ import NotificationBell from "@/components/notifications/NotificationBell";
 import OccupanceCard from "@/components/occupance/SpacesOccupance";
 import { prisma } from "@/lib/prisma";
 import fs from "fs";
-import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
 import path from "path";
 
 
@@ -26,14 +23,9 @@ type DashboardSpace = {
 };
 
 export default async function DashboardPage({ searchParams }: Readonly<{ searchParams: Promise<{ floor?: string }> }>) {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-        redirect('/api/auth/signin?callbackUrl=/dashboard');
-    }
-
     // Read the selected floor from the URL query param (?floor=Piso 1)
     const { floor } = await searchParams;
-    const selectedFloor = floor != undefined ? Number(floor) : null;
+    const selectedFloor = floor == undefined ? null : Number(floor);
 
     // Fetch all data in parallel to avoid waterfall requests
     const [spaces, floorPlans, floorPlan] = await Promise.all([
