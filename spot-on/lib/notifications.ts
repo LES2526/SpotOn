@@ -15,3 +15,13 @@ export async function resolveNotificationById(id: string): Promise<void> {
         data: { status: 'RESOLVED' },
     });
 }
+
+export async function resolveNotifications(
+    userId: string,
+    type: NotificationType,
+): Promise<void> {
+    await prisma.notification.updateMany({
+        where: { userId, type, status: 'PENDING' },
+        data: { status: 'RESOLVED' },
+    });
+}
