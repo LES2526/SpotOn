@@ -24,7 +24,7 @@ import { NextResponse } from 'next/server';
  * @typedef {Object} Params
  * @property {Promise<{ spaceId: string }>} params - Resolved route parameters
  */
-type Params = { params: { spaceId: string } | Promise<{ spaceId: string }> };
+type Params = { params: Promise<{ spaceId: string }> };
 
 /**
  * @swagger

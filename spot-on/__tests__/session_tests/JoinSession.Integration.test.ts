@@ -10,6 +10,11 @@ jest.mock('@/app/api/auth/[...nextauth]/route', () => ({
     authOptions: {},
 }));
 
+jest.mock('@/lib/send-notification-email', () => ({
+    sendJoinRequestEmail: jest.fn().mockResolvedValue(undefined),
+    sendApprovedJoinRequestEmail: jest.fn().mockResolvedValue(undefined),
+}));
+
 import { PATCH } from '@/app/api/spaces/[spaceId]/sessions/join-session/approved/route';
 import { POST } from '@/app/api/spaces/[spaceId]/sessions/join-session/route';
 import type { FloorPlan, Space, StudySession, User } from '@/app/generated/prisma';
@@ -103,7 +108,7 @@ describe('Join Session API', () => {
         it('deve devolver 401 se não autenticado', async () => {
             (getServerSession as jest.Mock).mockResolvedValue(null);
 
-            const response = await POST({} as Request, { params: { spaceId: testSpace.id } });
+            const response = await POST({} as Request, { params: Promise.resolve({ spaceId: testSpace.id }) });
             expect(response.status).toBe(401);
         });
 
@@ -112,7 +117,7 @@ describe('Join Session API', () => {
                 user: { id: requesterUser.id, email: requesterUser.email },
             });
 
-            const response = await POST({} as Request, { params: { spaceId: 'nonexistent' } });
+            const response = await POST({} as Request, { params: Promise.resolve({ spaceId: 'nonexistent' }) });
             expect(response.status).toBe(404);
         });
 
@@ -121,7 +126,7 @@ describe('Join Session API', () => {
                 user: { id: hostUser.id, email: hostUser.email },
             });
 
-            const response = await POST({} as Request, { params: { spaceId: testSpace.id } });
+            const response = await POST({} as Request, { params: Promise.resolve({ spaceId: testSpace.id }) });
             expect(response.status).toBe(409);
         });
 
@@ -134,7 +139,7 @@ describe('Join Session API', () => {
                 data: { userId: requesterUser.id, sessionId: activeSession.id, status: 'PENDING' },
             });
 
-            const response = await POST({} as Request, { params: { spaceId: testSpace.id } });
+            const response = await POST({} as Request, { params: Promise.resolve({ spaceId: testSpace.id }) });
             expect(response.status).toBe(409);
         });
 
@@ -143,7 +148,7 @@ describe('Join Session API', () => {
                 user: { id: requesterUser.id, email: requesterUser.email },
             });
 
-            const response = await POST({} as Request, { params: { spaceId: testSpace.id } });
+            const response = await POST({} as Request, { params: Promise.resolve({ spaceId: testSpace.id }) });
             expect(response.status).toBe(201);
             const body = await response.json();
             expect(body.userId).toBe(requesterUser.id);
@@ -173,7 +178,7 @@ describe('Join Session API', () => {
 
             const response = await PATCH(
                 mockRequest({ userId: requesterUser.id }),
-                { params: { spaceId: testSpace.id } },
+                { params: Promise.resolve({ spaceId: testSpace.id }) },
             );
             expect(response.status).toBe(401);
         });
@@ -185,7 +190,7 @@ describe('Join Session API', () => {
 
             const response = await PATCH(
                 mockRequest({ userId: requesterUser.id }),
-                { params: { spaceId: 'nonexistent' } },
+                { params: Promise.resolve({ spaceId: 'nonexistent' }) },
             );
             expect(response.status).toBe(404);
         });
@@ -197,7 +202,7 @@ describe('Join Session API', () => {
 
             const response = await PATCH(
                 mockRequest({ userId: requesterUser.id }),
-                { params: { spaceId: testSpace.id } },
+                { params: Promise.resolve({ spaceId: testSpace.id }) },
             );
             expect(response.status).toBe(403);
         });
@@ -209,7 +214,7 @@ describe('Join Session API', () => {
 
             const response = await PATCH(
                 mockRequest({ userId: requesterUser.id }),
-                { params: { spaceId: testSpace.id } },
+                { params: Promise.resolve({ spaceId: testSpace.id }) },
             );
             expect(response.status).toBe(200);
             const body = await response.json();
