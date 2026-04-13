@@ -99,7 +99,7 @@ describe('POST /api/spaces/[spaceId]/sessions', () => {
 
         const response = await POST(
             {} as Request,
-            { params: { spaceId: testSpace.id } }
+            { params: Promise.resolve({ spaceId: testSpace.id }) }
         );
 
         const body = await response.json();
@@ -124,7 +124,7 @@ describe('POST /api/spaces/[spaceId]/sessions', () => {
 
         const response = await POST(
             {} as Request,
-            { params: { spaceId: testSpace.id } }
+            { params: Promise.resolve({ spaceId: testSpace.id }) }
         );
 
         expect(response.status).toBe(401);
@@ -137,7 +137,7 @@ describe('POST /api/spaces/[spaceId]/sessions', () => {
 
         const response = await POST(
             {} as Request,
-            { params: { spaceId: 'nonexistent' } }
+            { params: Promise.resolve({ spaceId: 'nonexistent' }) }
         );
 
         expect(response.status).toBe(404);
@@ -159,7 +159,7 @@ describe('POST /api/spaces/[spaceId]/sessions', () => {
 
         const response = await POST(
             {} as Request,
-            { params: { spaceId: testSpace.id } }
+            { params: Promise.resolve({ spaceId: testSpace.id }) }
         );
 
         expect(response.status).toBe(409);
@@ -182,7 +182,7 @@ describe('POST /api/spaces/[spaceId]/sessions', () => {
 
         const response = await POST(
             {} as Request,
-            { params: { spaceId: testSpace.id } }
+            { params: Promise.resolve({ spaceId: testSpace.id }) }
         );
 
         expect(response.status).toBe(201);
@@ -203,7 +203,7 @@ describe('POST /api/spaces/[spaceId]/sessions', () => {
 
         const response = await POST(
             {} as Request,
-            { params: { spaceId: testSpace.id } }
+            { params: Promise.resolve({ spaceId: testSpace.id }) }
         );
 
         const body = await response.json();
