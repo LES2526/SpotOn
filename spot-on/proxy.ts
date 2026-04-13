@@ -8,7 +8,7 @@
  * Note: This middleware only checks for cookie existence. The actual session
  * validity is verified server-side via `getServerSession` in each page or API route.
  *
- * @module middleware
+ * @module proxy
  *
  * @author Spot-On Team
  * @since 1.0.0
@@ -27,7 +27,7 @@ import { NextResponse } from 'next/server';
  * @param {NextRequest} request - The incoming HTTP request
  * @returns {NextResponse} Either a redirect to sign-in or passes the request through
  */
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
     const sessionToken =
         request.cookies.get('next-auth.session-token')?.value ||
         request.cookies.get('__Secure-next-auth.session-token')?.value;
