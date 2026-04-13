@@ -80,7 +80,7 @@ describe('Sessions route – DELETE & PATCH', () => {
         it('deve devolver 401 se não autenticado', async () => {
             (getServerSession as jest.Mock).mockResolvedValue(null);
 
-            const response = await DELETE({} as Request, { params: { spaceId: testSpace.id } });
+            const response = await DELETE({} as Request, { params: Promise.resolve({ spaceId: testSpace.id }) });
             expect(response.status).toBe(401);
         });
 
@@ -89,7 +89,7 @@ describe('Sessions route – DELETE & PATCH', () => {
                 user: { id: testUser.id },
             });
 
-            const response = await DELETE({} as Request, { params: { spaceId: testSpace.id } });
+            const response = await DELETE({} as Request, { params: Promise.resolve({ spaceId: testSpace.id }) });
             expect(response.status).toBe(404);
         });
 
@@ -107,7 +107,7 @@ describe('Sessions route – DELETE & PATCH', () => {
                 },
             });
 
-            const response = await DELETE({} as Request, { params: { spaceId: testSpace.id } });
+            const response = await DELETE({} as Request, { params: Promise.resolve({ spaceId: testSpace.id }) });
             expect(response.status).toBe(200);
             const body = await response.json();
             expect(body.success).toBe(true);
@@ -131,7 +131,7 @@ describe('Sessions route – DELETE & PATCH', () => {
                 body: JSON.stringify({ expectedEndTime: new Date(Date.now() + 7200000).toISOString() }),
             });
 
-            const response = await PATCH(request, { params: { spaceId: testSpace.id } });
+            const response = await PATCH(request, { params: Promise.resolve({ spaceId: testSpace.id }) });
             expect(response.status).toBe(401);
         });
 
@@ -145,7 +145,7 @@ describe('Sessions route – DELETE & PATCH', () => {
                 body: JSON.stringify({ expectedEndTime: new Date(Date.now() + 7200000).toISOString() }),
             });
 
-            const response = await PATCH(request, { params: { spaceId: testSpace.id } });
+            const response = await PATCH(request, { params: Promise.resolve({ spaceId: testSpace.id }) });
             expect(response.status).toBe(404);
         });
 
@@ -168,7 +168,7 @@ describe('Sessions route – DELETE & PATCH', () => {
                 body: JSON.stringify({ expectedEndTime: new Date(Date.now() - 1000).toISOString() }),
             });
 
-            const response = await PATCH(request, { params: { spaceId: testSpace.id } });
+            const response = await PATCH(request, { params: Promise.resolve({ spaceId: testSpace.id }) });
             expect(response.status).toBe(400);
         });
 
@@ -186,15 +186,14 @@ describe('Sessions route – DELETE & PATCH', () => {
                 },
             });
 
-            const newEndTime = new Date();
-            newEndTime.setHours(15, 0, 0, 0);
+            const newEndTime = new Date(Date.now() + 7200000);
 
             const request = new Request('http://localhost', {
                 method: 'PATCH',
                 body: JSON.stringify({ expectedEndTime: newEndTime.toISOString() }),
             });
 
-            const response = await PATCH(request, { params: { spaceId: testSpace.id } });
+            const response = await PATCH(request, { params: Promise.resolve({ spaceId: testSpace.id }) });
             expect(response.status).toBe(200);
             const body = await response.json();
             expect(body.id).toBeDefined();

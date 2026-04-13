@@ -5,7 +5,7 @@ import { sendApprovedJoinRequestEmail } from "@/lib/send-notification-email";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
-type Params = { params: { spaceId: string } | Promise<{ spaceId: string }> };
+type Params = { params: Promise<{ spaceId: string }> };
 
 /**
  * @swagger
@@ -121,7 +121,9 @@ export async function PATCH(_request: Request, { params }: Params) {
             select: { email: true },
         });
         if (requester?.email) {
-            await resolveNotificationById(notificationId);
+            if (notificationId) {
+                await resolveNotificationById(notificationId);
+            }
             await sendApprovedJoinRequestEmail(requester.email);
         }
         return NextResponse.json(updateJoinSession, { status: 200 });

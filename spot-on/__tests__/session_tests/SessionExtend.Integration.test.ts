@@ -114,7 +114,7 @@ describe('PATCH /api/spaces/[spaceId]/sessions/extend', () => {
             body: JSON.stringify({ expectedEndTime: newEndTime.toISOString() }),
         });
 
-        const response = await PATCH(request, { params: { spaceId: testSpace.id } });
+        const response = await PATCH(request, { params: Promise.resolve({ spaceId: testSpace.id }) });
         expect(response.status).toBe(200);
 
         const body = await response.json();
@@ -134,7 +134,7 @@ describe('PATCH /api/spaces/[spaceId]/sessions/extend', () => {
             body: JSON.stringify({ expectedEndTime: newEndTimeInvalid.toISOString() }),
         });
 
-        const response = await PATCH(request, { params: { spaceId: testSpace.id } });
+        const response = await PATCH(request, { params: Promise.resolve({ spaceId: testSpace.id }) });
         expect(response.status).toBe(400);
 
         const body = await response.json();
@@ -154,7 +154,7 @@ describe('PATCH /api/spaces/[spaceId]/sessions/extend', () => {
             body: JSON.stringify({ expectedEndTime: newEndTime.toISOString() }),
         });
 
-        const response = await PATCH(request, { params: { spaceId: testSpace.id } });
+        const response = await PATCH(request, { params: Promise.resolve({ spaceId: testSpace.id }) });
         expect(response.status).toBe(404);
     });
 
@@ -166,7 +166,7 @@ describe('PATCH /api/spaces/[spaceId]/sessions/extend', () => {
             body: JSON.stringify({ expectedEndTime: new Date().toISOString() }),
         });
 
-        const response = await PATCH(request, { params: { spaceId: testSpace.id } });
+        const response = await PATCH(request, { params: Promise.resolve({ spaceId: testSpace.id }) });
         expect(response.status).toBe(401);
     });
 });
