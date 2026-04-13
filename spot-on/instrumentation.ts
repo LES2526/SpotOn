@@ -11,8 +11,6 @@
  * @since 1.0.0
  */
 
-import { restoreReportExpiries } from './lib/report-expiry';
-
 /**
  * Called once by Next.js when the server starts.
  *
@@ -24,6 +22,7 @@ import { restoreReportExpiries } from './lib/report-expiry';
 export async function register() {
     if (process.env.NEXT_RUNTIME === 'nodejs') {
         const { restoreSessionExpiries } = await import('@/lib/session-expiry');
+        const { restoreReportExpiries } = await import('@/lib/report-expiry');
         await restoreSessionExpiries();
         await restoreReportExpiries();
     }
