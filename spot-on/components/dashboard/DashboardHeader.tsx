@@ -10,7 +10,5 @@ export default function DashboardHeader() {
                 <NotificationBell />
             </div>
         </div>
-
-
     );
 }
