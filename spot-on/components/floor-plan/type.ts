@@ -4,6 +4,8 @@ export type SpaceMarker = {
     capacity: number;
     type: string;
     hasPowerOutlet: boolean;
+    hasComputer : boolean;
+    hasInteractiveBoard : boolean;
     description: string | null;
     shape: string | null;
     points: string;
@@ -15,7 +17,7 @@ export type FloorPlanData = {
     imageUrl: string;
     imageWidth: number;
     imageHeight: number;
-    viewBox: string,
+    viewBox: string;
     svgContent: string;
     spaces: SpaceMarker[];
 };

@@ -2,25 +2,14 @@ import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import FloorPlanSection from "@/components/floor-plan/FloorPlanSection";
 import { FloorPlanData } from "@/components/floor-plan/type";
 import FloorFilter from "@/components/floor/FloorFilter";
-import NotificationBell from "@/components/notifications/NotificationBell";
 import OccupanceCard from "@/components/occupance/SpacesOccupance";
 import { prisma } from "@/lib/prisma";
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 
 
 // Disable caching so occupancy status is always up to date
 export const dynamic = 'force-dynamic';
-
-type DashboardSpace = {
-    id: string;
-    name: string;
-    capacity: number;
-    hasPowerOutlet: boolean;
-    type: string;
-    description: string | null;
-    sessions: Array<{ id: string }>;
-};
 
 export default async function DashboardPage({ searchParams }: Readonly<{ searchParams: Promise<{ floor?: string }> }>) {
     // Read the selected floor from the URL query param (?floor=Piso 1)
@@ -84,6 +73,8 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
             capacity: space.capacity,
             type: space.type,
             hasPowerOutlet: space.hasPowerOutlet,
+            hasComputer: space.hasComputer,
+            hasInteractiveBoard: space.hasInteractiveBoard,
             description: space.description,
             points: space.points,
             isOccupied: space.sessions.length > 0,
@@ -99,31 +90,10 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
     return (
         <main className="min-h-screen bg-gray-950 p-8 text-white">
             <section className="mx-auto max-w-6xl">
-                <div className="flex items-center justify-between mb-6">
-                    <DashboardHeader />
-                    <NotificationBell />
-                </div>
+                <DashboardHeader />
                 <FloorFilter floorPlans={floorPlans} selectedFloor={selectedFloor} />
                 <FloorPlanSection floorPlan={floorPlanData} />
                 <OccupanceCard totalDesks={totalDesks} occupiedDesks={occupiedDesks} totalRooms={totalRooms} occupiedRooms={occupiedRooms} />
-                {/*       {{spaces.length === 0 ? (
-                    <p className="text-sm text-gray-500">Nenhum pllzespaço encontrado.</p>
-                ) : (
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        {spaces.map((space: DashboardSpace) => (
-                            <SpaceCard
-                                key={space.id}
-                                id={space.id}
-                                name={space.name}
-                                capacity={space.capacity}
-                                hasPowerOutlet={space.hasPowerOutlet}
-                                type={space.type}
-                                description={space.description}
-                                isOccupied={space.sessions.length > 0}
-                            />
-                        ))}
-                    </div>
-                )} }    */}
             </section>
         </main>
     );

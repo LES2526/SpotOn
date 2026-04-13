@@ -7,7 +7,7 @@
 generator client {
     provider      = "prisma-client-js"
     output        = "../app/generated/prisma"
-    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x", "linux-musl-openssl-3.0.x", "darwin-arm64"]
+    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x", "linux-musl-openssl-3.0.x", "darwin-arm64", "windows"]
 }
 
 datasource db {
@@ -27,6 +27,7 @@ model User {
     email         String    @unique @db.VarChar(255)
     emailVerified DateTime?
     image         String?   @db.VarChar(255)
+    bannedUntil   DateTime?
 
     points Int @default(0)
 
@@ -154,16 +155,18 @@ model FloorPlan {
 // Space model
 // --------------------------------------------
 model Space {
-    id             String      @id @default(cuid()) @db.VarChar(30)
-    floorPlanId    String      @db.VarChar(30)
-    name           String      @db.VarChar(255)
-    points         String /// SVG polygon points: "x1,y1 x2,y2 x3,y3 x4,y4" (clockwise from top-left)
-    capacity       Int
-    currentQrToken String      @unique @db.VarChar(255) /// Rotates periodically; displayed on the space's tablet
-    description    String?     @db.VarChar(255)
-    hasPowerOutlet Boolean     @default(false)
-    type           SpaceType   @default(INDIVIDUAL_DESK)
-    shape          SpaceShape?
+    id                  String      @id @default(cuid()) @db.VarChar(30)
+    floorPlanId         String      @db.VarChar(30)
+    name                String      @db.VarChar(255)
+    points              String /// SVG polygon points: "x1,y1 x2,y2 x3,y3 x4,y4" (clockwise from top-left)
+    capacity            Int
+    currentQrToken      String      @unique @db.VarChar(255) /// Rotates periodically; displayed on the space's tablet
+    description         String?     @db.VarChar(255)
+    hasPowerOutlet      Boolean     @default(false)
+    hasComputer         Boolean     @default(false)
+    hasInteractiveBoard Boolean     @default(false)
+    type                SpaceType   @default(INDIVIDUAL_DESK)
+    shape               SpaceShape?
 
     createdAt DateTime @default(now())
     updatedAt DateTime @default(now()) @updatedAt
