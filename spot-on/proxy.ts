@@ -1,68 +1,51 @@
 /**
- * NextAuth.js Middleware for Route Protection
+ * @fileoverview Next.js middleware for route-level authentication.
  *
- * This middleware intercepts requests to protected routes and verifies
- * user authentication status before allowing access. Unauthenticated
- * users are automatically redirected to the sign-in page.
+ * Runs on every request matching the configured routes before the page loads.
+ * Checks for the presence of a NextAuth database session cookie and redirects
+ * unauthenticated users to the sign-in page.
+ *
+ * Note: This middleware only checks for cookie existence. The actual session
+ * validity is verified server-side via `getServerSession` in each page or API route.
  *
  * @module proxy
- * @see {@link https://next-auth.js.org/configuration/nextjs#middleware | NextAuth Middleware Documentation}
  *
- * @example
- * Protect all routes under /qrcode/
- * export const config = {
- *   matcher: ["/qrcode/:path*"]
- * }
- *
- * @example
- * User tries to access protected route
- * GET /qrcode/scan → 307 Redirect → /api/auth/signin?callbackUrl=%2Fqrcode%2Fscan
+ * @author Spot-On Team
+ * @since 1.0.0
  */
 
-import { withAuth } from "next-auth/middleware";
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
 /**
- * NextAuth middleware instance with custom configuration.
+ * Middleware function executed before rendering protected routes.
  *
- * Wraps routes matched by the config matcher and enforces authentication.
- * Redirects unauthenticated requests to the configured sign-in page.
+ * Reads the NextAuth session cookie (`next-auth.session-token` for HTTP,
+ * `__Secure-next-auth.session-token` for HTTPS) and redirects to the
+ * sign-in page if absent, preserving the original URL as `callbackUrl`.
  *
- * @type {NextMiddleware}
+ * @param {NextRequest} request - The incoming HTTP request
+ * @returns {NextResponse} Either a redirect to sign-in or passes the request through
  */
-export default withAuth({
-    /**
-     * Custom pages configuration for authentication flow.
-     *
-     * @property {string} signIn - URL to redirect unauthenticated users
-     */
-    pages: {
-        signIn: "/api/auth/signin",
-    },
-});
+export function proxy(request: NextRequest) {
+    const sessionToken =
+        request.cookies.get('next-auth.session-token')?.value ||
+        request.cookies.get('__Secure-next-auth.session-token')?.value;
+    if (!sessionToken) {
+        const signInUrl = new URL('/api/auth/signin', request.url);
+        signInUrl.searchParams.set('callbackUrl',
+            request.nextUrl.pathname);
+        return NextResponse.redirect(signInUrl);
+    }
+    return NextResponse.next();
+}
 
 /**
- * Middleware configuration defining which routes require authentication.
+ * Route matcher configuration.
  *
- * Uses Next.js path matching patterns to specify protected routes.
- * Routes matching these patterns will be intercepted by the middleware.
- *
- * @type {Object}
- * @property {string[]} matcher - Array of path patterns to protect
- *
- * @example
- * Pattern syntax:
- * "/qrcode/:path*"     → Matches /qrcode, /qrcode/scan, /qrcode/generate, etc.
- * "/dashboard/:path*"  → Matches all dashboard routes
- * "/api/users/*"       → Matches all user API routes
+ * Restricts this middleware to protected application routes only.
+ * Public routes (e.g. `/`, `/api/auth/*`, `/qrcode/*`) are not affected.
  */
 export const config = {
-    /**
-     * Protected route patterns.
-     *
-     * Current patterns:
-     * - `/qrcode/:path*` - All QR code scanning and generation routes
-     */
-    matcher: [
-        
-    ],
+    matcher: ['/dashboard/:path*', '/profile/:path*', '/spaces/:path*'],
 };

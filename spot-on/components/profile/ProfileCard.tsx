@@ -1,13 +1,8 @@
 "use client";
 import Image from "next/image";
 import styles from "./ProfileCard.module.css";
+import { ProfileCardProps } from "./type";
 
-interface ProfileCardProps {
-    email: string;
-    points: number;
-    image?: string;
-    studentNumber?: string;
-}
 
 export default function ProfileCard({ email, points, image, studentNumber }: Readonly<ProfileCardProps>) {
     const displayName = email.split("@")[0];

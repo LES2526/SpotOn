@@ -17,6 +17,7 @@
  */
 
 import { extractStudentId, isEmailAllowed } from "@/lib/auth-utils";
+import { getAvatarForUser } from "@/lib/avatar-utils";
 import { prisma } from "@/lib/prisma";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import NextAuth, { type NextAuthOptions } from "next-auth";
@@ -122,14 +123,21 @@ export const authOptions: NextAuthOptions = {
 
         async session({ session, user }) {
             session.user.id = user.id;
+            const updates: { studentId?: string; image?: string } = {};
             if (!user.studentId) {
                 const studentId = extractStudentId(user.email);
                 if (studentId) {
-                    await prisma.user.update({
-                        where: { id: user.id },
-                        data: { studentId },
-                    });
+                    updates.studentId = studentId;
                 }
+            }
+            if (!user.image) {
+                updates.image = getAvatarForUser(user.email);
+            }
+            if (Object.keys(updates).length > 0) {
+                await prisma.user.update({
+                    where: { id: user.id },
+                    data: updates,
+                });
             }
             return session;
         },

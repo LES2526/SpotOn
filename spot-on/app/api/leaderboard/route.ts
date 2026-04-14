@@ -46,6 +46,32 @@ export type LeaderboardEntry = {
  *     responses:
  *       200:
  *         description: Leaderboard retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   rank:
+ *                     type: integer
+ *                     description: Position in the leaderboard
+ *                     example: 1
+ *                   id:
+ *                     type: string
+ *                     description: User ID
+ *                   email:
+ *                     type: string
+ *                     description: User email
+ *                     example: "a84014@ualg.pt"
+ *                   image:
+ *                     type: string
+ *                     nullable: true
+ *                     description: Avatar URL
+ *                   points:
+ *                     type: integer
+ *                     description: Total points accumulated
+ *                     example: 42
  *       401:
  *         description: Unauthorized - User is not authenticated
  *       500:
@@ -66,8 +92,10 @@ export type LeaderboardEntry = {
 export async function GET() {
     try {
         const session = await getServerSession(authOptions);
-        if (!session?.user?.id) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (!session?.user?.id) {//verifica a sessão
+            return NextResponse.json({
+                error: 'Unauthorized'
+            }, { status: 401 });
         }
         const users = await prisma.user.findMany({
             orderBy: { points: 'desc' },
