@@ -12,7 +12,7 @@
  * @since 1.0.0
  */
 
-import { createHmac, timingSafeEqual } from 'crypto';
+import { createHmac, timingSafeEqual } from 'node:crypto';
 
 /** Duration of each QR window in milliseconds. */
 const WINDOW_MS = 30000;
@@ -135,7 +135,7 @@ export function verifyQrCode(
     sig: string | null,
 ): VerifyResult {
     // Step 1 — all params must be present
-    
+
     if (!spaceId || window === null || window === undefined || !sig) {
         return { valid: false, reason: 'missing_params' };
     }

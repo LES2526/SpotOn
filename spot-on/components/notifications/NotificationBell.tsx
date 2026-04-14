@@ -1,22 +1,75 @@
 'use client';
 
-import { useRouter } from "next/navigation";
+import type { Notification } from '@/app/generated/prisma';
 import React from "react";
+import { JoinRequestPayload, NotificationItemProps } from './type';
 
-type Notification = {
-    id: string;
-    spaceId: string;
-    type: 'PROOF_OF_PRESENCE';
-    message: string;
-    href: string;
-};
+
+function parseMessage(message: string): {
+    text: string;
+    joinRequest?: JoinRequestPayload
+} {
+    try {
+        const parsed = JSON.parse(message) as JoinRequestPayload;
+        if (parsed.text && parsed.requesterId && parsed.spaceId) {
+            return { text: parsed.text, joinRequest: parsed };
+        }
+    } catch {
+        // not valid JSON — treat as plain text
+    }
+    return { text: message };
+}
+
+
+function NotificationItem({ notification, loading, onDismiss,
+    onJoinResponse }: Readonly<NotificationItemProps>) {
+    const { text, joinRequest } = parseMessage(notification.message);
+    const isLoadingThis = (loading === notification.id);
+    if (notification.type === 'JOIN_REQUEST' && joinRequest) {
+        return (
+            <li className="px-4 py-4 border-b border-gray-800 last:border-b-0">
+                <div className="flex items-start gap-3 mb-3">
+                    <span className="mt-1.5 h-2 w-2 rounded-full bg-blue-500 shrink-0" />
+                    <span className="text-sm text-gray-200">{text}</span>
+                </div>
+                <div className="flex gap-2 pl-5">
+                    <button
+                        disabled={isLoadingThis}
+                        onClick={() => onJoinResponse(notification.id, joinRequest.spaceId, joinRequest.requesterId, 'approved')}
+                        className="flex-1 py-1.5 rounded-lg bg-green-600 hover:bg-green-700 disabled:opacity-50 text-xs font-semibold text-white transition-colors"
+                    >
+                        {isLoadingThis ? '...' : 'Aceitar'}
+                    </button>
+                    <button
+                        disabled={isLoadingThis}
+                        onClick={() => onJoinResponse(notification.id, joinRequest.spaceId, joinRequest.requesterId, 'rejected')}
+                        className="flex-1 py-1.5 rounded-lg bg-red-700 hover:bg-red-800 disabled:opacity-50 text-xs font-semibold text-white transition-colors"
+                    >
+                        {isLoadingThis ? '...' : 'Rejeitar'}
+                    </button>
+                </div>
+            </li>
+        );
+    }
+    return (
+        <li>
+            <button
+                onClick={() => onDismiss(notification.id)}
+                className="w-full text-left px-4 py-4 hover:bg-gray-800 transition-colors flex items-start gap-3"
+            >
+                <span className="mt-0.5 h-2 w-2 rounded-full bg-red-500 shrink-0" />
+                <span className="text-sm text-gray-200">{text}</span>
+            </button>
+        </li>
+    );
+}
 
 export default function NotificationBell() {
     const [notifications, setNotifications] = React.useState<Notification[]>([]);
     const [open, setOpen] = React.useState(false);
-    const router = useRouter();
+    const [loading, setLoading] = React.useState<string | null>(null);
     const ref = React.useRef<HTMLDivElement>(null);
-
+    // Fetch notifications on mount
     React.useEffect(() => {
         const fetchNotifications = async () => {
             try {
@@ -37,7 +90,7 @@ export default function NotificationBell() {
         };
         fetchNotifications();
     }, []);
-
+    // Close dropdown when clicking outside
     React.useEffect(() => {
         const handler = (e: MouseEvent) => {
             if (ref.current && !ref.current.contains(e.target as Node)) {
@@ -49,10 +102,31 @@ export default function NotificationBell() {
             document.removeEventListener('click', handler);
         };
     }, []);
-
-    const handleNotificationClick = (href: string) => {
-        setOpen(false);
-        router.push(href);
+    const handleNotificationDismiss = async (id: string) => {
+        await fetch(`/api/notifications/${id}/resolve`,
+            { method: 'PATCH' });
+        setNotifications(prev => prev.filter(n => n.id !== id));
+    };
+    const handleJoinResponse = async (
+        notificationId: string,
+        spaceId: string,
+        requesterId: string,
+        action: 'approved' | 'rejected',
+    ) => {
+        setLoading(notificationId);
+        try {
+            await fetch(`/api/spaces/${spaceId}/sessions/join-session/${action}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: requesterId, notificationId }),
+            });
+            setNotifications(prev =>
+                prev.filter(n => n.id !== notificationId));
+        } catch (error) {
+            console.error('Error responding to join request:', error);
+        } finally {
+            setLoading(null);
+        }
     };
     return (
         <div ref={ref} className="relative">
@@ -82,15 +156,13 @@ export default function NotificationBell() {
                     ) : (
                         <ul>
                             {notifications.map(n => (
-                                <li key={n.id}>
-                                    <button
-                                        onClick={() => handleNotificationClick(n.href)}
-                                        className="w-full text-left px-4 py-4 hover:bg-gray-800 transition-colors flex items-start gap-3"
-                                    >
-                                        <span className="mt-0.5 h-2 w-2 rounded-full bg-red-500 shrink-0" />
-                                        <span className="text-sm text-gray-200">{n.message}</span>
-                                    </button>
-                                </li>
+                                <NotificationItem
+                                    key={n.id}
+                                    notification={n}
+                                    loading={loading}
+                                    onDismiss={handleNotificationDismiss}
+                                    onJoinResponse={handleJoinResponse}
+                                />
                             ))}
                         </ul>
                     )}

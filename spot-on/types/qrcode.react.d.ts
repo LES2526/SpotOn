@@ -1,3 +1,5 @@
+declare module '*.css';
+
 declare module 'qrcode.react' {
     import type { ComponentType, SVGProps } from 'react';
 

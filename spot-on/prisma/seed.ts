@@ -88,16 +88,16 @@ async function main() {
     }
 
     const usersData = [
-        { email: 'a1234@ualg.pt', studentId: 'a1234', points: 120, image: '/images/users/a1234.png' },
-        { email: 'alice.occupied@ualg.pt', studentId: 'a2345', points: 85, image: '/images/users/alice.png' },
-        { email: 'tsmachado40@gmail.com', studentId: null, points: 0, image: null },
-        { email: 'bruno.host@ualg.pt', studentId: 'a3456', points: 230, image: '/images/users/bruno.png' },
-        { email: 'carla.reporter@ualg.pt', studentId: 'a4567', points: 42, image: '/images/users/carla.png' },
-        { email: 'diogo.participant@ualg.pt', studentId: 'a5678', points: 57, image: '/images/users/diogo.png' },
-        { email: 'eva.pending@ualg.pt', studentId: 'a6789', points: 12, image: '/images/users/eva.png' },
-        { email: 'filipe.rejected@ualg.pt', studentId: 'a7890', points: 8, image: '/images/users/filipe.png' },
-        { email: 'gabriela.viewer@ualg.pt', studentId: 'a8901', points: 64, image: '/images/users/gabriela.png' },
-        { email: 'henrique.mentor@ualg.pt', studentId: 'a9012', points: 310, image: '/images/users/henrique.png' },
+        { email: 'a1234@ualg.pt', studentId: 'a1234', points: 120 },
+        { email: 'alice.occupied@ualg.pt', studentId: 'a2345', points: 85 },
+        { email: 'tsmachado40@gmail.com', studentId: null, points: 0 },
+        { email: 'bruno.host@ualg.pt', studentId: 'a3456', points: 230 },
+        { email: 'carla.reporter@ualg.pt', studentId: 'a4567', points: 42 },
+        { email: 'diogo.participant@ualg.pt', studentId: 'a5678', points: 57 },
+        { email: 'eva.pending@ualg.pt', studentId: 'a6789', points: 12 },
+        { email: 'filipe.rejected@ualg.pt', studentId: 'a7890', points: 8 },
+        { email: 'gabriela.viewer@ualg.pt', studentId: 'a8901', points: 64 },
+        { email: 'henrique.mentor@ualg.pt', studentId: 'a9012', points: 310 },
         { email: 'isabel.new@ualg.pt', studentId: null, points: 0, image: null },
     ];
 
@@ -326,6 +326,26 @@ async function main() {
     console.log(`Participations: ${counts[7]}`);
     console.log(`Reports: ${counts[8]}`);
 }
+
+ await prisma.badge.createMany({
+        data: [
+            {
+                name: 'First Session',
+                description: 'Completed your first study session',
+                iconUrl: '/badges/first-session.png',
+                month: 0,
+                year: 0,
+            },
+            {
+                name: 'Study Streak',
+                description: 'Studied 5 days in a row',
+                iconUrl: '/badges/study-streak.png',
+                month: 0,
+                year: 0,
+            },
+        ],
+        skipDuplicates: true,
+    });
 
 async function runSeed() {
     try {
