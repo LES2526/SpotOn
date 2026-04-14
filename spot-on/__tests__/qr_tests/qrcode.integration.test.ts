@@ -75,10 +75,21 @@ describe('POST /api/qrcode/verify', () => {
         });
         userId = user.id;
 
+        const leftoverFloor = await prisma.floorPlan.findFirst({
+            where: { name: 'QR Verify Test Floor' },
+        });
+        if (leftoverFloor) {
+            await prisma.studySession.deleteMany({
+                where: { space: { floorPlanId: leftoverFloor.id } },
+            });
+            await prisma.space.deleteMany({ where: { floorPlanId: leftoverFloor.id } });
+            await prisma.floorPlan.delete({ where: { id: leftoverFloor.id } });
+        }
+
         const floorPlan = await prisma.floorPlan.create({
             data: {
                 name: 'QR Verify Test Floor',
-                floor: 3,
+                floor: 98,
                 imageUrl: '/qr-verify-test.png',
                 imageWidth: 1000,
                 imageHeight: 800,
@@ -90,10 +101,7 @@ describe('POST /api/qrcode/verify', () => {
             data: {
                 floorPlanId,
                 name: 'QR Verify Test Room',
-                posX: 10,
-                posY: 10,
-                width: 5,
-                height: 5,
+                points: '10,10 15,10 15,15 10,15',
                 capacity: 4,
                 currentQrToken: `qr-verify-${Date.now()}`,
                 description: 'QR verify integration test space',
@@ -309,10 +317,13 @@ describe('POST /api/qrcode/verify', () => {
 
     describe('Conflict handling', () => {
         it('should return 409 when the space is already occupied', async () => {
+            const occupant = await prisma.user.create({
+                data: { email: `qr-occupant-${Date.now()}@ualg.pt` },
+            });
             await prisma.studySession.create({
                 data: {
                     spaceId,
-                    hostId: userId,
+                    hostId: occupant.id,
                     expectedEndTime: new Date(Date.now() + 3600000),
                     status: 'ACTIVE',
                 },
@@ -324,6 +335,9 @@ describe('POST /api/qrcode/verify', () => {
                 sig: generateSignature(spaceId, currentWindow()),
             });
 
+            await prisma.studySession.deleteMany({ where: { spaceId } });
+            await prisma.user.delete({ where: { id: occupant.id } });
+
             expect(status).toBe(409);
             expect(data.error).toMatch(/occupied/i);
         });
@@ -333,10 +347,7 @@ describe('POST /api/qrcode/verify', () => {
                 data: {
                     floorPlanId,
                     name: 'Other Verify Room',
-                    posX: 50,
-                    posY: 50,
-                    width: 5,
-                    height: 5,
+                    points: '50,50 55,50 55,55 50,55',
                     capacity: 1,
                     currentQrToken: `qr-other-verify-${Date.now()}`,
                 },

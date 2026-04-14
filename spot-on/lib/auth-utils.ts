@@ -76,9 +76,14 @@ export function isEmailAllowed(email: string | null | undefined)
  * extractStudentId("user@ualg.pt") // returns null
  * extractStudentId(null) // returns null
  */
-export function extractStudentId(email: string | null | undefined): string | null {
+export function extractStudentId(email: string | null | undefined):
+    string | null {
     const prefix = email?.split("@")[0];
-    if (!prefix) return null;
-    if (/^a\d+$/.test(prefix)) return prefix.slice(1);
+    if (!prefix) {
+        return null;
+    }
+    if (/^a\d+$/.test(prefix)) {
+        return prefix.slice(1);
+    }
     return null;
 }
