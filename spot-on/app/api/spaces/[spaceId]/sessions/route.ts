@@ -24,7 +24,7 @@ import { NextResponse } from 'next/server';
  * @typedef {Object} Params
  * @property {Promise<{ spaceId: string }>} params - Resolved route parameters
  */
-type Params = { params: { spaceId: string } | Promise<{ spaceId: string }> };
+type Params = { params: Promise<{ spaceId: string }> };
 
 /**
  * @swagger
@@ -44,7 +44,30 @@ type Params = { params: { spaceId: string } | Promise<{ spaceId: string }> };
  *     responses:
  *       201:
  *         description: Session created successfully
- *
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 spaceId:
+ *                   type: string
+ *                 hostId:
+ *                   type: string
+ *                 status:
+ *                   type: string
+ *                   enum: [ACTIVE]
+ *                 expectedEndTime:
+ *                   type: string
+ *                   format: date-time
+ *                 actualEndTime:
+ *                   type: string
+ *                   format: date-time
+ *                   nullable: true
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
  *       401:
  *         description: Unauthorized - User is not authenticated
  *       404:
@@ -53,20 +76,6 @@ type Params = { params: { spaceId: string } | Promise<{ spaceId: string }> };
  *         description: Conflict - Space is already occupied or user has an active session in another space
  *       500:
  *         description: Internal Server Error - An unexpected error occurred POST handler — Occupy a study space.
- */
-
-/* Creates a new active study session for the authenticated user in the specified space.
- * Session duration defaults to 1 hour from the time of creation.
- *
- * @param {Request} _request - Incoming HTTP request (unused)
- * @param {Params} params - Route parameters containing the spaceId
- * @returns {Promise<NextResponse>} The created session object with status 201, or an error response
- *
- * @throws {401} If the user is not authenticated
- * @throws {404} If the space does not exist
- * @throws {409} If the space is already occupied
- * @throws {409} If the user already has an active session in another space
- * @throws {500} If an unexpected error occurs
  */
 export async function POST(_request: Request, { params }: Params) {
     try {
@@ -106,6 +115,7 @@ export async function POST(_request: Request, { params }: Params) {
                 expectedEndTime: new Date(Date.now() + 60 * 60 * 1000)
             }
         });
+
         return NextResponse.json(newSession, { status: 201 });
     } catch (error) {
         console.error('Error creating session:', error);

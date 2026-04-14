@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
-type Params = { params: { spaceId: string } | Promise<{ spaceId: string }> };
+type Params = { params: Promise<{ spaceId: string }> };
 
 /**
  * @swagger
