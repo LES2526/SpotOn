@@ -17,10 +17,11 @@
 
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { Prisma } from "@/app/generated/prisma";
+import { resolveNotifications } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
+import { handleExpiredReport } from "@/lib/report-expiry";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
-import { handleExpiredReport } from "@/lib/report-expiry";
 
 type Params = { params: Promise<{ spaceId: string }> };
 type Tx = Prisma.TransactionClient;
@@ -132,45 +133,66 @@ export const PATCH = async (_request: Request, props: Params) => {
         const params = await props.params;
         const session = await getServerSession(authOptions);
         if (!session?.user?.id) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json(
+                { error: 'Unauthorized' },
+                { status: 401 });
         }
         const { spaceId } = params;
-        const space = await prisma.space.findUnique({ where: { id: spaceId } });
+        const space = await prisma.space.findUnique({
+            where: { id: spaceId }
+        });
         if (!space) {
-            return NextResponse.json({ error: 'Space not found' }, { status: 404 });
+            return NextResponse.json(
+                { error: 'Space not found' }, { status: 404 });
         }
         const { qrToken } = await _request.json();
         if (space.currentQrToken !== qrToken) {
-            return NextResponse.json({ error: 'Invalid QR token' }, { status: 400 });
+            return NextResponse.json(
+                { error: 'Invalid QR token' }, { status: 400 });
         }
         const activeSession = await prisma.studySession.findFirst({
             where: { spaceId, status: 'ACTIVE' },
         });
         if (!activeSession) {
-            return NextResponse.json({ error: 'No active session found for this space' }, { status: 404 });
+            return NextResponse.json({
+                error: 'No active session found for this space'
+            }, { status: 404 });
         }
         const isParticipant = await prisma.userOnStudySession.findFirst({
-            where: { userId: session.user.id, sessionId: activeSession.id, status: 'ACCEPTED' }
+            where: {
+                userId: session.user.id,
+                sessionId: activeSession.id,
+                status: 'ACCEPTED'
+            }
         });
         if (!isParticipant && activeSession.hostId !== session.user.id) {
-            return NextResponse.json({ error: 'Only participants and host can confirm reports' }, { status: 403 });
+            return NextResponse.json({
+                error: 'Only participants and host can confirm reports'
+            }, { status: 403 });
         }
         let report;
         try {
             report = await prisma.$transaction(async (tx) => {
                 const existingReport = await tx.report.findFirst({
-                    where: { sessionId: activeSession.id, status: 'OPEN' }
+                    where: {
+                        sessionId: activeSession.id, status: 'OPEN'
+                    }
                 });
                 if (!existingReport) throw new Error('NOT_FOUND');
                 const alreadyConfirmed = await tx.reportConfirmation.findFirst({
-                    where: { reportId: existingReport.id, userId: session.user.id }
+                    where: {
+                        reportId: existingReport.id,
+                        userId: session.user.id
+                    }
                 });
                 if (alreadyConfirmed) throw new Error('DUPLICATE');
-
                 if (existingReport.timeToConfirm < new Date()) {
-                    return handleExpiredReport(tx, existingReport.id, activeSession.id, activeSession.hostId);
+                    return handleExpiredReport(tx, existingReport.id,
+                        activeSession.id, activeSession.hostId);
                 }
-                return handleActiveReport(tx, existingReport.id, activeSession.id, activeSession.hostId, session.user.id);
+                return handleActiveReport(tx, existingReport.id,
+                    activeSession.id, activeSession.hostId,
+                    session.user.id);
             });
         } catch (error) {
             if (error instanceof Error) {
@@ -188,6 +210,8 @@ export const PATCH = async (_request: Request, props: Params) => {
             }
         }
         if (report && 'expired' in report) {
+            await resolveNotifications(activeSession.hostId,
+                'PROOF_OF_PRESENCE');
             const msg = report.sessionEnded
                 ? 'Session expired, space is now free'
                 : 'Time expired, session continues with confirmed users';
@@ -198,6 +222,8 @@ export const PATCH = async (_request: Request, props: Params) => {
                 message: 'Confirmation registered, waiting for others'
             }, { status: 200 });
         }
+        await resolveNotifications(activeSession.hostId,
+            'PROOF_OF_PRESENCE');
         return NextResponse.json(report, { status: 200 });
     } catch (error) {
         console.error('Error updating report:', error);

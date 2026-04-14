@@ -1,9 +1,11 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { resolveNotificationById } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
+import { sendApprovedJoinRequestEmail } from "@/lib/send-notification-email";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
-type Params = { params: { spaceId: string } | Promise<{ spaceId: string }> };
+type Params = { params: Promise<{ spaceId: string }> };
 
 /**
  * @swagger
@@ -34,11 +36,25 @@ type Params = { params: { spaceId: string } | Promise<{ spaceId: string }> };
  *                 description: The user ID of the join request to approve
  *     responses:
  *       200:
- *         description: Join request approved successfully
+ *         description: Join request approved successfully. An email is sent to the requester.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 userId:
+ *                   type: string
+ *                 sessionId:
+ *                   type: string
+ *                 status:
+ *                   type: string
+ *                   example: ACCEPTED
+ *       400:
+ *         description: Bad Request - userId missing from body
  *       401:
  *         description: Unauthorized
  *       403:
- *         description: Forbidden - requester is not the host
+ *         description: Forbidden - user is not the host of the active session
  *       404:
  *         description: Space or active session not found
  *       500:
@@ -88,7 +104,7 @@ export async function PATCH(_request: Request, { params }: Params) {
                 { status: 403 });
         }
         const body = await _request.json();
-        const { userId } = body;
+        const { userId, notificationId } = body;
         const updateJoinSession = await prisma.userOnStudySession.update({
             where: {
                 userId_sessionId: {
@@ -100,6 +116,16 @@ export async function PATCH(_request: Request, { params }: Params) {
                 status: 'ACCEPTED'
             }
         });
+        const requester = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { email: true },
+        });
+        if (requester?.email) {
+            if (notificationId) {
+                await resolveNotificationById(notificationId);
+            }
+            await sendApprovedJoinRequestEmail(requester.email);
+        }
         return NextResponse.json(updateJoinSession, { status: 200 });
     } catch (error) {
         console.error('Error approving session:', error);
