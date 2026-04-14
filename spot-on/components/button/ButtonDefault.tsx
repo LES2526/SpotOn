@@ -1,9 +1,6 @@
 import Link from "next/link";
+import { ButtonDefaultProps } from "./type";
 
-type ButtonDefaultProps = {
-    href: string;
-    children: React.ReactNode;
-};
 
 function ButtonDefault({ href, children }: Readonly<ButtonDefaultProps>) {
     return (

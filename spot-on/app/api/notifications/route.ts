@@ -1,8 +1,7 @@
 /**
  * @fileoverview API route handler for user notifications.
  *
- * Returns actionable notifications for the authenticated user, such as
- * open proof-of-presence alerts tied to the user's active hosted session.
+ * Returns all PENDING notifications for the authenticated user from the database.
  *
  * @module app/api/notifications/route
  */
@@ -16,13 +15,13 @@ import { authOptions } from "../auth/[...nextauth]/route";
  * @swagger
  * /api/notifications:
  *   get:
- *     summary: Get notifications for the authenticated user
- *     description: Returns current in-app notifications for the logged-in user.
+ *     summary: Get pending notifications
+ *     description: Returns all PENDING notifications for the authenticated user, ordered by creation date descending.
  *     tags:
  *       - Notifications
  *     responses:
  *       200:
- *         description: Notifications retrieved successfully
+ *         description: List of pending notifications
  *         content:
  *           application/json:
  *             schema:
@@ -32,17 +31,21 @@ import { authOptions } from "../auth/[...nextauth]/route";
  *                 properties:
  *                   id:
  *                     type: string
- *                   spaceId:
- *                     type: string
  *                   type:
  *                     type: string
- *                     example: PROOF_OF_PRESENCE
+ *                     enum: [PROOF_OF_PRESENCE, JOIN_REQUEST]
+ *                   status:
+ *                     type: string
+ *                     enum: [PENDING]
  *                   message:
  *                     type: string
- *                   href:
+ *                   userId:
  *                     type: string
+ *                   createdAt:
+ *                     type: string
+ *                     format: date-time
  *       401:
- *         description: Unauthorized - user is not authenticated
+ *         description: Unauthorized - user not authenticated
  */
 export async function GET() {
     const session = await getServerSession(authOptions);
@@ -50,30 +53,12 @@ export async function GET() {
         return NextResponse.json(
             { error: 'Unauthorized' }, { status: 401 });
     }
-    const activeReport = await prisma.report.findFirst({
+    const notifications = await prisma.notification.findMany({
         where: {
-            session: {
-                hostId: session.user.id,
-                status: 'ACTIVE',
-                expectedEndTime: { gt: new Date() },
-            },
-            status: 'OPEN',
+            userId: session.user.id,
+            status: 'PENDING',
         },
-        select: {
-            id: true,
-            session: {
-                select: { spaceId: true }
-            }
-        },
+        orderBy: { createdAt: 'desc' },
     });
-    if (!activeReport) {
-        return NextResponse.json([]);
-    }
-    return NextResponse.json([{
-        id: activeReport.id,
-        spaceId: activeReport.session.spaceId,
-        type: 'PROOF_OF_PRESENCE',
-        message: 'A tua presença foi questionada! Tens 10 minutos para fazeres scan do QR code ou perdes o lugar.',
-        href: `/dashboard`,
-    }], { status: 200 });
+    return NextResponse.json(notifications);
 }
