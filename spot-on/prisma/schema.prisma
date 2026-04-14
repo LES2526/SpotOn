@@ -42,6 +42,8 @@ model User {
     reports             Report[]
     reportConfirmations ReportConfirmation[]
     notifications       Notification[]
+
+    badges              UserBadge[]
 }
 
 /// NextAuth authentication providers.
@@ -263,4 +265,25 @@ model Notification {
     createdAt DateTime @default(now())
 
     user User @relation(fields: [userId], references: [id])
+model UserBadge {
+    userId    String   @db.VarChar(30)
+    badgeId   String   @db.VarChar(30)
+    awardedAt DateTime @default(now())
+
+    user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+    badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+    @@id([userId, badgeId])
+}
+
+model Badge{
+    id          String @id @default(cuid()) @db.VarChar(30)
+    name        String @db.VarChar(255)
+    description String @db.VarChar(255)
+    iconUrl     String @db.VarChar(255) /// URL or path to the badge icon
+
+    month       Int @default(0) /// Month when the badge is awarded (1-12), 0 for badges that can be awarded any month
+    year        Int @default(0) /// Year when the badge is awarded, 0 for badges that can be awarded any year
+
+    users       UserBadge[] 
 }

@@ -11,6 +11,10 @@
  * @since 1.0.0
  */
 
+import { restoreSessionExpiries } from '@/lib/session-expiry'; 
+import { restoreReportExpiries } from '@/lib/report-expiry';
+import { initializeBadgeAwardScheduler } from './lib/badge-award';
+
 /**
  * Called once by Next.js when the server starts.
  *
@@ -25,5 +29,6 @@ export async function register() {
         const { restoreReportExpiries } = await import('@/lib/report-expiry');
         await restoreSessionExpiries();
         await restoreReportExpiries();
+        await initializeBadgeAwardScheduler();
     }
 }
