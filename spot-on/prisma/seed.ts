@@ -327,6 +327,26 @@ async function main() {
     console.log(`Reports: ${counts[8]}`);
 }
 
+ await prisma.badge.createMany({
+        data: [
+            {
+                name: 'First Session',
+                description: 'Completed your first study session',
+                iconUrl: '/badges/first-session.png',
+                month: 0,
+                year: 0,
+            },
+            {
+                name: 'Study Streak',
+                description: 'Studied 5 days in a row',
+                iconUrl: '/badges/study-streak.png',
+                month: 0,
+                year: 0,
+            },
+        ],
+        skipDuplicates: true,
+    });
+
 async function runSeed() {
     try {
         await main();
