@@ -13,7 +13,7 @@ jest.mock('@/app/api/auth/[...nextauth]/route', () => ({
 import { PATCH } from '@/app/api/spaces/[spaceId]/reports/confirm/route';
 import { POST } from '@/app/api/spaces/[spaceId]/reports/route';
 import { prisma } from '@/lib/prisma';
-import type { FloorPlan, Space, StudySession, User } from '@prisma/client';
+import type { FloorPlan, Space, StudySession, User } from '@/app/generated/prisma';
 import { getServerSession } from 'next-auth';
 
 const mockRequest = (body: object) =>
@@ -42,10 +42,7 @@ describe('Reports API', () => {
             data: {
                 floorPlanId: testFloorPlan.id,
                 name: 'Test Study Room',
-                posX: 10,
-                posY: 20,
-                width: 5,
-                height: 5,
+                points: '100,100 200,100 200,200 100,200',
                 capacity: 4,
                 currentQrToken: `qr-${Date.now()}`,
                 hasPowerOutlet: true,
@@ -123,7 +120,7 @@ describe('Reports API', () => {
 
             const response = await POST(
                 mockRequest({ qrToken: testSpace.currentQrToken, reason: 'Ocupado' }),
-                { params: { spaceId: testSpace.id } }
+                { params: Promise.resolve({ spaceId: testSpace.id }) }
             );
 
             expect(response.status).toBe(401);
@@ -134,7 +131,7 @@ describe('Reports API', () => {
 
             const response = await POST(
                 mockRequest({ qrToken: 'any', reason: 'Ocupado' }),
-                { params: { spaceId: 'nonexistent' } }
+                { params: Promise.resolve({ spaceId: 'nonexistent' }) }
             );
 
             expect(response.status).toBe(404);
@@ -145,7 +142,7 @@ describe('Reports API', () => {
 
             const response = await POST(
                 mockRequest({ qrToken: 'invalid-token', reason: 'Ocupado' }),
-                { params: { spaceId: testSpace.id } }
+                { params: Promise.resolve({ spaceId: testSpace.id }) }
             );
 
             expect(response.status).toBe(400);
@@ -156,7 +153,7 @@ describe('Reports API', () => {
 
             const response = await POST(
                 mockRequest({ qrToken: testSpace.currentQrToken, reason: '   ' }),
-                { params: { spaceId: testSpace.id } }
+                { params: Promise.resolve({ spaceId: testSpace.id }) }
             );
 
             expect(response.status).toBe(400);
@@ -167,7 +164,7 @@ describe('Reports API', () => {
 
             const response = await POST(
                 mockRequest({ qrToken: testSpace.currentQrToken, reason: 'Ocupado' }),
-                { params: { spaceId: testSpace.id } }
+                { params: Promise.resolve({ spaceId: testSpace.id }) }
             );
 
             expect(response.status).toBe(400);
@@ -178,7 +175,7 @@ describe('Reports API', () => {
 
             const response = await POST(
                 mockRequest({ qrToken: testSpace.currentQrToken, reason: 'Ocupado' }),
-                { params: { spaceId: testSpace.id } }
+                { params: Promise.resolve({ spaceId: testSpace.id }) }
             );
 
             expect(response.status).toBe(403);
@@ -189,7 +186,7 @@ describe('Reports API', () => {
 
             const response = await POST(
                 mockRequest({ qrToken: testSpace.currentQrToken, reason: 'Mesa ocupada sem utilizador' }),
-                { params: { spaceId: testSpace.id } }
+                { params: Promise.resolve({ spaceId: testSpace.id }) }
             );
 
             const body = await response.json();
@@ -216,7 +213,7 @@ describe('Reports API', () => {
 
             const response = await POST(
                 mockRequest({ qrToken: testSpace.currentQrToken, reason: 'Segunda denúncia' }),
-                { params: { spaceId: testSpace.id } }
+                { params: Promise.resolve({ spaceId: testSpace.id }) }
             );
 
             expect(response.status).toBe(409);
@@ -252,7 +249,7 @@ describe('Reports API', () => {
 
             const response = await POST(
                 mockRequest({ qrToken: testSpace.currentQrToken, reason: 'Nova denúncia' }),
-                { params: { spaceId: testSpace.id } }
+                { params: Promise.resolve({ spaceId: testSpace.id }) }
             );
 
             expect(response.status).toBe(409);
@@ -269,7 +266,7 @@ describe('Reports API', () => {
 
             const response = await PATCH(
                 mockRequest({ qrToken: testSpace.currentQrToken }),
-                { params: { spaceId: testSpace.id } }
+                { params: Promise.resolve({ spaceId: testSpace.id }) }
             );
 
             expect(response.status).toBe(401);
@@ -280,7 +277,7 @@ describe('Reports API', () => {
 
             const response = await PATCH(
                 mockRequest({ qrToken: 'any' }),
-                { params: { spaceId: 'nonexistent' } }
+                { params: Promise.resolve({ spaceId: 'nonexistent' }) }
             );
 
             expect(response.status).toBe(404);
@@ -291,7 +288,7 @@ describe('Reports API', () => {
 
             const response = await PATCH(
                 mockRequest({ qrToken: 'invalid-token' }),
-                { params: { spaceId: testSpace.id } }
+                { params: Promise.resolve({ spaceId: testSpace.id }) }
             );
 
             expect(response.status).toBe(400);
@@ -302,7 +299,7 @@ describe('Reports API', () => {
 
             const response = await PATCH(
                 mockRequest({ qrToken: testSpace.currentQrToken }),
-                { params: { spaceId: testSpace.id } }
+                { params: Promise.resolve({ spaceId: testSpace.id }) }
             );
 
             expect(response.status).toBe(403);
@@ -313,7 +310,7 @@ describe('Reports API', () => {
 
             const response = await PATCH(
                 mockRequest({ qrToken: testSpace.currentQrToken }),
-                { params: { spaceId: testSpace.id } }
+                { params: Promise.resolve({ spaceId: testSpace.id }) }
             );
 
             expect(response.status).toBe(404);
@@ -336,7 +333,7 @@ describe('Reports API', () => {
 
             const response = await PATCH(
                 mockRequest({ qrToken: testSpace.currentQrToken }),
-                { params: { spaceId: testSpace.id } }
+                { params: Promise.resolve({ spaceId: testSpace.id }) }
             );
 
             expect(response.status).toBe(409);
@@ -356,7 +353,7 @@ describe('Reports API', () => {
 
             const response = await PATCH(
                 mockRequest({ qrToken: testSpace.currentQrToken }),
-                { params: { spaceId: testSpace.id } }
+                { params: Promise.resolve({ spaceId: testSpace.id }) }
             );
 
             const body = await response.json();
@@ -378,14 +375,14 @@ describe('Reports API', () => {
             (getServerSession as jest.Mock).mockResolvedValue({ user: { id: acceptedParticipant.id } });
             await PATCH(
                 mockRequest({ qrToken: testSpace.currentQrToken }),
-                { params: { spaceId: testSpace.id } }
+                { params: Promise.resolve({ spaceId: testSpace.id }) }
             );
 
             // host confirma por último — todos confirmaram
             (getServerSession as jest.Mock).mockResolvedValue({ user: { id: hostUser.id } });
             const response = await PATCH(
                 mockRequest({ qrToken: testSpace.currentQrToken }),
-                { params: { spaceId: testSpace.id } }
+                { params: Promise.resolve({ spaceId: testSpace.id }) }
             );
 
             const body = await response.json();
@@ -407,7 +404,7 @@ describe('Reports API', () => {
 
             const response = await PATCH(
                 mockRequest({ qrToken: testSpace.currentQrToken }),
-                { params: { spaceId: testSpace.id } }
+                { params: Promise.resolve({ spaceId: testSpace.id }) }
             );
 
             const body = await response.json();
@@ -441,7 +438,7 @@ describe('Reports API', () => {
             (getServerSession as jest.Mock).mockResolvedValue({ user: { id: hostUser.id } });
             const response = await PATCH(
                 mockRequest({ qrToken: testSpace.currentQrToken }),
-                { params: { spaceId: testSpace.id } }
+                { params: Promise.resolve({ spaceId: testSpace.id }) }
             );
 
             const body = await response.json();

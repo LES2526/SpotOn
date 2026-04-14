@@ -66,10 +66,9 @@ export type LeaderboardEntry = {
 export async function GET() {
     try {
         const session = await getServerSession(authOptions);
-        if (!session?.user?.id) {//verifica a sessão
+        if (!session?.user?.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
-        //vai à base de dados
         const users = await prisma.user.findMany({
             orderBy: { points: 'desc' },
             select: {
@@ -79,7 +78,6 @@ export async function GET() {
                 points: true,
             },
         });
-        //mostra o ranking
         const leaderboard: LeaderboardEntry[] = users.map((user, index) => ({
             rank: index + 1,
             ...user,
