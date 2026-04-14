@@ -1,7 +1,7 @@
 "use client"
 
-import { SpaceMarker } from "./type";
 import OccupyButton from "../button/OccupyButton";
+import { SpaceMarker } from "./type";
 
 type Props = {
     space: SpaceMarker | null;

@@ -1,7 +1,4 @@
-
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import ReportForm from "@/components/space/report/ReportForm";
-import { getServerSession } from "next-auth";
+import ReportForm from "@/components/report/ReportForm";
 import { redirect } from "next/navigation";
 
 type ReportPageProps = {
@@ -13,10 +10,6 @@ export default async function ReportPage({ params, searchParams,
 }: Readonly<ReportPageProps>) {
     const resolvedParams = await params;
     const resolvedSearchParams = searchParams ? await searchParams : undefined;
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-        redirect("/api/auth/signin?callbackUrl=/dashboard");
-    }
     const spaceId = resolvedParams?.spaceId;
     if (!spaceId) {
         redirect("/dashboard");

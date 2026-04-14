@@ -12,6 +12,7 @@
  */
 
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { createNotification } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { scheduleReportExpiry } from "@/lib/report-expiry";
 import { sendProofOfPresenceEmail } from "@/lib/send-notification-email";
@@ -173,6 +174,11 @@ export const POST = async (_request: Request, props: Params) => {
         if (host?.email) {
             sendProofOfPresenceEmail(host.email);
         }
+        await createNotification(
+            activeSession.hostId,
+            'PROOF_OF_PRESENCE',
+            'A tua presença foi questionada! Tens 10 minutos para fazeres scan do QR code ou perdes o lugar.',
+        );
         scheduleReportExpiry(report.id, activeSession.hostId, report.timeToConfirm);
         return NextResponse.json(report, { status: 201 });
     } catch (error) {
