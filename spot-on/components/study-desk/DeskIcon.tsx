@@ -1,16 +1,10 @@
 'use client'
 
 import { JSX } from "react";
+import { DeskIconProps } from "./type";
 
 export type DeskShape = "circular" | "rectangular";
 export type DeskStatus = "available" | "occupied";
-
-export interface DeskIconProps {
-    shape: DeskShape;
-    seats: 1 | 4;
-    status: DeskStatus;
-    size?: number;
-}
 
 const COLORS = {
     available: { desk: "#22c55e", seat: "#16a34a", stroke: "#15803d" },

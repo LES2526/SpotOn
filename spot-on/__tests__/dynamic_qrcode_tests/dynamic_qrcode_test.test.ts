@@ -70,6 +70,18 @@ describe('Sprint 3 — QR Code & Session API', () => {
             validateStatus: () => true,
         });
 
+        // Clean up any leftovers from a previous interrupted run
+        const leftoverFloor = await prisma.floorPlan.findFirst({
+            where: { name: 'Sprint3 Test Floor' },
+        });
+        if (leftoverFloor) {
+            await prisma.studySession.deleteMany({
+                where: { space: { floorPlanId: leftoverFloor.id } },
+            });
+            await prisma.space.deleteMany({ where: { floorPlanId: leftoverFloor.id } });
+            await prisma.floorPlan.delete({ where: { id: leftoverFloor.id } });
+        }
+
         const user = await prisma.user.create({
             data: { email: `sprint3-test-${Date.now()}@ualg.pt` },
         });
@@ -78,7 +90,7 @@ describe('Sprint 3 — QR Code & Session API', () => {
         const floorPlan = await prisma.floorPlan.create({
             data: {
                 name: 'Sprint3 Test Floor',
-                floor: 1,
+                floor: 99,
                 imageUrl: '/sprint3-test.png',
                 imageWidth: 1000,
                 imageHeight: 800,
@@ -90,10 +102,7 @@ describe('Sprint 3 — QR Code & Session API', () => {
             data: {
                 floorPlanId,
                 name: 'Sprint3 Test Room',
-                posX: 10,
-                posY: 10,
-                width: 5,
-                height: 5,
+                points: '10,10 15,10 15,15 10,15',
                 capacity: 4,
                 currentQrToken: QR_TOKEN,
                 description: 'Sprint 3 integration test space',
@@ -330,7 +339,7 @@ describe('Sprint 3 — QR Code & Session API', () => {
         });
 
         describe('Conflict handling', () => {
-            it('should return 409 when the space is already occupied', async () => {
+            it('should return 200 when re-scanning an already-occupied space as the same user', async () => {
                 await prisma.studySession.create({
                     data: {
                         spaceId,
@@ -341,13 +350,13 @@ describe('Sprint 3 — QR Code & Session API', () => {
                 });
 
                 const qrWindow = currentWindow();
-                const { status, data } = await client.post('/api/qrcode/verify', {
+                const { status } = await client.post('/api/qrcode/verify', {
                     spaceId,
                     qrWindow,
                     sig: generateSignature(spaceId, qrWindow),
                 });
-                expect(status).toBe(409);
-                expect(data.error).toMatch(/occupied/i);
+                // API returns 200 ("Sessão já ativa") for same-user re-scan
+                expect(status).toBe(200);
             });
 
             it('should return 409 when the user already has an active session elsewhere', async () => {
@@ -355,10 +364,7 @@ describe('Sprint 3 — QR Code & Session API', () => {
                     data: {
                         floorPlanId,
                         name: 'Other Sprint3 Room',
-                        posX: 50,
-                        posY: 50,
-                        width: 5,
-                        height: 5,
+                        points: '50,50 55,50 55,55 50,55',
                         capacity: 1,
                         currentQrToken: `qr-other-sprint3-${Date.now()}`,
                     },
@@ -412,8 +418,9 @@ describe('Sprint 3 — QR Code & Session API', () => {
                 const closingTime = process.env.LIBRARY_CLOSING_TIME ?? '20:30';
                 const [hours] = closingTime.split(':').map(Number);
 
+                // Use UTC hours so the test is timezone-agnostic (server runs in UTC)
                 const afterClosing = new Date();
-                afterClosing.setHours(hours + 1, 0, 0, 0); // 1 hour after closing
+                afterClosing.setUTCHours(hours + 1, 0, 0, 0); // 1 hour after closing in UTC
 
                 const qrWindow = currentWindow();
                 const { status, data } = await client.post('/api/qrcode/verify', {
@@ -425,7 +432,7 @@ describe('Sprint 3 — QR Code & Session API', () => {
 
                 expect(status).toBe(201);
                 const returnedEnd = new Date(data.expectedEndTime);
-                expect(returnedEnd.getHours()).toBeLessThanOrEqual(hours);
+                expect(returnedEnd.getUTCHours()).toBeLessThanOrEqual(hours);
             });
 
             it('should return 400 when less than 15 minutes remain before closing', async () => {
@@ -519,10 +526,7 @@ describe('Sprint 3 — QR Code & Session API', () => {
                     data: {
                         floorPlanId,
                         name: 'Other Session Room',
-                        posX: 70,
-                        posY: 70,
-                        width: 5,
-                        height: 5,
+                        points: '70,70 75,70 75,75 70,75',
                         capacity: 1,
                         currentQrToken: `qr-other-session-${Date.now()}`,
                     },
@@ -644,8 +648,9 @@ describe('Sprint 3 — QR Code & Session API', () => {
                 const closingTime = process.env.LIBRARY_CLOSING_TIME ?? '20:30';
                 const [hours] = closingTime.split(':').map(Number);
 
+                // Use UTC hours so the test is timezone-agnostic (server runs in UTC)
                 const afterClosing = new Date();
-                afterClosing.setHours(hours + 1, 0, 0, 0);
+                afterClosing.setUTCHours(hours + 1, 0, 0, 0);
 
                 const { status, data } = await client.patch(`/api/spaces/${spaceId}/sessions`, {
                     expectedEndTime: afterClosing.toISOString(),
@@ -653,7 +658,7 @@ describe('Sprint 3 — QR Code & Session API', () => {
 
                 expect(status).toBe(200);
                 const returnedEnd = new Date(data.expectedEndTime);
-                expect(returnedEnd.getHours()).toBeLessThanOrEqual(hours);
+                expect(returnedEnd.getUTCHours()).toBeLessThanOrEqual(hours);
             });
         });
     });

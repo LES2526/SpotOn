@@ -1,18 +1,10 @@
 import OccupyButton from "@/components/button/OccupyButton";
 import StudyDesk from "@/components/study-desk/StudyDesk";
 import Link from "next/link";
+import { SpaceCardProps } from "./type";
 
-type SpaceCardProps = {
-    id: string;
-    name: string;
-    capacity: number;
-    hasPowerOutlet: boolean;
-    type: string;
-    description?: string | null;
-    isOccupied: boolean;
-};
-
-export default function SpaceCard({ id, name, capacity, hasPowerOutlet, type, description, isOccupied }: Readonly<SpaceCardProps>) {
+export default function SpaceCard({ id, name, capacity, hasPowerOutlet,
+    type, description, isOccupied }: Readonly<SpaceCardProps>) {
     return (
         <article className="flex flex-col rounded-xl border border-gray-800 bg-gray-900 p-5">
             <div className="mb-4 flex items-start justify-between gap-2">

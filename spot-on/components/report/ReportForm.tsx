@@ -1,10 +1,7 @@
 "use client";
 import React from 'react';
+import { ReportFormProps } from './type';
 
-type ReportFormProps = {
-    spaceId: string;
-    initialQrToken: string;
-};
 
 export default function ReportForm(
     { spaceId, initialQrToken }: Readonly<ReportFormProps>) {
