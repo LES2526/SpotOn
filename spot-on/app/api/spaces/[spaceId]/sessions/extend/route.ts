@@ -68,16 +68,19 @@ export const PATCH = async (_request: Request, { params }: Params) => {
         const space = await prisma.space.findUnique({
             where: { id: spaceId }
         });
+
         if (!space) {
             return NextResponse.json({ error: 'Space not found' },
                 { status: 404 });
         }
+
         const { expectedEndTime } = await _request.json();
         if (!expectedEndTime) {
             return NextResponse.json(
                 { error: 'Expected end time is required' },
                 { status: 400 });
         }
+        
         const newEndTime = new Date(expectedEndTime);
 
         const clampedExpectedEndTime = clampToClosingTime(newEndTime);
