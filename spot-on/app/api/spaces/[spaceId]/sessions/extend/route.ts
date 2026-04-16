@@ -1,5 +1,7 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { clampToClosingTime } from "@/lib/library-hours";
 import { prisma } from "@/lib/prisma";
+import { scheduleSessionExpiry } from "@/lib/session-expiry";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
@@ -77,12 +79,16 @@ export const PATCH = async (_request: Request, { params }: Params) => {
                 { status: 400 });
         }
         const newEndTime = new Date(expectedEndTime);
-        if (newEndTime.getHours() * 60 + newEndTime.getMinutes() > 1230) {
+
+        const clampedExpectedEndTime = clampToClosingTime(newEndTime);
+
+        if (clampedExpectedEndTime.getTime() !== newEndTime.getTime()) {
             return NextResponse.json(
                 { error: 'Is not allowed to extend session beyond 20:30' },
                 { status: 400 }
             );
         }
+
         const studySession = await prisma.studySession.findFirst({
             where: {
                 spaceId,
@@ -90,16 +96,21 @@ export const PATCH = async (_request: Request, { params }: Params) => {
                 status: 'ACTIVE'
             }
         });
+
         if (!studySession) {
             return NextResponse.json(
                 { error: 'No active session found for this space and user' },
                 { status: 404 }
             );
         }
+
         const updatedSession = await prisma.studySession.update({
             where: { id: studySession.id },
             data: { expectedEndTime: new Date(expectedEndTime) }
         });
+
+        scheduleSessionExpiry(updatedSession.id, clampedExpectedEndTime);
+
         return NextResponse.json(updatedSession, { status: 200 });
     } catch (error) {
         console.error('Error extending session:', error);
