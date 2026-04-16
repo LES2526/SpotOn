@@ -43,9 +43,10 @@ export async function handleQrVerification(request: Request) {
                             confirmedAt: new Date(),
                         },
                     });
-                    return NextResponse.json({ message: 'Presença confirmada!' }, { status: 200 });
+                    return NextResponse.json({ message: 'Confirmed Presence' }, { status: 200 });
                 }
-                return NextResponse.json({ message: 'Sessão já ativa.' }, { status: 200 });
+
+                return NextResponse.json({ message: 'Session already active' }, { status: 200 });
             }
             return NextResponse.json({ error: 'Space is already occupied' }, { status: 409 });
 
