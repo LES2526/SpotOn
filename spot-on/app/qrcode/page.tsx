@@ -35,19 +35,21 @@ export default function OccupySpacePage() {
                 });
 
                 if (response.ok) {
-                    setStatus('success');
-                } else {
+                    const data = await response.json();
+                    if (data.message?.match(/already active/i)) {
+                        setStatus('extend');
+                    } else {
+                        setStatus('success');
+                    }
+                }
+                else {
                     const errorData = await response.json();
                     if(response.status === 409){
                         if(errorData.error.match(/occupied/i)){
                             const spaceRes = await fetch(`/api/qrcode/display/${spaceId}`);
                             const spaceData = await spaceRes.json();
                             setReportToken(spaceData.currentQrToken ?? null);
-                        }
-
-                        if(errorData.error.match(/already active/i)){
-                            setStatus('extend');
-                            return;
+                            setStatus('occupied');
                         }
 
                         if(errorData.error.match(/active session/i)){
