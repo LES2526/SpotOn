@@ -44,7 +44,9 @@ export default function OccupySpacePage() {
                 }
                 else {
                     const errorData = await response.json();
+
                     if(response.status === 409){
+
                         if(errorData.error.match(/occupied/i)){
                             const spaceRes = await fetch(`/api/qrcode/display/${spaceId}`);
                             const spaceData = await spaceRes.json();
@@ -56,14 +58,17 @@ export default function OccupySpacePage() {
                             setStatus('user_occupied');
                             return;
                         }
+
                     }
-                    
+
                     else if (response.status === 400 && errorData.error === 'expired') {
                         setStatus('expired');
-                    } 
+                    }
+
                     else {
                         setStatus('error');
                     }
+
                 }
             } catch (error) {
                 console.error('Network error:', error);
