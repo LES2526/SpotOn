@@ -127,6 +127,9 @@ enum ReportStatus {
 enum NotificationType {
     PROOF_OF_PRESENCE
     JOIN_REQUEST
+    CHECKOUT
+    KICKED_FROM_SESSION
+    LEADERSHIP_TRANSFERRED
 }
 
 enum NotificationStatus {
@@ -265,6 +268,8 @@ model Notification {
     createdAt DateTime @default(now())
 
     user User @relation(fields: [userId], references: [id])
+}
+
 model UserBadge {
     userId    String   @db.VarChar(30)
     badgeId   String   @db.VarChar(30)
