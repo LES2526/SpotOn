@@ -266,6 +266,7 @@ model Notification {
 
     user User @relation(fields: [userId], references: [id])
 }
+
 model UserBadge {
     userId    String   @db.VarChar(30)
     badgeId   String   @db.VarChar(30)
