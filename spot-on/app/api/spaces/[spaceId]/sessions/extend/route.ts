@@ -1,5 +1,5 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { clampToClosingTime } from "@/lib/library-hours";
+import { clampToClosingTime, isAfterHours } from "@/lib/library-hours";
 import { prisma } from "@/lib/prisma";
 import { scheduleSessionExpiry } from "@/lib/session-expiry";
 import { getServerSession } from "next-auth";
@@ -83,14 +83,14 @@ export const PATCH = async (_request: Request, { params }: Params) => {
         
         const newEndTime = new Date(expectedEndTime);
 
-        const clampedExpectedEndTime = clampToClosingTime(newEndTime);
-
-        if (clampedExpectedEndTime.getTime() !== newEndTime.getTime()) {
+        if (isAfterHours(newEndTime)) {
             return NextResponse.json(
                 { error: 'Is not allowed to extend session beyond 20:30' },
                 { status: 400 }
             );
         }
+
+        
 
         const studySession = await prisma.studySession.findFirst({
             where: {
@@ -107,12 +107,19 @@ export const PATCH = async (_request: Request, { params }: Params) => {
             );
         }
 
+        if (newEndTime <= studySession.expectedEndTime) {
+            return NextResponse.json(
+                { error: 'New end time must be later than the current end time' },
+                { status: 400 }
+            );
+        }
+
         const updatedSession = await prisma.studySession.update({
             where: { id: studySession.id },
             data: { expectedEndTime: new Date(expectedEndTime) }
         });
 
-        scheduleSessionExpiry(updatedSession.id, clampedExpectedEndTime);
+        scheduleSessionExpiry(updatedSession.id, newEndTime);
 
         return NextResponse.json(updatedSession, { status: 200 });
     } catch (error) {
