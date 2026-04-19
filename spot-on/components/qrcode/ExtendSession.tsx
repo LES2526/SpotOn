@@ -17,14 +17,20 @@ function formatDuration(minutes: number): string {
     return `${hours}h ${mins}min`;
 }
 
-export default function ExtendStatus({ spaceId }: { spaceId: string }) {
+interface ExtendStatusProps {
+    spaceId: string;
+    currentEndTime: string;
+    onAfterHours: () => void;
+}
+
+export default function ExtendStatus({ spaceId, currentEndTime, onAfterHours }: Readonly<ExtendStatusProps>) {
     const [durationMinutes, setDurationMinutes] = useState<number>(DEFAULT_DURATION);
     const router = useRouter();
 
     const handleConfirmDuration = async () => {
         try {
             const expectedEndTime = new Date(
-                Date.now() + durationMinutes * 60 * 1000
+                new Date(currentEndTime).getTime() + durationMinutes * 60 * 1000
             ).toISOString();
 
             await axios.patch(`/api/spaces/${spaceId}/sessions/extend`, {
@@ -32,8 +38,14 @@ export default function ExtendStatus({ spaceId }: { spaceId: string }) {
             });
 
             router.push('/dashboard');
-        } catch (error) {
-            console.error('Error updating session:', error);
+        } catch (error: any) {
+            if (error.response?.status === 400 && error.response?.data?.error === 'after_hours') {
+                onAfterHours();
+            } else if (error.response?.status === 400) {
+                onAfterHours(); // reuse the same screen for any closing time related 400
+            } else {
+                console.error('Error extending session:', error);
+            }
         }
     };
 
@@ -44,31 +56,25 @@ export default function ExtendStatus({ spaceId }: { spaceId: string }) {
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-950 text-white px-4">
             <div className="flex flex-col items-center gap-6 rounded-2xl border border-gray-800 bg-gray-900 p-10 shadow-xl max-w-sm w-full">
 
-                {/* Icon */}
                 <div className="flex items-center justify-center w-14 h-14 rounded-full bg-green-950 border border-green-800">
                     <svg className="w-7 h-7 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                 </div>
 
-                {/* Title */}
                 <div className="text-center">
-                    <h1 className="text-xl font-semibold text-white mb-2">
-                        Extend Session
-                    </h1>
+                    <h1 className="text-xl font-semibold text-white mb-2">Extend Session</h1>
                     <p className="text-sm text-gray-500">
                         Select how much longer you want to extend the current session.
                     </p>
                 </div>
 
-                {/* Duration */}
                 <div className="flex items-center justify-center w-full py-2">
                     <span className="text-3xl font-bold text-green-400">
                         {formatDuration(durationMinutes)}
                     </span>
                 </div>
 
-                {/* Slider */}
                 <div className="w-full px-1">
                     <style>{`
                         .duration-slider {
@@ -117,16 +123,11 @@ export default function ExtendStatus({ spaceId }: { spaceId: string }) {
                     />
 
                     <div className="flex justify-between mt-2">
-                        <span className="text-xs text-gray-600">
-                            {formatDuration(MIN_DURATION)}
-                        </span>
-                        <span className="text-xs text-gray-600">
-                            {formatDuration(MAX_DURATION)}
-                        </span>
+                        <span className="text-xs text-gray-600">{formatDuration(MIN_DURATION)}</span>
+                        <span className="text-xs text-gray-600">{formatDuration(MAX_DURATION)}</span>
                     </div>
                 </div>
 
-                {/* Button */}
                 <button
                     onClick={handleConfirmDuration}
                     className="w-full rounded-lg bg-green-500 hover:bg-green-600 px-4 py-3 text-sm font-semibold text-white transition-colors"
