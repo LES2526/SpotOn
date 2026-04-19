@@ -9,13 +9,22 @@ import UserOccupiedStatus from "@/components/qrcode/UserOccupied";
 import ExtendSession from "@/components/qrcode/ExtendSession";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import AfterHoursStatus from "@/components/qrcode/AfterHoursStatus";
 
 export default function OccupySpacePage() {
+
+    interface ExtendStatusProps {
+        spaceId: string;
+        currentEndTime: string;
+        onAfterHours: () => void;
+    }
+
     const [status, setStatus] = useState<
-        'loading' | 'success' | 'occupied' | 'user_occupied' | 'expired' | 'error' | 'extend'
+        'loading' | 'success' | 'occupied' | 'user_occupied' | 'expired' | 'error' | 'extend' | 'after_hours'
     >('loading');
     const [reportToken, setReportToken] = useState<string | null>(null);
     const [isJoin, setIsJoin] = useState(false);
+    const [currentEndTime, setCurrentEndTime] = useState<string | null>(null);
 
     const searchParams = useSearchParams();
     const spaceId = searchParams.get('spaceId');
@@ -37,8 +46,12 @@ export default function OccupySpacePage() {
                 if (response.ok) {
                     const data = await response.json();
                     if (data.message?.match(/already active/i)) {
+                        const sessionRes = await fetch(`/api/spaces/${spaceId}/sessions/current`);
+                        const sessionData = await sessionRes.json();
+                        setCurrentEndTime(sessionData.expectedEndTime);
                         setStatus('extend');
-                    } else {
+                    }
+                    else {
                         setStatus('success');
                     }
                 }
@@ -63,6 +76,10 @@ export default function OccupySpacePage() {
 
                     else if (response.status === 400 && errorData.error === 'expired') {
                         setStatus('expired');
+                    }
+
+                    else if (response.status === 400 && errorData.error === 'after_hours') {
+                        setStatus('after_hours');
                     }
 
                     else {
@@ -114,10 +131,17 @@ export default function OccupySpacePage() {
                     onJoinSession={joinSession}
                 />
             )}
-            {status === 'extend' && <ExtendSession spaceId={spaceId} />}
+            {status === 'extend' && (
+                <ExtendSession 
+                    spaceId={spaceId} 
+                    currentEndTime={currentEndTime!}
+                    onAfterHours={() => setStatus('after_hours')}
+                />
+            )}
             {status === 'user_occupied' && <UserOccupiedStatus />}
             {status === 'expired' && <ExpiredStatus />}
             {status === 'error' && <ErrorStatus />}
+            {status === 'after_hours' && <AfterHoursStatus />}
         </div>
     );
 }

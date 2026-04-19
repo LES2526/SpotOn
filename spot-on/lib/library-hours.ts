@@ -25,6 +25,17 @@ export function isPastClosingTime(): boolean {
     const closingTime = new Date();
     closingTime.setHours(hours, minutes, 0, 0);
 
+    console.log('Closing time:', closingTime);
+
     return new Date() > closingTime;
+}
+
+export function isAfterHours(date: Date): boolean {
+    const [closingHours, closingMinutes] = process.env.LIBRARY_CLOSING_TIME?.split(':').map(Number) || [19, 30];
+    
+    const dateHours = date.getUTCHours();
+    const dateMinutes = date.getUTCMinutes();
+    
+    return dateHours * 60 + dateMinutes > closingHours * 60 + closingMinutes;
 }
 
