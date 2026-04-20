@@ -64,3 +64,16 @@ export async function sendApprovedJoinRequestEmail(to: string) {
         `,
     });
 }
+
+export async function sendSessionExpiringSoonEmail(to: string) {
+    await transporter.sendMail({
+        from: process.env.EMAIL_FROM,
+        to,
+        subject: 'O teu tempo está quase a acabar!',
+        html: `
+            <p>
+            A tua sessão termina em <strong>10 minutos</strong>.
+            </p>
+        `,
+    });
+}
