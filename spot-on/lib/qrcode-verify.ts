@@ -3,7 +3,6 @@ import { clampToClosingTime, isPastClosingTime } from '@/lib/library-hours';
 import { prisma } from '@/lib/prisma';
 import { type VerifyResult, verifyQrCode } from '@/lib/qr-utils';
 import { scheduleSessionExpiry } from '@/lib/session-expiry';
-import { raw } from '@prisma/client/runtime/library';
 import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 
