@@ -1,5 +1,5 @@
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { clampToClosingTime, isAfterHours, isPastClosingTime } from '@/lib/library-hours';
+import { clampToClosingTime, isPastClosingTime } from '@/lib/library-hours';
 import { prisma } from '@/lib/prisma';
 import { type VerifyResult, verifyQrCode } from '@/lib/qr-utils';
 import { scheduleSessionExpiry } from '@/lib/session-expiry';
