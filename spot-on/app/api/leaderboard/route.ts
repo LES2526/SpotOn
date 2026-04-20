@@ -97,7 +97,6 @@ export async function GET() {
                 error: 'Unauthorized'
             }, { status: 401 });
         }
-        //vai à base de dados
         const users = await prisma.user.findMany({
             orderBy: { points: 'desc' },
             select: {
@@ -107,7 +106,6 @@ export async function GET() {
                 points: true,
             },
         });
-        //mostra o ranking
         const leaderboard: LeaderboardEntry[] = users.map((user, index) => ({
             rank: index + 1,
             ...user,
