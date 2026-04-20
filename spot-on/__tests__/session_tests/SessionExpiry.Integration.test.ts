@@ -40,7 +40,7 @@ describe('Session Expiry', () => {
         });
 
         const leftover = await prisma.floorPlan.findFirst({
-            where: { name: 'Expiry Test Floor' },
+            where: { floor: 99 },
         });
         if (leftover) {
             await prisma.studySession.deleteMany({
@@ -72,15 +72,15 @@ describe('Session Expiry', () => {
     });
 
     afterEach(async () => {
-        await prisma.notification.deleteMany({ where: { userId: testUser.id } });
-        await prisma.studySession.deleteMany({ where: { spaceId: testSpace.id } });
+        if (testUser) await prisma.notification.deleteMany({ where: { userId: testUser.id } });
+        if (testSpace) await prisma.studySession.deleteMany({ where: { spaceId: testSpace.id } });
         jest.clearAllMocks();
     });
 
     afterAll(async () => {
-        await prisma.space.delete({ where: { id: testSpace.id } });
-        await prisma.floorPlan.delete({ where: { id: testFloorPlan.id } });
-        await prisma.user.delete({ where: { id: testUser.id } });
+        if (testSpace) await prisma.space.delete({ where: { id: testSpace.id } });
+        if (testFloorPlan) await prisma.floorPlan.delete({ where: { id: testFloorPlan.id } });
+        if (testUser) await prisma.user.delete({ where: { id: testUser.id } });
         await prisma.$disconnect();
     });
 
