@@ -15,6 +15,7 @@
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { clampToClosingTime, isAfterHours } from '@/lib/library-hours';
 import { prisma } from '@/lib/prisma';
+import { scheduleSessionExpiry } from '@/lib/session-expiry';
 import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 import { isPastClosingTime } from '@/lib/library-hours';
@@ -116,6 +117,8 @@ export async function POST(_request: Request, { params }: Params) {
                 expectedEndTime: new Date(Date.now() + 60 * 60 * 1000)
             }
         });
+
+        scheduleSessionExpiry(newSession.id, newSession.expectedEndTime);
 
         return NextResponse.json(newSession, { status: 201 });
     } catch (error) {
