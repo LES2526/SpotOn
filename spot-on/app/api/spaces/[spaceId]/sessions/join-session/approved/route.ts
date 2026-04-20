@@ -86,23 +86,12 @@ export async function PATCH(_request: Request, { params }: Params) {
             return NextResponse.json({ error: 'Study session not found' },
                 { status: 404 });
         }
-        const isHost = await prisma.studySession.findFirst({
-            where: {
-                hostId: session.user.id,
-                status: 'ACTIVE'
-            }
-        });
         if (studySession.hostId !== session.user.id) {
             return NextResponse.json({
                 error: 'You are not the host of this session.'
             }, { status: 403 });
         }
-        if (!isHost) {
-            return NextResponse.json({
-                error: 'You are not the host of this session.'
-            },
-                { status: 403 });
-        }
+        
         const body = await _request.json();
         const { userId, notificationId } = body;
         const updateJoinSession = await prisma.userOnStudySession.update({
