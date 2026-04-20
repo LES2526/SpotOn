@@ -11,8 +11,8 @@ jest.mock('@/app/api/auth/[...nextauth]/route', () => ({
 }));
 
 import { GET } from '@/app/api/leaderboard/route';
-import { prisma } from '@/lib/prisma';
 import type { User } from '@/app/generated/prisma';
+import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 
 describe('GET /api/leaderboard', () => {
@@ -46,7 +46,7 @@ describe('GET /api/leaderboard', () => {
         await prisma.$disconnect();
     });
 
-    it('deve devolver 401 se não autenticado', async () => {
+    it('should return 401 if not authenticated', async () => {
         (getServerSession as jest.Mock).mockResolvedValue(null);
 
         const response = await GET({} as Request);
@@ -54,7 +54,7 @@ describe('GET /api/leaderboard', () => {
         expect(response.status).toBe(401);
     });
 
-    it('deve devolver 200 com a lista ordenada por pontos descendente', async () => {
+    it('should return 200 with the list sorted by points descending', async () => {
         (getServerSession as jest.Mock).mockResolvedValue({
             user: { id: userA.id },
         });
@@ -79,7 +79,7 @@ describe('GET /api/leaderboard', () => {
         expect(entryC.rank).toBeLessThan(entryA.rank);
     });
 
-    it('cada entrada deve ter os campos corretos', async () => {
+    it('each entry should have the correct fields', async () => {
         (getServerSession as jest.Mock).mockResolvedValue({
             user: { id: userA.id },
         });
