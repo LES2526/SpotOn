@@ -1,5 +1,5 @@
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { clampToClosingTime } from '@/lib/library-hours';
+import { clampToClosingTime, isPastClosingTime } from '@/lib/library-hours';
 import { prisma } from '@/lib/prisma';
 import { type VerifyResult, verifyQrCode } from '@/lib/qr-utils';
 import { scheduleSessionExpiry } from '@/lib/session-expiry';
@@ -23,6 +23,9 @@ export async function handleQrVerification(request: Request) {
         let rawEndTime = expectedEndTime
             ? new Date(expectedEndTime)
             : new Date(Date.now() + 60 * 60 * 1000);
+        
+        rawEndTime = clampToClosingTime(rawEndTime);
+        
         const spaceOccupied = await prisma.studySession.findFirst({
             where: { spaceId: qrCode.spaceId, status: 'ACTIVE' },
         });
@@ -43,9 +46,10 @@ export async function handleQrVerification(request: Request) {
                             confirmedAt: new Date(),
                         },
                     });
-                    return NextResponse.json({ message: 'Presença confirmada!' }, { status: 200 });
+                    return NextResponse.json({ message: 'Confirmed Presence' }, { status: 200 });
                 }
-                return NextResponse.json({ message: 'Sessão já ativa.' }, { status: 200 });
+
+                return NextResponse.json({ message: 'Session already active' }, { status: 200 });
             }
             return NextResponse.json({ error: 'Space is already occupied' }, { status: 409 });
 
@@ -59,13 +63,21 @@ export async function handleQrVerification(request: Request) {
                 { status: 409 },
             );
         }
+
+        if(isPastClosingTime()){
+            return NextResponse.json(
+                { error: 'after_hours' },
+                { status: 400 },
+            );
+        }
+
         if (rawEndTime <= new Date()) {
             return NextResponse.json(
                 { error: 'expectedEndTime must be in the future' },
                 { status: 400 },
             );
         }
-        rawEndTime = clampToClosingTime(rawEndTime);
+
         const newSession = await prisma.studySession.create({
             data: {
                 spaceId: qrCode.spaceId,
@@ -73,6 +85,7 @@ export async function handleQrVerification(request: Request) {
                 expectedEndTime: rawEndTime,
             },
         });
+        
         scheduleSessionExpiry(newSession.id, rawEndTime);
         return NextResponse.json(newSession, { status: 201 });
     } catch (error) {
