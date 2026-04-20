@@ -24,16 +24,11 @@ export async function markSessionExpired(sessionId: string): Promise<void> {
     try {
         await prisma.studySession.update({
             where: {
-                id: sessionId,
-                status: 'ACTIVE',
-            },
-            data: { status: 'EXPIRED' },
-        });
-        console.log(`Session ${sessionId} marked as EXPIRED`);
-    } catch (error) {
-        console.error(`Failed to mark session ${sessionId} as EXPIRED:`, error);
-    }
-}
+                id: sessionIdsole.log(`Session ${sessionId} marked as EXPIRED`);
+            } catch(error) {
+                console.error(`Failed to mark session ${sessionId} as EXPIRED:`, error);
+            }
+        }
 
 /**
  * Sends an in-app notification and an email warning the session host that
@@ -46,91 +41,93 @@ export async function markSessionExpired(sessionId: string): Promise<void> {
  * @param sessionId - The session's database ID
  */
 export async function sendExpiryWarning(sessionId: string): Promise<void> {
-    try {
-        const session = await prisma.studySession.findUnique({
-            where: { id: sessionId, status: 'ACTIVE' },
-            select: {
-                hostId: true, spaceId: true,
-                host: {
-                    select: { email: true }
+            try {
+                const session = await prisma.studySession.findUnique({
+                    where: { id: sessionId },
+                    select: {
+                        status: true,
+                        hostId: true, spaceId: true,
+                        host: {
+                            select: { email: true }
+                        }
+                    },
+                });
+                if (!session || session.status === 'COMPLETED' || session.status === 'EXPIRED') {
+                    return;
                 }
-            },
-        });
-        if (!session) {
-            return;
-        }
-        await Promise.all([
-            createNotification(
-                session.hostId,
-                'SESSION_EXPIRING_SOON',
-                JSON.stringify({
-                    text: 'O teu tempo está quase a acabar! Tens 10 minutos para renovar ou libertar a mesa.',
-                    sessionId,
-                    spaceId: session.spaceId,
-                }),
-            ),
-            sendSessionExpiringSoonEmail(session.host.email),
-        ]);
-        console.log(`Expiry warning sent for session ${sessionId}`);
-    } catch (error) {
-        console.error(`Failed to send expiry warning for session ${sessionId}:`, error);
-    }
-}
-
-/**
- * Schedules a session to be marked as EXPIRED at its expectedEndTime.
- * Also schedules a 10-minute warning notification before expiry.
- *
- * Behaviour:
- * - If `expectedEndTime` is in the past → marks EXPIRED immediately.
- * - If less than 10 minutes remain → sends the warning immediately, then
- *   schedules expiry for the exact end time.
- * - Otherwise → schedules both the warning (at T-10 min) and the expiry.
- *
- * @param sessionId       - The session's database ID
- * @param expectedEndTime - The time at which the session should expire
- */
-export function scheduleSessionExpiry(sessionId: string, expectedEndTime: Date): void {
-    const delay = expectedEndTime.getTime() - Date.now();
-    if (delay <= 0) {
-        // Already expired — mark EXPIRED immediately
-        console.log(`Session ${sessionId} already expired, marking EXPIRED immediately`);
-        markSessionExpired(sessionId);
-        return;
-    }
-    const warningDelay = delay - 10 * 60 * 1000;
-    if (warningDelay > 0) {
-        setTimeout(() => sendExpiryWarning(sessionId), warningDelay);
-    } else {
-        sendExpiryWarning(sessionId);
-    }
-    console.log(`Session ${sessionId} scheduled to expire in ${Math.round(delay / 1000)}s`);
-    setTimeout(() => markSessionExpired(sessionId), delay);
-}
-
-/**
- * Restores expiry timers for all active sessions on server startup.
- *
- * Queries all ACTIVE sessions and schedules a setTimeout for each one.
- * Sessions whose expectedEndTime has already passed are marked EXPIRED immediately.
- *
- * Should be called once on server startup via instrumentation.ts.
- */
-export async function restoreSessionExpiries(): Promise<void> {
-
-    try {
-        const activeSessions = await prisma.studySession.findMany({
-            where: { status: 'ACTIVE' },
-            select: { id: true, expectedEndTime: true },
-        });
-
-        console.log(`Restoring expiry timers for ${activeSessions.length} active session(s)`);
-
-        for (const session of activeSessions) {
-            scheduleSessionExpiry(session.id, session.expectedEndTime);
+                await Promise.all([
+                    createNotification(
+                        session.hostId,
+                        'SESSION_EXPIRING_SOON',
+                        JSON.stringify({
+                            text: 'O teu tempo está quase a acabar! Tens 10 minutos para renovar ou libertar a mesa.',
+                            sessionId,
+                            spaceId: session.spaceId,
+                        }),
+                    ),
+                    sendSessionExpiringSoonEmail(session.host.email),
+                ]);
+                console.log(`Expiry warning sent for session ${sessionId}`);
+            } catch (error) {
+                console.error(`Failed to send expiry warning for session ${sessionId}:`, error);
+            }
         }
 
-    } catch (error) {
-        console.error('Failed to restore session expiries:', error);
-    }
-}
+        /**
+         * Schedules a session to be marked as EXPIRED at its expectedEndTime.
+         * Also schedules a 10-minute warning notification before expiry.
+         *
+         * Behaviour:
+         * - If `expectedEndTime` is in the past → marks EXPIRED immediately.
+         * - If less than 10 minutes remain → sends the warning immediately, then
+         *   schedules expiry for the exact end time.
+         * - Otherwise → schedules both the warning (at T-10 min) and the expiry.
+         *
+         * @param sessionId       - The session's database ID
+         * @param expectedEndTime - The time at which the session should expire
+         */
+        export function scheduleSessionExpiry(sessionId: string, expectedEndTime: Date): void {
+            const delay = expectedEndTime.getTime() - Date.now();
+            if (delay <= 0) {
+                // Already expired — use a 0 ms timer so async test runners
+                // (runAllTimersAsync) can track it
+                console.log(`Session ${sessionId} already expired, marking EXPIRED immediately`);
+                setTimeout(() => markSessionExpired(sessionId), 0);
+                return;
+            }
+            const warningDelay = delay - 10 * 60 * 1000;
+            console.log(`Session ${sessionId} scheduled to expire in ${Math.round(delay / 1000)}s`);
+            if (warningDelay > 0) {
+                setTimeout(() => sendExpiryWarning(sessionId), warningDelay);
+            } else {
+                setTimeout(() => sendExpiryWarning(sessionId), 0);
+            }
+            setTimeout(() => markSessionExpired(sessionId), delay);
+        }
+
+        /**
+         * Restores expiry timers for all active sessions on server startup.
+         *
+         * Queries all ACTIVE sessions and schedules a setTimeout for each one.
+         * Sessions whose expectedEndTime has already passed are marked EXPIRED immediately.
+         *
+         * Should be called once on server startup via instrumentation.ts.
+         */
+        export async function restoreSessionExpiries(): Promise<void> {
+
+            try {
+                const activeSessions = await prisma.studySession.findMany({
+                    where: { status: 'ACTIVE' },
+                    select: { id: true, expectedEndTime: true },
+                });
+
+                console.log(`Restoring expiry timers for ${activeSessions.length} active session(s)`);
+
+                for (const session of activeSessions) {
+                    scheduleSessionExpiry(session.id, session.expectedEndTime);
+                }
+
+            } catch (error) {
+                console.error('Failed to restore session expiries:', error);
+            }
+        }

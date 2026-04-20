@@ -49,7 +49,7 @@ describe('GET /api/leaderboard', () => {
     it('should return 401 if not authenticated', async () => {
         (getServerSession as jest.Mock).mockResolvedValue(null);
 
-        const response = await GET({} as Request);
+        const response = await GET();
 
         expect(response.status).toBe(401);
     });
@@ -59,7 +59,7 @@ describe('GET /api/leaderboard', () => {
             user: { id: userA.id },
         });
 
-        const response = await GET({} as Request);
+        const response = await GET();
         const body = await response.json();
 
         expect(response.status).toBe(200);
@@ -84,7 +84,7 @@ describe('GET /api/leaderboard', () => {
             user: { id: userA.id },
         });
 
-        const response = await GET({} as Request);
+        const response = await GET();
         const body = await response.json();
 
         expect(response.status).toBe(200);
