@@ -1,5 +1,4 @@
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { prisma } from '@/lib/prisma';
 import {
     calculateCheckoutPoints,
     findActiveSession,
@@ -8,6 +7,7 @@ import {
     notifyOp,
     removeParticipantOp,
 } from '@/lib/checkout-utils';
+import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 
@@ -17,6 +17,7 @@ type Params = { params: { spaceId: string } };
  * @swagger
  * /api/spaces/{spaceId}/sessions/checkout:
  *   post:
+ * 
  *     summary: Check out from a study session
  *     description: >
  *       Handles all early checkout scenarios for an active session in the specified space.
