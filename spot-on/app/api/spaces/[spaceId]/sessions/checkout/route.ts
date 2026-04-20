@@ -13,6 +13,93 @@ import { NextResponse } from 'next/server';
 
 type Params = { params: { spaceId: string } };
 
+/**
+ * @swagger
+ * /api/spaces/{spaceId}/sessions/checkout:
+ *   post:
+ *     summary: Check out from a study session
+ *     description: >
+ *       Handles all early checkout scenarios for an active session in the specified space.
+ *       If `targetUserId` is provided, the host removes that participant.
+ *       Otherwise, the caller leaves (or ends the session if host with no members).
+ *       Leadership is transferred to the earliest participant if the host leaves while members remain.
+ *     tags:
+ *       - Sessions
+ *     parameters:
+ *       - in: path
+ *         name: spaceId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the space where the session is active
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               targetUserId:
+ *                 type: string
+ *                 description: ID of the participant to remove (host only)
+ *     responses:
+ *       200:
+ *         description: Checkout processed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               oneOf:
+ *                 - description: Session ended (host alone)
+ *                   type: object
+ *                   properties:
+ *                     checkout:
+ *                       type: string
+ *                       enum: [session_ended]
+ *                     pointsAwarded:
+ *                       type: number
+ *                 - description: Member left the session
+ *                   type: object
+ *                   properties:
+ *                     checkout:
+ *                       type: string
+ *                       enum: [member_left]
+ *                     pointsAwarded:
+ *                       type: number
+ *                 - description: Leadership transferred to next member
+ *                   type: object
+ *                   properties:
+ *                     checkout:
+ *                       type: string
+ *                       enum: [leadership_transferred]
+ *                     newHostId:
+ *                       type: string
+ *                     pointsAwarded:
+ *                       type: number
+ *                 - description: Participant removed by host
+ *                   type: object
+ *                   properties:
+ *                     checkout:
+ *                       type: string
+ *                       enum: [participant_removed]
+ *                     removedUserId:
+ *                       type: string
+ *                     pointsAwarded:
+ *                       type: number
+ *                 - description: User already checked out (idempotency)
+ *                   type: object
+ *                   properties:
+ *                     alreadyCheckedOut:
+ *                       type: boolean
+ *                       example: true
+ *       401:
+ *         description: Unauthorized - user is not authenticated
+ *       403:
+ *         description: Forbidden - only the host can remove participants
+ *       404:
+ *         description: Not Found - no active session or participant not found
+ *       500:
+ *         description: Internal Server Error
+ */
 export async function POST(request: Request, { params }: Params) {
     try {
         const session = await getServerSession(authOptions);
