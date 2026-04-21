@@ -129,7 +129,7 @@ describe('Reports API', () => {
     // ============================================================
 
     describe('POST /api/spaces/[spaceId]/reports', () => {
-        it('deve devolver 401 se não autenticado', async () => {
+        it('should return 401 if not authenticated', async () => {
             (getServerSession as jest.Mock).mockResolvedValue(null);
 
             const response = await POST(
@@ -140,7 +140,7 @@ describe('Reports API', () => {
             expect(response.status).toBe(401);
         });
 
-        it('deve devolver 404 se o espaço não existir', async () => {
+        it('should return 404 if the space does not exist', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({ user: { id: reporterUser.id } });
 
             const response = await POST(
@@ -151,7 +151,7 @@ describe('Reports API', () => {
             expect(response.status).toBe(404);
         });
 
-        it('deve devolver 400 se o QR token for inválido', async () => {
+        it('should return 400 if the QR token is invalid', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({ user: { id: reporterUser.id } });
 
             const response = await POST(
@@ -162,7 +162,7 @@ describe('Reports API', () => {
             expect(response.status).toBe(400);
         });
 
-        it('deve devolver 400 se o reason estiver vazio', async () => {
+        it('should return 400 if the reason is empty', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({ user: { id: reporterUser.id } });
 
             const response = await POST(
@@ -173,7 +173,7 @@ describe('Reports API', () => {
             expect(response.status).toBe(400);
         });
 
-        it('deve devolver 400 se o host tentar denunciar a própria sessão', async () => {
+        it('should return 400 if the host tries to report their own session', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({ user: { id: hostUser.id } });
 
             const response = await POST(
@@ -184,7 +184,7 @@ describe('Reports API', () => {
             expect(response.status).toBe(400);
         });
 
-        it('deve devolver 403 se participante ACCEPTED tentar denunciar', async () => {
+        it('should return 403 if an ACCEPTED participant tries to report', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({ user: { id: acceptedParticipant.id } });
 
             const response = await POST(
@@ -195,7 +195,7 @@ describe('Reports API', () => {
             expect(response.status).toBe(403);
         });
 
-        it('deve criar denúncia com utilizador externo válido', async () => {
+        it('should create a report with a valid external user', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({ user: { id: reporterUser.id } });
 
             const response = await POST(
@@ -214,7 +214,7 @@ describe('Reports API', () => {
             });
         });
 
-        it('deve devolver 409 se já existir denúncia OPEN para a sessão', async () => {
+        it('should return 409 if an OPEN report already exists for the session', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({ user: { id: reporterUser.id } });
 
             await prisma.report.create({
@@ -233,7 +233,7 @@ describe('Reports API', () => {
             expect(response.status).toBe(409);
         });
 
-        it('deve devolver 409 se o espaço foi denunciado nos últimos 30 minutos', async () => {
+        it('should return 409 if the space was reported in the last 30 minutes', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({ user: { id: reporterUser.id } });
 
             await prisma.report.create({
@@ -275,7 +275,7 @@ describe('Reports API', () => {
     // ============================================================
 
     describe('PATCH /api/spaces/[spaceId]/reports/confirm', () => {
-        it('deve devolver 401 se não autenticado', async () => {
+        it('should return 401 if not authenticated', async () => {
             (getServerSession as jest.Mock).mockResolvedValue(null);
 
             const response = await PATCH(
@@ -286,7 +286,7 @@ describe('Reports API', () => {
             expect(response.status).toBe(401);
         });
 
-        it('deve devolver 404 se o espaço não existir', async () => {
+        it('should return 404 if the space does not exist', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({ user: { id: hostUser.id } });
 
             const response = await PATCH(
@@ -297,7 +297,7 @@ describe('Reports API', () => {
             expect(response.status).toBe(404);
         });
 
-        it('deve devolver 400 se o QR token for inválido', async () => {
+        it('should return 400 if the QR token is invalid', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({ user: { id: hostUser.id } });
 
             const response = await PATCH(
@@ -308,7 +308,7 @@ describe('Reports API', () => {
             expect(response.status).toBe(400);
         });
 
-        it('deve devolver 403 se utilizador externo tentar confirmar', async () => {
+        it('should return 403 if an external user tries to confirm', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({ user: { id: reporterUser.id } });
 
             const response = await PATCH(
@@ -319,7 +319,7 @@ describe('Reports API', () => {
             expect(response.status).toBe(403);
         });
 
-        it('deve devolver 404 se não existir denúncia OPEN', async () => {
+        it('should return 404 if there is no OPEN report', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({ user: { id: hostUser.id } });
 
             const response = await PATCH(
@@ -330,7 +330,7 @@ describe('Reports API', () => {
             expect(response.status).toBe(404);
         });
 
-        it('deve devolver 409 se utilizador já confirmou', async () => {
+        it('should return 409 if the user has already confirmed', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({ user: { id: hostUser.id } });
 
             const report = await prisma.report.create({
@@ -353,7 +353,7 @@ describe('Reports API', () => {
             expect(response.status).toBe(409);
         });
 
-        it('deve devolver 200 com pending se nem todos confirmaram', async () => {
+        it('should return 200 with pending status if not all participants have confirmed', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({ user: { id: hostUser.id } });
 
             await prisma.report.create({
@@ -375,7 +375,7 @@ describe('Reports API', () => {
             expect(body.message).toBe('Confirmation registered, waiting for others');
         });
 
-        it('deve marcar denúncia como RESOLVED quando todos os participantes confirmam', async () => {
+        it('should mark the report as RESOLVED when all participants confirm', async () => {
             await prisma.report.create({
                 data: {
                     reporterId: reporterUser.id,
@@ -404,7 +404,7 @@ describe('Reports API', () => {
             expect(body.status).toBe('RESOLVED');
         });
 
-        it('deve expirar denúncia e encerrar sessão se timeToConfirm passou sem confirmações', async () => {
+        it('should expire the report and end the session if timeToConfirm passed with no confirmations', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({ user: { id: hostUser.id } });
 
             const report = await prisma.report.create({
@@ -433,7 +433,7 @@ describe('Reports API', () => {
             expect(updatedSession?.actualEndTime).toBeTruthy();
         });
 
-        it('deve expirar denúncia mas manter sessão com utilizadores que confirmaram (lazy expiration)', async () => {
+        it('should expire the report but keep the session for users who confirmed (lazy expiration)', async () => {
             const report = await prisma.report.create({
                 data: {
                     reporterId: reporterUser.id,
