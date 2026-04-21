@@ -18,7 +18,6 @@ import { prisma } from '@/lib/prisma';
 import { scheduleSessionExpiry } from '@/lib/session-expiry';
 import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
-import { isPastClosingTime } from '@/lib/library-hours';
 
 /**
  * Route parameter type containing the target space identifier.

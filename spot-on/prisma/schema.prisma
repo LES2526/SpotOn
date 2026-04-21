@@ -43,7 +43,7 @@ model User {
     reportConfirmations ReportConfirmation[]
     notifications       Notification[]
 
-    badges              UserBadge[]
+    badges UserBadge[]
 }
 
 /// NextAuth authentication providers.
@@ -127,6 +127,7 @@ enum ReportStatus {
 enum NotificationType {
     PROOF_OF_PRESENCE
     JOIN_REQUEST
+    SESSION_EXPIRING_SOON
     CHECKOUT
     KICKED_FROM_SESSION
     LEADERSHIP_TRANSFERRED
@@ -281,14 +282,14 @@ model UserBadge {
     @@id([userId, badgeId])
 }
 
-model Badge{
+model Badge {
     id          String @id @default(cuid()) @db.VarChar(30)
     name        String @db.VarChar(255)
     description String @db.VarChar(255)
     iconUrl     String @db.VarChar(255) /// URL or path to the badge icon
 
-    month       Int @default(0) /// Month when the badge is awarded (1-12), 0 for badges that can be awarded any month
-    year        Int @default(0) /// Year when the badge is awarded, 0 for badges that can be awarded any year
+    month Int @default(0) /// Month when the badge is awarded (1-12), 0 for badges that can be awarded any month
+    year  Int @default(0) /// Year when the badge is awarded, 0 for badges that can be awarded any year
 
-    users       UserBadge[] 
+    users UserBadge[]
 }
