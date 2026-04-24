@@ -1,5 +1,5 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { clampToClosingTime, isAfterHours } from "@/lib/library-hours";
+import { isAfterHours } from "@/lib/library-hours";
 import { prisma } from "@/lib/prisma";
 import { scheduleSessionExpiry } from "@/lib/session-expiry";
 import { getServerSession } from "next-auth";
@@ -80,7 +80,7 @@ export const PATCH = async (_request: Request, { params }: Params) => {
                 { error: 'Expected end time is required' },
                 { status: 400 });
         }
-        
+
         const newEndTime = new Date(expectedEndTime);
 
         if (isAfterHours(newEndTime)) {
@@ -90,7 +90,7 @@ export const PATCH = async (_request: Request, { params }: Params) => {
             );
         }
 
-        
+
 
         const studySession = await prisma.studySession.findFirst({
             where: {
