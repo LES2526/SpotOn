@@ -1,13 +1,13 @@
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { SpaceType } from '@/app/generated/prisma';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
-import { SpaceType } from '@/app/generated/prisma';
 
 
 /**
- * 
- * 
+ *
+ *
  */
 export async function GET(request: Request) {
     const session = await getServerSession(authOptions);
@@ -23,8 +23,8 @@ export async function GET(request: Request) {
 
     const typeParam = searchParams.get('type');
 
-    const type = typeParam && Object.values(SpaceType).includes(typeParam as SpaceType)        ? (typeParam as SpaceType)
-    : undefined;
+    const type = typeParam && Object.values(SpaceType).includes(typeParam as SpaceType) ? (typeParam as SpaceType)
+        : undefined;
 
     const capacity = searchParams.get('capacity');
     const hasPowerOutlet = parseBool(searchParams.get('hasPowerOutlet'));
@@ -49,17 +49,17 @@ export async function GET(request: Request) {
                 sessions: isOccupied
                     ? isOccupied === 'true'
                         ? {
-                              some: {
-                                  status: 'ACTIVE',
-                                  expectedEndTime: { gt: new Date() },
-                              },
-                          }
+                            some: {
+                                status: 'ACTIVE',
+                                expectedEndTime: { gt: new Date() },
+                            },
+                        }
                         : {
-                              none: {
-                                  status: 'ACTIVE',
-                                  expectedEndTime: { gt: new Date() },
-                              },
-                          }
+                            none: {
+                                status: 'ACTIVE',
+                                expectedEndTime: { gt: new Date() },
+                            },
+                        }
                     : undefined,
             },
 
@@ -79,7 +79,7 @@ export async function GET(request: Request) {
         });
 
         return NextResponse.json({ spaces });
-    } catch (error) {
+    } catch {
         return NextResponse.json({ error: 'Server error' }, { status: 500 });
     }
 }
