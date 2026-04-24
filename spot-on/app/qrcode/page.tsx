@@ -13,12 +13,6 @@ import AfterHoursStatus from "@/components/qrcode/AfterHoursStatus";
 
 export default function OccupySpacePage() {
 
-    interface ExtendStatusProps {
-        spaceId: string;
-        currentEndTime: string;
-        onAfterHours: () => void;
-    }
-
     const [status, setStatus] = useState<
         'loading' | 'success' | 'occupied' | 'user_occupied' | 'expired' | 'error' | 'extend' | 'after_hours'
     >('loading');

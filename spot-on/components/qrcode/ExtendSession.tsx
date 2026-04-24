@@ -1,6 +1,5 @@
 'use client';
 
-import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -33,19 +32,24 @@ export default function ExtendStatus({ spaceId, currentEndTime, onAfterHours }: 
                 new Date(currentEndTime).getTime() + durationMinutes * 60 * 1000
             ).toISOString();
 
-            await axios.patch(`/api/spaces/${spaceId}/sessions/extend`, {
-                expectedEndTime,
+            const res = await fetch(`/api/spaces/${spaceId}/sessions/extend`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ expectedEndTime }),
             });
 
-            router.push('/dashboard');
-        } catch (error: any) {
-            if (error.response?.status === 400 && error.response?.data?.error === 'after_hours') {
+            if (res.status === 400) {
                 onAfterHours();
-            } else if (error.response?.status === 400) {
-                onAfterHours(); // reuse the same screen for any closing time related 400
-            } else {
-                console.error('Error extending session:', error);
+                return;
             }
+            if (!res.ok) {
+                console.error('Error extending session:', await res.text());
+                return;
+            }
+
+            router.push('/dashboard');
+        } catch (error: unknown) {
+            console.error('Error extending session:', error);
         }
     };
 
