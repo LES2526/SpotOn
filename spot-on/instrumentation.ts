@@ -11,8 +11,6 @@
  * @since 1.0.0
  */
 
-import { restoreSessionExpiries } from '@/lib/session-expiry'; 
-import { restoreReportExpiries } from '@/lib/report-expiry';
 import { initializeBadgeAwardScheduler } from './lib/badge-award';
 
 /**
