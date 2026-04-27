@@ -17,7 +17,7 @@ type Params = { params: { spaceId: string } };
  * @swagger
  * /api/spaces/{spaceId}/sessions/checkout:
  *   post:
- * 
+ *
  *     summary: Check out from a study session
  *     description: >
  *       Handles all early checkout scenarios for an active session in the specified space.
@@ -149,22 +149,29 @@ export async function POST(request: Request, { params }: Params) {
             await prisma.$transaction([
                 removeParticipantOp(targetUserId, activeSession.id),
                 incrementPoints(targetUserId, points),
-                notifyOp(userId, 'KICKED_FROM_SESSION', 'You successfully removed a participant from the session.'),
-                notifyOp(targetUserId, 'KICKED_FROM_SESSION', 'You have been removed from the session by the host.'),
+                notifyOp(userId, 'KICKED_FROM_SESSION',
+                    'You successfully removed a participant from the session.'),
+                notifyOp(targetUserId, 'KICKED_FROM_SESSION',
+                    'You have been removed from the session by the host.'),
             ]);
-            return NextResponse.json({ checkout: 'participant_removed', removedUserId: targetUserId, pointsAwarded: points });
+            return NextResponse.json({
+                checkout: 'participant_removed',
+                removedUserId: targetUserId, pointsAwarded: points
+            });
         }
 
         // Case A: host alone — end session
         if (isHost && acceptedParticipants.length === 0) {
-            const points = calculateCheckoutPoints(activeSession.startTime, spaceType, occupancy, capacity);
+            const points = calculateCheckoutPoints(activeSession.startTime,
+                spaceType, occupancy, capacity);
             await prisma.$transaction([
                 prisma.studySession.update({
                     where: { id: activeSession.id },
                     data: { status: 'COMPLETED', actualEndTime: new Date() },
                 }),
                 incrementPoints(userId, points),
-                notifyOp(userId, 'CHECKOUT', 'Your session has ended. See you next time!'),
+                notifyOp(userId, 'CHECKOUT',
+                    'Your session has ended. See you next time!'),
             ]);
             return NextResponse.json({ checkout: 'session_ended', pointsAwarded: points });
         }

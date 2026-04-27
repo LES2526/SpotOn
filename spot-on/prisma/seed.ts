@@ -33,7 +33,7 @@ async function main() {
         },
     });
 
-    const floorPlan1 = await prisma.floorPlan.create({
+    await prisma.floorPlan.create({
         data: {
             name: 'Piso 1',
             floor: 1,
