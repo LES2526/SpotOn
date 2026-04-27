@@ -40,7 +40,6 @@ export async function awardMonthlyBadges(): Promise<void> {
         const now = new Date();
         const month = now.getMonth() + 1; // getMonth() is 0-indexed
         const year = now.getFullYear();
-
         console.log(`Awarding monthly badges for ${month}/${year}`);
 
         // Find the badge for this month and year
