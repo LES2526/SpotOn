@@ -13,6 +13,11 @@
 
 import { prisma } from '@/lib/prisma';
 
+function isPrismaUniqueError(error: unknown): boolean {
+    return typeof error === 'object' && error !== null && 'code' in error
+        && (error as { code: string }).code === 'P2002';
+}
+
 /**
  * Returns the date of the 1st of next month at midnight.
  */
@@ -35,7 +40,6 @@ export async function awardMonthlyBadges(): Promise<void> {
         const now = new Date();
         const month = now.getMonth() + 1; // getMonth() is 0-indexed
         const year = now.getFullYear();
-
         console.log(`Awarding monthly badges for ${month}/${year}`);
 
         // Find the badge for this month and year
@@ -79,9 +83,9 @@ export async function awardMonthlyBadges(): Promise<void> {
                     },
                 });
                 console.log(`Badge awarded to ${user.email} (${user.points} points)`);
-            } catch (error: any) {
+            } catch (error: unknown) {
                 // Unique constraint violation — user already has this badge
-                if (error.code === 'P2002') {
+                if (isPrismaUniqueError(error)) {
                     console.log(`User ${user.email} already has badge "${badge.name}" — skipping`);
                 } else {
                     console.error(`Failed to award badge to ${user.email}:`, error);
