@@ -63,6 +63,7 @@ export default function OccupySpacePage() {
             const response = await fetch(`/api/spaces/${spaceId}/sessions/join-session`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ qrWindow, sig }),
             });
             if (response.ok) {
                 setIsJoin(true);

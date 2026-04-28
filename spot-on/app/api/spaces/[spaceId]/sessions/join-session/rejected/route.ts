@@ -90,14 +90,22 @@ export async function PATCH(_request: Request, { params }: Params) {
         }
         const body = await _request.json();
         const { userId, notificationId } = body;
-        const updateJoinSession = await prisma.userOnStudySession.update({
+
+        const pending = await prisma.joinRequest.findFirst({
             where: {
-                userId_sessionId: {
-                    userId,
-                    sessionId: studySession.id
-                }
-            },
-            data: { status: 'REJECTED' }
+                userId,
+                studySessionId: studySession.id,
+                status: 'PENDING'
+            }
+        });
+        if (!pending) {
+            return NextResponse.json({
+                error: 'No pending join request found for this user.'
+            }, { status: 404 });
+        }
+        const updateJoinSession = await prisma.joinRequest.update({
+                where: { id: pending.id },
+                data: { status: 'REJECTED' }
         });
         const requester = await prisma.user.findUnique({
             where: { id: userId },
