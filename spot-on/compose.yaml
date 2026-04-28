@@ -26,7 +26,7 @@ services:
     env_file: .env
     environment:
       DATABASE_URL: postgresql://admin:admin@db:5432/spot_on_db
-      NEXTAUTH_URL: http://192.168.1.75:3000
+      NEXTAUTH_URL: http://172.23.214.114:3000
       NEXTAUTH_SECRET: "q/ap6iLt2BciK65X1IyJNxArHC5JdTx2KaR35lM0mtY="
       QR_SECRET: "N3LxlmMBZNVOmMuAbOgGHkO++icNQ2Md/ATohwaEQLM="
       CHOKIDAR_USEPOLLING: "true"

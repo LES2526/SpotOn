@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { sendJoinRequestEmail } from "@/lib/send-notification-email";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
+import { verifyQrCode } from '@/lib/qr-utils';
+
 
 type Params = { params: Promise<{ spaceId: string }> };
 
@@ -12,7 +14,7 @@ type Params = { params: Promise<{ spaceId: string }> };
  * /api/spaces/{spaceId}/sessions/join-session:
  *   post:
  *     summary: Request to join an active study session
- *     description: Creates a pending join request for the authenticated user in the active session for the specified space.
+ *     description: Creates a pending join request for the authenticated user in the active session for the specified space. Requires a valid QR code scan to prove physical presence.
  *     tags:
  *       - Sessions
  *     parameters:
@@ -22,36 +24,39 @@ type Params = { params: Promise<{ spaceId: string }> };
  *         schema:
  *           type: string
  *         description: The ID of the space whose active session should be joined
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - qrWindow
+ *               - sig
+ *             properties:
+ *               qrWindow:
+ *                 type: number
+ *                 description: The time window from the scanned QR code
+ *               sig:
+ *                 type: string
+ *                 description: The HMAC signature from the scanned QR code
  *     responses:
  *       201:
  *         description: Join request created successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 sessionId:
- *                   type: string
- *                   description: ID of the study session being joined
- *                 userId:
- *                   type: string
- *                   description: ID of the user who requested to join
- *                 status:
- *                   type: string
- *                   enum: [PENDING]
- *                   description: Status of the join request
- *                 createdAt:
- *                   type: string
- *                   format: date-time
  *       401:
  *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - invalid or expired QR code
  *       404:
  *         description: Space or active session not found
  *       409:
- *         description: Conflict - user already has an active session or pending join request
+ *         description: Conflict - session full, user already joined or has pending request
+ *       429:
+ *         description: Too Many Requests - anti-spam limit exceeded
  *       500:
  *         description: Internal Server Error
  */
+
 
 export async function POST(_request: Request, { params }: Params) {
     try {
@@ -61,8 +66,14 @@ export async function POST(_request: Request, { params }: Params) {
                 { error: 'Unauthorized' }, { status: 401 });
         }
         const { spaceId } = await Promise.resolve(params);
+        const { qrWindow, sig } = await _request.json();
+        const verification = verifyQrCode(spaceId,qrWindow, sig);
+        if (!verification.valid) {
+            return NextResponse.json({ error: 'Invalid QR code' }, { status: 403 });
+        }
         const space = await prisma.space.findUnique({
-            where: { id: spaceId }
+            where: { id: spaceId },
+            select: { id: true, capacity: true }
         });
         if (!space) {
             return NextResponse.json({ error: 'Space not found' },
@@ -82,7 +93,7 @@ export async function POST(_request: Request, { params }: Params) {
             where: {
                 hostId: session.user.id,
                 status: 'ACTIVE'
-            }
+            }   
         });
         if (alreadyAHostInAnySession) {
             return NextResponse.json({
@@ -90,34 +101,75 @@ export async function POST(_request: Request, { params }: Params) {
             },
                 { status: 409 });
         }
-        const alreadyJoinedInAnySession = await prisma.userOnStudySession.findFirst({
+        
+        const occupancy = await prisma.userOnStudySession.count({
             where: {
-                userId: session.user.id,
-                status: {
-                    in: ['PENDING', 'ACCEPTED']
-                }
+                sessionId: studySession.id
             }
         });
-        if (alreadyJoinedInAnySession) {
+
+        if (occupancy >= space.capacity - 1) {
             return NextResponse.json({
-                error: 'You have already requested to join this session'
+                error: 'This session is already at full capacity.'
             },
                 { status: 409 });
         }
-        const joinSession = await prisma.userOnStudySession.upsert({
+
+        const alreadyJoined = await prisma.userOnStudySession.findFirst({
             where: {
-                userId_sessionId: {
-                    userId: session.user.id,
-                    sessionId: studySession.id,
-                }
-            },
-            update: { status: 'PENDING' },
-            create: {
                 userId: session.user.id,
-                sessionId: studySession.id,
+                session: {
+                    status: 'ACTIVE'
+                }
+            }
+        });
+        if (alreadyJoined) {
+            return NextResponse.json({
+                error: 'You are already part of an active session. Please leave it first.'
+            },
+                { status: 409 });
+        }
+
+        const alreadyRequested = await prisma.joinRequest.findFirst({
+            where: {
+                userId: session.user.id,
+                studySessionId: studySession.id,
                 status: 'PENDING'
             }
         });
+
+        if(alreadyRequested) {
+            return NextResponse.json({
+                error: 'You have already requested to join this session. Please wait for the host to respond.'
+            },
+                { status: 409 });
+        }
+
+        const recentRejections = await prisma.joinRequest.count({
+            where: {userId: session.user.id,
+                studySessionId: studySession.id,
+                createdAt: {
+                    gte: new Date(Date.now() - 5 * 60 * 1000)
+                }
+            }
+         });
+
+        if(recentRejections >= 3) {
+            return NextResponse.json({
+                error: 'Too many recent rejections. Please wait before trying to join again.'
+            },
+                { status: 429 });
+        }
+
+        const joinRequest = await prisma.joinRequest.create({
+            data: {
+                userId: session.user.id,
+                studySessionId: studySession.id,
+                spaceId,
+                status: 'PENDING'
+            }
+        });
+
         await createNotification(
             studySession.hostId,
             'JOIN_REQUEST',
@@ -135,7 +187,7 @@ export async function POST(_request: Request, { params }: Params) {
         if (host?.email && session.user.email) {
             await sendJoinRequestEmail(host.email, session.user.email);
         }
-        return NextResponse.json(joinSession, { status: 201 });
+        return NextResponse.json(joinRequest, { status: 201 });
     } catch (error) {
         console.error('Error joining session:', error);
         return NextResponse.json({ error: 'Failed to join session' },
