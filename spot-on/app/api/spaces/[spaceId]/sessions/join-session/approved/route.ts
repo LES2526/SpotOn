@@ -86,47 +86,49 @@ export async function PATCH(_request: Request, { params }: Params) {
             return NextResponse.json({ error: 'Study session not found' },
                 { status: 404 });
         }
-        const isHost = await prisma.studySession.findFirst({
-            where: {
-                hostId: session.user.id,
-                status: 'ACTIVE'
-            }
-        });
+ 
         if (studySession.hostId !== session.user.id) {
             return NextResponse.json({
                 error: 'You are not the host of this session.'
             }, { status: 403 });
         }
-        if (!isHost) {
-            return NextResponse.json({
-                error: 'You are not the host of this session.'
-            },
-                { status: 403 });
-        }
+        
         const body = await _request.json();
         const { userId, notificationId } = body;
-        const updateJoinSession = await prisma.userOnStudySession.update({
+        const pending = await prisma.joinRequest.findFirst({
             where: {
-                userId_sessionId: {
-                    userId,
-                    sessionId: studySession.id
-                }
-            },
+                userId: userId,
+                studySessionId: studySession.id,
+                status: 'PENDING'
+            }
+        });
+        if (!pending) {
+            return NextResponse.json({ error: 'No pending request found.' }, { status: 404 });
+        }
+        const acceptJoinRequest = await prisma.joinRequest.update({
+            where: { id: pending.id },
+            data: { status: 'ACCEPTED' }
+        });
+        
+        await prisma.userOnStudySession.create({
             data: {
-                status: 'ACCEPTED'
+                userId,
+                sessionId: studySession.id
             }
         });
         const requester = await prisma.user.findUnique({
             where: { id: userId },
             select: { email: true },
         });
-        if (requester?.email) {
-            if (notificationId) {
-                await resolveNotificationById(notificationId);
-            }
-            await sendApprovedJoinRequestEmail(requester.email);
+        if (!requester) {
+            return NextResponse.json({ error: 'Requester not found' }, { status: 404 });
         }
-        return NextResponse.json(updateJoinSession, { status: 200 });
+        if (notificationId) {
+            await resolveNotificationById(notificationId);
+        }
+        await sendApprovedJoinRequestEmail(requester.email);
+        
+        return NextResponse.json(acceptJoinRequest, { status: 200 });
     } catch (error) {
         console.error('Error approving session:', error);
         return NextResponse.json({ error: 'Failed to approve session' },
