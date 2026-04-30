@@ -7,9 +7,8 @@
  * @since 1.0.0
  */
 
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
+import { requireAuth } from '@/lib/require-auth';
 import { NextResponse } from 'next/server';
 
 type Params = { params: { id: string } };
@@ -60,8 +59,8 @@ type Params = { params: { id: string } };
  */
 export async function POST(request: Request, { params }: Params) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) {
+        const session = await requireAuth();
+        if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 

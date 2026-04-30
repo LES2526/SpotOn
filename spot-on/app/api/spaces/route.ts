@@ -1,11 +1,10 @@
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { SpaceType } from '@/app/generated/prisma';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
+import { requireAuth } from '@/lib/require-auth';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
-    const session = await getServerSession(authOptions);
+    const session = await requireAuth();
 
     if (!session) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

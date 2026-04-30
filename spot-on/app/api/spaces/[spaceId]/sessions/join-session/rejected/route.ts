@@ -1,8 +1,7 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { resolveNotificationById } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
+import { requireAuth } from "@/lib/require-auth";
 import { sendNotAcceptedJoinRequestEmail } from "@/lib/send-notification-email";
-import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
 type Params = { params: Promise<{ spaceId: string }> };
@@ -63,8 +62,8 @@ type Params = { params: Promise<{ spaceId: string }> };
 
 export async function PATCH(_request: Request, { params }: Params) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) {
+        const session = await requireAuth();
+        if (!session) {
             return NextResponse.json(
                 { error: 'Unauthorized' }, { status: 401 });
         }

@@ -11,12 +11,11 @@
  * @since 1.0.0
  */
 
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { createNotification } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { scheduleReportExpiry } from "@/lib/report-expiry";
+import { requireAuth } from "@/lib/require-auth";
 import { sendProofOfPresenceEmail } from "@/lib/send-notification-email";
-import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
 type Params = { params: Promise<{ spaceId: string }> };
@@ -72,8 +71,8 @@ type Params = { params: Promise<{ spaceId: string }> };
 export const POST = async (_request: Request, props: Params) => {
     try {
         const params = await props.params;
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) {
+        const session = await requireAuth();
+        if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
         const { spaceId } = params;
