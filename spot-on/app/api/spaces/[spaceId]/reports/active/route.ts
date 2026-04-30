@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/require-auth";
-import { findSpace } from "@/lib/space-utils";
+import { findActiveSessionByHost, findSpace } from "@/lib/space-utils";
 import { NextResponse } from "next/server";
 
 type Params = { params: Promise<{ spaceId: string }> };
@@ -56,9 +56,7 @@ export const GET = async (_request: Request, props: Params) => {
         return NextResponse.json({ error: 'Space not found' },
             { status: 404 });
     }
-    const activeSession = await prisma.studySession.findFirst({
-        where: { spaceId, hostId: session.user.id, status: 'ACTIVE' },
-    });
+    const activeSession = await findActiveSessionByHost(spaceId, session.user.id);
     if (!activeSession) {
         return NextResponse.json({ report: null }, { status: 200 });
     }
