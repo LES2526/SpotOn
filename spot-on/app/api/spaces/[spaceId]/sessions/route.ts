@@ -12,11 +12,10 @@
  * @since 1.0.0
  */
 
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { clampToClosingTime, isAfterHours } from '@/lib/library-hours';
 import { prisma } from '@/lib/prisma';
+import { requireAuth } from '@/lib/require-auth';
 import { scheduleSessionExpiry } from '@/lib/session-expiry';
-import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 
 /**
@@ -80,8 +79,8 @@ type Params = { params: Promise<{ spaceId: string }> };
  */
 export async function POST(_request: Request, { params }: Params) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) {
+        const session = await requireAuth();
+        if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
         const { spaceId } = await Promise.resolve(params);
@@ -175,8 +174,8 @@ export async function PATCH(request: Request, { params }: Params) {
     const { spaceId } = await Promise.resolve(params);
 
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) {
+        const session = await requireAuth();
+        if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
@@ -274,8 +273,8 @@ export async function PATCH(request: Request, { params }: Params) {
  */
 export async function DELETE(_request: Request, { params }: Params) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) {
+        const session = await requireAuth();
+        if (!session) {
             return NextResponse.json(
                 { error: 'Unauthorized' }, { status: 401 });
         }
