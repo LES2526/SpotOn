@@ -15,7 +15,7 @@ import { createNotification } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { scheduleReportExpiry } from "@/lib/report-expiry";
 import { requireAuth } from "@/lib/require-auth";
-import { findSpace } from "@/lib/space-utils";
+import { findActiveSession, findSpace, isAcceptedParticipant } from "@/lib/space-utils";
 import { sendProofOfPresenceEmail } from "@/lib/send-notification-email";
 import { NextResponse } from "next/server";
 
@@ -91,9 +91,7 @@ export const POST = async (_request: Request, props: Params) => {
         if (!body.reason || body.reason.trim() === '') {
             return NextResponse.json({ error: 'Reason is required' }, { status: 400 });
         }
-        const activeSession = await prisma.studySession.findFirst({
-            where: { spaceId, status: 'ACTIVE' },
-        });
+        const activeSession = await findActiveSession(spaceId);
         if (!activeSession) {
             return NextResponse.json({
                 error: 'No active session found for this space'
@@ -104,13 +102,7 @@ export const POST = async (_request: Request, props: Params) => {
                 error: 'You cannot report your own session'
             }, { status: 400 });
         }
-        const isParticipant = await prisma.userOnStudySession.findFirst({
-            where: {
-                userId: session.user.id,
-                sessionId: activeSession.id,
-                status: 'ACCEPTED',
-            }
-        });
+        const isParticipant = await isAcceptedParticipant(session.user.id, activeSession.id);
         if (isParticipant) {
             return NextResponse.json({
                 error: 'Participants cannot report the session'

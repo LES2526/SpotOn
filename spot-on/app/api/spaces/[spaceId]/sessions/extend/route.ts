@@ -1,7 +1,7 @@
 import { isAfterHours } from "@/lib/library-hours";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/require-auth";
-import { findSpace } from "@/lib/space-utils";
+import { findActiveSessionByHost, findSpace } from "@/lib/space-utils";
 import { scheduleSessionExpiry } from "@/lib/session-expiry";
 import { NextResponse } from "next/server";
 
@@ -90,13 +90,7 @@ export const PATCH = async (_request: Request, { params }: Params) => {
 
 
 
-        const studySession = await prisma.studySession.findFirst({
-            where: {
-                spaceId,
-                hostId: session.user.id,
-                status: 'ACTIVE'
-            }
-        });
+        const studySession = await findActiveSessionByHost(spaceId, session.user.id);
 
         if (!studySession) {
             return NextResponse.json(

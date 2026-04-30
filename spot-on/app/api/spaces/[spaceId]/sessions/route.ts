@@ -15,7 +15,7 @@
 import { clampToClosingTime, isAfterHours } from '@/lib/library-hours';
 import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/require-auth';
-import { findSpace } from '@/lib/space-utils';
+import { findActiveSession, findActiveSessionByHost, findSpace } from '@/lib/space-utils';
 import { scheduleSessionExpiry } from '@/lib/session-expiry';
 import { NextResponse } from 'next/server';
 
@@ -91,11 +91,7 @@ export async function POST(_request: Request, { params }: Params) {
             return NextResponse.json({ error: 'Space not found' }, { status: 404 });
         }
         // Check if the space is already occupied by an active session
-        const spaceOccupied = await prisma.studySession.findFirst({
-            where: {
-                spaceId, status: 'ACTIVE',
-            }
-        });
+        const spaceOccupied = await findActiveSession(spaceId);
         if (spaceOccupied) {
             return NextResponse.json({ error: 'Space is already occupied' }, { status: 409 });
         }
@@ -180,13 +176,7 @@ export async function PATCH(request: Request, { params }: Params) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const activeSession = await prisma.studySession.findFirst({
-            where: {
-                spaceId,
-                hostId: session.user.id,
-                status: 'ACTIVE',
-            },
-        });
+        const activeSession = await findActiveSessionByHost(spaceId, session.user.id);
 
         if (!activeSession) {
             return NextResponse.json({ error: 'No active session found for this space and user' }, { status: 404 });
@@ -283,13 +273,7 @@ export async function DELETE(_request: Request, { params }: Params) {
         const { spaceId } = await Promise.resolve(params);
 
         // Find the user's active session in this space
-        const activeSession = await prisma.studySession.findFirst({
-            where: {
-                spaceId,
-                hostId: session.user.id,
-                status: 'ACTIVE'
-            }
-        });
+        const activeSession = await findActiveSessionByHost(spaceId, session.user.id);
 
         if (!activeSession) {
             return NextResponse.json({
