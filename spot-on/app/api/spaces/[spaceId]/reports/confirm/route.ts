@@ -20,7 +20,7 @@ import { resolveNotifications } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { handleExpiredReport } from "@/lib/report-expiry";
 import { requireAuth } from "@/lib/require-auth";
-import { findSpace } from "@/lib/space-utils";
+import { findActiveSession, findSpace, isAcceptedParticipant } from "@/lib/space-utils";
 import { NextResponse } from "next/server";
 
 type Params = { params: Promise<{ spaceId: string }> };
@@ -148,21 +148,13 @@ export const PATCH = async (_request: Request, props: Params) => {
             return NextResponse.json(
                 { error: 'Invalid QR token' }, { status: 400 });
         }
-        const activeSession = await prisma.studySession.findFirst({
-            where: { spaceId, status: 'ACTIVE' },
-        });
+        const activeSession = await findActiveSession(spaceId);
         if (!activeSession) {
             return NextResponse.json({
                 error: 'No active session found for this space'
             }, { status: 404 });
         }
-        const isParticipant = await prisma.userOnStudySession.findFirst({
-            where: {
-                userId: session.user.id,
-                sessionId: activeSession.id,
-                status: 'ACCEPTED'
-            }
-        });
+        const isParticipant = await isAcceptedParticipant(session.user.id, activeSession.id);
         if (!isParticipant && activeSession.hostId !== session.user.id) {
             return NextResponse.json({
                 error: 'Only participants and host can confirm reports'
