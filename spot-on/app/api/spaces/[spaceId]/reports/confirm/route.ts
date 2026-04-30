@@ -20,6 +20,7 @@ import { resolveNotifications } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { handleExpiredReport } from "@/lib/report-expiry";
 import { requireAuth } from "@/lib/require-auth";
+import { findSpace } from "@/lib/space-utils";
 import { NextResponse } from "next/server";
 
 type Params = { params: Promise<{ spaceId: string }> };
@@ -137,9 +138,7 @@ export const PATCH = async (_request: Request, props: Params) => {
                 { status: 401 });
         }
         const { spaceId } = params;
-        const space = await prisma.space.findUnique({
-            where: { id: spaceId }
-        });
+        const space = await findSpace(spaceId);
         if (!space) {
             return NextResponse.json(
                 { error: 'Space not found' }, { status: 404 });
