@@ -1,7 +1,7 @@
 import { createNotification } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/require-auth";
-import { findSpace } from "@/lib/space-utils";
+import { findActiveSession, findSpace } from "@/lib/space-utils";
 import { sendJoinRequestEmail } from "@/lib/send-notification-email";
 import { NextResponse } from "next/server";
 
@@ -66,12 +66,7 @@ export async function POST(_request: Request, { params }: Params) {
             return NextResponse.json({ error: 'Space not found' },
                 { status: 404 });
         }
-        const studySession = await prisma.studySession.findFirst({
-            where: {
-                spaceId,
-                status: 'ACTIVE'
-            }
-        });
+        const studySession = await findActiveSession(spaceId);
         if (!studySession) {
             return NextResponse.json({ error: 'Study session not found' },
                 { status: 404 });
