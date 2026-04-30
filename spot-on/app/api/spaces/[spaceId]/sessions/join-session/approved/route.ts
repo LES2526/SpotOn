@@ -1,8 +1,8 @@
 import { resolveNotificationById } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/require-auth";
-import { findActiveSession, findSpace } from "@/lib/space-utils";
 import { sendApprovedJoinRequestEmail } from "@/lib/send-notification-email";
+import { findActiveSession, findSpace } from "@/lib/space-utils";
 import { NextResponse } from "next/server";
 
 type Params = { params: Promise<{ spaceId: string }> };
@@ -84,7 +84,7 @@ export async function PATCH(_request: Request, { params }: Params) {
                 error: 'You are not the host of this session.'
             }, { status: 403 });
         }
-        
+
         const body = await _request.json();
         const { userId, notificationId } = body;
         const updateJoinSession = await prisma.userOnStudySession.update({
