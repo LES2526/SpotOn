@@ -15,6 +15,7 @@
 import { clampToClosingTime, isAfterHours } from '@/lib/library-hours';
 import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/require-auth';
+import { findSpace } from '@/lib/space-utils';
 import { scheduleSessionExpiry } from '@/lib/session-expiry';
 import { NextResponse } from 'next/server';
 
@@ -85,7 +86,7 @@ export async function POST(_request: Request, { params }: Params) {
         }
         const { spaceId } = await Promise.resolve(params);
         // Verify the space exists
-        const space = await prisma.space.findUnique({ where: { id: spaceId } });
+        const space = await findSpace(spaceId);
         if (!space) {
             return NextResponse.json({ error: 'Space not found' }, { status: 404 });
         }
