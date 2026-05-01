@@ -25,11 +25,10 @@ export function isPastClosingTime(): boolean {
     const closingTime = new Date();
     closingTime.setHours(hours, minutes, 0, 0);
 
-    console.log('Closing time:', closingTime);
-
     return new Date() > closingTime;
 }
 
+/** Returns true if the given date's time (in UTC) is past the library closing time. */
 export function isAfterHours(date: Date): boolean {
     const [closingHours, closingMinutes] = process.env.LIBRARY_CLOSING_TIME?.split(':').map(Number) || [19, 30];
     
