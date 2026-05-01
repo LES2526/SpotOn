@@ -1,4 +1,3 @@
-import { resolveNotificationById } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/require-auth";
 import { sendApprovedJoinRequestEmail } from "@/lib/send-notification-email";
@@ -87,25 +86,20 @@ export async function PATCH(_request: Request, { params }: Params) {
 
         const body = await _request.json();
         const { userId, notificationId } = body;
-        const updateJoinSession = await prisma.userOnStudySession.update({
-            where: {
-                userId_sessionId: {
-                    userId,
-                    sessionId: studySession.id
-                }
-            },
-            data: {
-                status: 'ACCEPTED'
-            }
-        });
-        const requester = await prisma.user.findUnique({
-            where: { id: userId },
-            select: { email: true },
-        });
+        const [updateJoinSession, requester] = await prisma.$transaction([
+            prisma.userOnStudySession.update({
+                where: { userId_sessionId: { userId, sessionId: studySession.id } },
+                data: { status: 'ACCEPTED' },
+            }),
+            prisma.user.findUnique({
+                where: { id: userId },
+                select: { email: true },
+            }),
+            ...(notificationId
+                ? [prisma.notification.update({ where: { id: notificationId }, data: { status: 'RESOLVED' } })]
+                : []),
+        ]);
         if (requester?.email) {
-            if (notificationId) {
-                await resolveNotificationById(notificationId);
-            }
             await sendApprovedJoinRequestEmail(requester.email);
         }
         return NextResponse.json(updateJoinSession, { status: 200 });
