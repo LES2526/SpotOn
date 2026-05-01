@@ -57,8 +57,6 @@ type Params = { params: Promise<{ spaceId: string }> };
 export async function GET(_request: Request, { params }: Params) {
     const { spaceId } = await params;
 
-    console.log(`Received request for QR code of space ${spaceId}`);
-
     if (!spaceId) {
         return NextResponse.json({ error: 'Missing spaceId parameter' }, { status: 400 });
     }

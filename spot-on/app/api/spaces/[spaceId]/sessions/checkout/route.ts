@@ -1,6 +1,6 @@
 import {
     calculateCheckoutPoints,
-    findActiveSession,
+    findUserSession,
     findCheckedOutSession,
     incrementPoints,
     notifyOp,
@@ -112,7 +112,7 @@ export async function POST(request: Request, { params }: Params) {
         const body = await request.json().catch(() => ({}));
         const { targetUserId } = body;
 
-        const activeSession = await findActiveSession(spaceId, userId);
+        const activeSession = await findUserSession(spaceId, userId);
 
         if (!activeSession) {
             const alreadyCheckedOut = await findCheckedOutSession(spaceId, userId);
