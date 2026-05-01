@@ -5,8 +5,66 @@ import { NextResponse } from 'next/server';
 
 
 /**
- *
- *
+ * @swagger
+ * /api/spaces/{spaceId}:
+ *   get:
+ *     summary: List spaces with optional filters
+ *     description: Returns spaces filtered by the given query parameters.
+ *     tags:
+ *       - Spaces
+ *     parameters:
+ *       - in: path
+ *         name: spaceId
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *           enum: [INDIVIDUAL_DESK, GROUP_ROOM]
+ *       - in: query
+ *         name: capacity
+ *         schema:
+ *           type: integer
+ *         description: Minimum number of seats required
+ *       - in: query
+ *         name: hasPowerOutlet
+ *         schema:
+ *           type: boolean
+ *       - in: query
+ *         name: hasComputer
+ *         schema:
+ *           type: boolean
+ *       - in: query
+ *         name: hasInteractiveBoard
+ *         schema:
+ *           type: boolean
+ *       - in: query
+ *         name: isOccupied
+ *         schema:
+ *           type: boolean
+ *       - in: query
+ *         name: floor
+ *         schema:
+ *           type: string
+ *         description: Floor plan name
+ *     responses:
+ *       200:
+ *         description: Filtered list of spaces
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 spaces:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
  */
 export async function GET(request: Request) {
     const session = await requireAuth();
