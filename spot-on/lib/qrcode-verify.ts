@@ -5,6 +5,7 @@ import { requireAuth } from '@/lib/require-auth';
 import { scheduleSessionExpiry } from '@/lib/session-expiry';
 import { NextResponse } from 'next/server';
 
+/** Verifies a QR code scan and creates or confirms a study session for the authenticated user. */
 export async function handleQrVerification(request: Request) {
     try {
         const session = await requireAuth();
