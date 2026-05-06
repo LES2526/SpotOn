@@ -11,7 +11,7 @@ import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/require-auth';
 import { NextResponse } from 'next/server';
 
-type Params = { params: { id: string } };
+type Params = { params: Promise<{ id: string }> };
 
 /**
  * @swagger
@@ -102,4 +102,3 @@ export async function POST(request: Request, { params }: Params) {
         return NextResponse.json({ error: 'Failed to award badge' }, { status: 500 });
     }
 }
-
