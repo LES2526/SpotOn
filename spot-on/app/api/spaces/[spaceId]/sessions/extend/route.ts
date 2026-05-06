@@ -1,8 +1,8 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { isAfterHours } from "@/lib/library-hours";
 import { prisma } from "@/lib/prisma";
+import { requireAuth } from "@/lib/require-auth";
+import { findActiveSessionByHost, findSpace } from "@/lib/space-utils";
 import { scheduleSessionExpiry } from "@/lib/session-expiry";
-import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
 type Params = { params: Promise<{ spaceId: string }> };
@@ -59,15 +59,13 @@ type Params = { params: Promise<{ spaceId: string }> };
  */
 export const PATCH = async (_request: Request, { params }: Params) => {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) {
+        const session = await requireAuth();
+        if (!session) {
             return NextResponse.json(
                 { error: 'Unauthorized' }, { status: 401 });
         }
         const { spaceId } = await Promise.resolve(params);
-        const space = await prisma.space.findUnique({
-            where: { id: spaceId }
-        });
+        const space = await findSpace(spaceId);
 
         if (!space) {
             return NextResponse.json({ error: 'Space not found' },
@@ -92,13 +90,7 @@ export const PATCH = async (_request: Request, { params }: Params) => {
 
 
 
-        const studySession = await prisma.studySession.findFirst({
-            where: {
-                spaceId,
-                hostId: session.user.id,
-                status: 'ACTIVE'
-            }
-        });
+        const studySession = await findActiveSessionByHost(spaceId, session.user.id);
 
         if (!studySession) {
             return NextResponse.json(

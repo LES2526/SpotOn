@@ -1,14 +1,13 @@
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import {
     calculateCheckoutPoints,
-    findActiveSession,
+    findUserSession,
     findCheckedOutSession,
     incrementPoints,
     notifyOp,
     removeParticipantOp,
 } from '@/lib/checkout-utils';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
+import { requireAuth } from '@/lib/require-auth';
 import { NextResponse } from 'next/server';
 
 type Params = { params: { spaceId: string } };
@@ -103,8 +102,8 @@ type Params = { params: { spaceId: string } };
  */
 export async function POST(request: Request, { params }: Params) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) {
+        const session = await requireAuth();
+        if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
@@ -113,7 +112,7 @@ export async function POST(request: Request, { params }: Params) {
         const body = await request.json().catch(() => ({}));
         const { targetUserId } = body;
 
-        const activeSession = await findActiveSession(spaceId, userId);
+        const activeSession = await findUserSession(spaceId, userId);
 
         if (!activeSession) {
             const alreadyCheckedOut = await findCheckedOutSession(spaceId, userId);
