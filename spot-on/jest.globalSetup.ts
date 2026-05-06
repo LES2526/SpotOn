@@ -1,22 +1,36 @@
-import { execSync, spawnSync } from 'node:child_process';
+import { execSync, spawn, spawnSync } from 'node:child_process';
+import fs from 'node:fs';
 import path from 'node:path';
 
 const DB_CONTAINER = 'spot-on-test-db';
 const DB_PORT = '5434';
 const TEST_DB_URL = `postgresql://admin:admin@localhost:${DB_PORT}/spot_on_test_db`;
+const SERVER_PORT = '3001';
+const SERVER_URL = `http://localhost:${SERVER_PORT}`;
+const SERVER_PID_FILE = path.resolve(__dirname, '.jest-server.pid');
+
+function loadEnvFile(filePath: string) {
+    if (!fs.existsSync(filePath)) return;
+    const lines = fs.readFileSync(filePath, 'utf-8').split('\n');
+    for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith('#')) continue;
+        const [key, ...rest] = trimmed.split('=');
+        const value = rest.join('=').replace(/^"|"$/g, '');
+        if (key && !(key in process.env)) {
+            process.env[key] = value;
+        }
+    }
+}
 
 function isContainerRunning(name: string): boolean {
-    const result = spawnSync(
-        'docker', ['ps', '-q', '-f', `name=^/${name}$`],
-        { encoding: 'utf-8' }
-    );
+    const result = spawnSync('docker', ['ps', '-q', '-f', `name=^/${name}$`], { encoding: 'utf-8' });
     return !!result.stdout?.trim();
 }
 
 async function startTestDb(): Promise<void> {
     if (!isContainerRunning(DB_CONTAINER)) {
         spawnSync('docker', ['rm', '-f', DB_CONTAINER]);
-
         execSync(
             `docker run -d --name ${DB_CONTAINER} \
             -e POSTGRES_USER=admin \
@@ -27,20 +41,15 @@ async function startTestDb(): Promise<void> {
             { stdio: 'inherit' }
         );
     }
-
-    const maxRetries = 30;
-    for (let i = 0; i < maxRetries; i++) {
+    for (let i = 0; i < 30; i++) {
         const result = spawnSync(
             'docker', ['exec', DB_CONTAINER, 'pg_isready', '-h', '127.0.0.1', '-U', 'admin'],
             { encoding: 'utf-8' }
         );
         if (result.status === 0) break;
         await new Promise(r => setTimeout(r, 1000));
-        if (i === maxRetries - 1) {
-            throw new Error(`Test database container "${DB_CONTAINER}" did not become ready in time.`);
-        }
+        if (i === 29) throw new Error('Test database did not become ready in time.');
     }
-
     execSync('npx prisma db push --force-reset --skip-generate', {
         env: { ...process.env, DATABASE_URL: TEST_DB_URL },
         stdio: 'inherit',
@@ -48,23 +57,60 @@ async function startTestDb(): Promise<void> {
     });
 }
 
+async function startNextServer(): Promise<void> {
+    console.log('[setup] Starting Next.js test server...');
+
+    const server = spawn(
+        'npx', ['next', 'dev', '--port', SERVER_PORT, '--webpack'],
+        {
+            stdio: 'pipe',
+            detached: false,
+            env: { ...process.env },
+        }
+    );
+
+    server.stdout?.on('data', (d: Buffer) => process.stdout.write(`[next] ${d}`));
+    server.stderr?.on('data', (d: Buffer) => process.stderr.write(`[next] ${d}`));
+
+    if (server.pid) {
+        process.env.__TEST_SERVER_PID__ = String(server.pid);
+        fs.writeFileSync(SERVER_PID_FILE, String(server.pid));
+    }
+
+    const start = Date.now();
+    while (Date.now() - start < 120_000) {
+        try {
+            const res = await fetch(SERVER_URL);
+            if (res.status < 500) {
+                console.log('[setup] Next.js server is ready!');
+                return;
+            }
+        } catch {
+            // ainda não está pronto
+        }
+        await new Promise(r => setTimeout(r, 2000));
+    }
+
+    if (fs.existsSync(SERVER_PID_FILE)) {
+        fs.unlinkSync(SERVER_PID_FILE);
+    }
+    server.kill();
+    throw new Error('Next.js server did not start within 120s');
+}
+
 export default async function globalSetup() {
+    loadEnvFile(path.resolve(__dirname, '.env.test'));
+    loadEnvFile(path.resolve(__dirname, '.env'));
+
     if (process.env.CI) {
-        // In CI the database is provided by the workflow service and DATABASE_URL
-        // is set at the job level — just wipe and recreate the schema.
         execSync('npx prisma db push --force-reset --skip-generate', {
             env: { ...process.env },
             stdio: 'inherit',
             cwd: path.resolve(__dirname),
         });
-    } else {
-        await startTestDb();
+        return;
     }
-    // The Next.js server is NOT started here because env-var changes made in
-    // globalSetup (which runs in a separate Node process) do not propagate to
-    // Jest worker processes.  In CI the server is started as a dedicated
-    // workflow step before tests run so that all processes share the same
-    // DATABASE_URL / NEXTAUTH_URL values set at the job level.  For local
-    // development, start the dev server manually (e.g. `npm run dev`) with the
-    // appropriate DATABASE_URL and NEXTAUTH_URL before running `npm test`.
+
+    await startTestDb();
+    await startNextServer();
 }

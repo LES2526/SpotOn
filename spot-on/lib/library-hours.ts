@@ -16,17 +16,6 @@ export function clampToClosingTime(expectedEndTime: Date): Date {
     return expectedEndTime;
 }
 
-/**
- * Checks if the current time is past the library's closing time.
- * @returns boolean indicating if the current time is past the closing time.
- */
-export function isPastClosingTime(): boolean {
-    const [hours, minutes] = process.env.LIBRARY_CLOSING_TIME?.split(':').map(Number) || [19, 30];
-    const closingTime = new Date();
-    closingTime.setUTCHours(hours, minutes, 0, 0);
-    return new Date() > closingTime;
-}
-
 /** Returns true if the given date's local time is past the library closing time. */
 export function isAfterHours(date: Date): boolean {
     const [closingHours, closingMinutes] = process.env.LIBRARY_CLOSING_TIME?.split(':').map(Number) || [20, 30];
