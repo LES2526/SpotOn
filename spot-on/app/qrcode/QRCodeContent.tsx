@@ -1,17 +1,17 @@
 'use client'
 
-import AfterHoursStatus from "@/components/qrcode/AfterHoursStatus";
 import ErrorStatus from "@/components/qrcode/Error";
 import ExpiredStatus from "@/components/qrcode/Expired";
-import ExtendSession from "@/components/qrcode/ExtendSession";
 import LoadingStatus from "@/components/qrcode/Loading";
 import OccupiedStatus from "@/components/qrcode/Occupied";
 import SuccessStatus from "@/components/qrcode/Success";
 import UserOccupiedStatus from "@/components/qrcode/UserOccupied";
+import ExtendSession from "@/components/qrcode/ExtendSession";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import AfterHoursStatus from "@/components/qrcode/AfterHoursStatus";
 
-function OccupySpaceContent() {
+export default function QRCodeContent() {
 
     const [status, setStatus] = useState<
         'loading' | 'success' | 'occupied' | 'user_occupied' | 'expired' | 'error' | 'extend' | 'after_hours'
@@ -52,16 +52,16 @@ function OccupySpaceContent() {
                 else {
                     const errorData = await response.json();
 
-                    if (response.status === 409) {
+                    if(response.status === 409){
 
-                        if (errorData.error.match(/occupied/i)) {
+                        if(errorData.error.match(/occupied/i)){
                             const spaceRes = await fetch(`/api/qrcode/display/${spaceId}`);
                             const spaceData = await spaceRes.json();
                             setReportToken(spaceData.currentQrToken ?? null);
                             setStatus('occupied');
                         }
 
-                        if (errorData.error.match(/active session/i)) {
+                        if(errorData.error.match(/active session/i)){
                             setStatus('user_occupied');
                             return;
                         }
@@ -109,7 +109,8 @@ function OccupySpaceContent() {
     if (isInvalidQr) {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-                <LoadingStatus />
+                <h1 className="text-2xl font-bold mb-4">Invalid QR Code</h1>
+                <p className="text-gray-500">The QR code you scanned is invalid. Contact the library&apos;s administrator for assistance.</p>
             </div>
         );
     }
@@ -136,13 +137,5 @@ function OccupySpaceContent() {
             {status === 'error' && <ErrorStatus />}
             {status === 'after_hours' && <AfterHoursStatus />}
         </div>
-    );
-}
-
-export default function OccupySpacePage() {
-    return (
-        <Suspense fallback={<LoadingStatus />}>
-            <OccupySpaceContent />
-        </Suspense>
     );
 }
