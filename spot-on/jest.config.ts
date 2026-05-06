@@ -46,7 +46,7 @@ const config: Config = {
     /**
      * Global setup/teardown for the test database container.
      *
-     * Starts a dedicated PostgreSQL container on port 5433 before any tests
+     * Starts a dedicated PostgreSQL container on port 5434 before any tests
      * run and applies a fresh schema. The container is kept alive after the
      * run so subsequent test runs start faster.
      */
