@@ -44,6 +44,16 @@ const createJestConfig = nextJest({
  */
 const config: Config = {
     /**
+     * Global setup/teardown for the test database container.
+     *
+     * Starts a dedicated PostgreSQL container on port 5434 before any tests
+     * run and applies a fresh schema. The container is kept alive after the
+     * run so subsequent test runs start faster.
+     */
+    globalSetup: '<rootDir>/jest.globalSetup.ts',
+    globalTeardown: '<rootDir>/jest.globalTeardown.ts',
+
+    /**
      * Coverage provider.
      *
      * Uses V8 for faster and more accurate coverage reporting compared to Babel.
