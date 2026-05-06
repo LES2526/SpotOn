@@ -88,7 +88,7 @@ jobs:
       NEXTAUTH_SECRET: ci-build-secret
       ALLOWED_EMAIL_DOMAIN: ualg.pt
       QR_SECRET: ci-qr-secret
-      LIBRARY_CLOSING_TIME: "22:00"
+      LIBRARY_CLOSING_TIME: "20:30"
     steps:
       - uses: actions/checkout@v4
 
