@@ -205,8 +205,9 @@ describe('Session Expiry', () => {
 
             scheduleSessionExpiry(session.id, new Date(Date.now() - 1000));
 
-            // markSessionExpired is async — flush pending microtasks
-            await jest.runAllTimersAsync();
+            // Fire the 0 ms timer then wait for Prisma I/O to complete.
+            jest.advanceTimersByTime(1);
+            await new Promise<void>(resolve => realSetTimeout(resolve, 500));
 
             const updated = await prisma.studySession.findUnique({
                 where: { id: session.id },
