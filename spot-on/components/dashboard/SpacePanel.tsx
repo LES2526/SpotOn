@@ -25,7 +25,7 @@ const OCCUPANCY_FILTERS = [
 ];
 
 export default function SpacePanel({ spaces }: Readonly<SpacePanelProps>) {
-    const [isOpen, setIsOpen] = useState(true);
+    const [isOpen, setIsOpen] = useState(false);
     const router = useRouter();
     const searchParams = useSearchParams();
 
