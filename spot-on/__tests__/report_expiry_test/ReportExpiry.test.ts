@@ -2,14 +2,14 @@
  * @jest-environment node
  */
 
+import type { FloorPlan, Space, StudySession, User } from '@/app/generated/prisma';
+import { prisma } from '@/lib/prisma';
 import {
     handleExpiredReport,
     markReportExpired,
     restoreReportExpiries,
     scheduleReportExpiry,
 } from '@/lib/report-expiry';
-import { prisma } from '@/lib/prisma';
-import type { FloorPlan, Space, StudySession, User } from '@/app/generated/prisma';
 
 describe('ReportExpiry', () => {
     let testFloorPlan: FloorPlan;
@@ -367,6 +367,15 @@ describe('ReportExpiry', () => {
     // ============================================================
 
     describe('restoreReportExpiries', () => {
+        beforeEach(async () => {
+            // Expire any OPEN reports from parallel test files so they don't
+            // interfere with timer-count assertions in this describe block.
+            await prisma.report.updateMany({
+                where: { status: 'OPEN', sessionId: { not: activeSession.id } },
+                data: { status: 'EXPIRED' },
+            });
+        });
+
         it('não agenda nada quando não há reports OPEN', async () => {
             // Use fake timers to count how many timers scheduleReportExpiry sets.
             // doNotFake keeps setImmediate/nextTick real so Prisma I/O still works.
