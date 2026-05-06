@@ -1,6 +1,6 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { requireAuth } from "@/lib/require-auth";
+import { findActiveSessionByHost, findSpace } from "@/lib/space-utils";
 import { NextResponse } from "next/server";
 
 type Params = { params: Promise<{ spaceId: string }> };
@@ -44,23 +44,19 @@ type Params = { params: Promise<{ spaceId: string }> };
  *         description: Internal Server Error
  */
 export const GET = async (_request: Request, props: Params) => {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    const session = await requireAuth();
+    if (!session) {
         return NextResponse.json(
             { error: 'Unauthorized' }, { status: 401 });
     }
     const params = await props.params;
     const { spaceId } = params;
-    const space = await prisma.space.findUnique({
-        where: { id: spaceId }
-    });
+    const space = await findSpace(spaceId);
     if (!space) {
         return NextResponse.json({ error: 'Space not found' },
             { status: 404 });
     }
-    const activeSession = await prisma.studySession.findFirst({
-        where: { spaceId, hostId: session.user.id, status: 'ACTIVE' },
-    });
+    const activeSession = await findActiveSessionByHost(spaceId, session.user.id);
     if (!activeSession) {
         return NextResponse.json({ report: null }, { status: 200 });
     }
