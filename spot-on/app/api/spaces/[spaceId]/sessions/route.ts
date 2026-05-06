@@ -13,8 +13,9 @@
  */
 
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { clampToClosingTime } from '@/lib/library-hours';
+import { clampToClosingTime, isAfterHours } from '@/lib/library-hours';
 import { prisma } from '@/lib/prisma';
+import { scheduleSessionExpiry } from '@/lib/session-expiry';
 import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 
@@ -116,6 +117,8 @@ export async function POST(_request: Request, { params }: Params) {
             }
         });
 
+        scheduleSessionExpiry(newSession.id, newSession.expectedEndTime);
+
         return NextResponse.json(newSession, { status: 201 });
     } catch (error) {
         console.error('Error creating session:', error);
@@ -196,7 +199,16 @@ export async function PATCH(request: Request, { params }: Params) {
             );
         }
 
-        const clampedExpectedEndTime = clampToClosingTime(new Date(expectedEndTime));
+        const newEndTime = new Date(expectedEndTime);
+
+        const clampedExpectedEndTime = clampToClosingTime(newEndTime);
+
+        if (isAfterHours(newEndTime)) {
+            return NextResponse.json(
+                { error: 'Is not allowed to extend session beyond 20:30' },
+                { status: 400 }
+            );
+        }
 
         const updatedSession = await prisma.studySession.update({
             where: { id: activeSession.id },
