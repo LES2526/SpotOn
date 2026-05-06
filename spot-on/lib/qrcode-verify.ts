@@ -7,6 +7,9 @@ import { NextResponse } from 'next/server';
 
 /** Verifies a QR code scan and creates or confirms a study session for the authenticated user. */
 export async function handleQrVerification(request: Request) {
+
+    const defaultStudyDurationMinutes = 15; // Default duration if not provided
+
     try {
         const session = await requireAuth();
         if (!session) {
@@ -22,7 +25,7 @@ export async function handleQrVerification(request: Request) {
         }
         let rawEndTime = expectedEndTime
             ? new Date(expectedEndTime)
-            : new Date(Date.now() + 60 * 60 * 1000);
+            : new Date(Date.now() + defaultStudyDurationMinutes * 60 * 1000);
         
         rawEndTime = clampToClosingTime(rawEndTime);
         
@@ -68,6 +71,19 @@ export async function handleQrVerification(request: Request) {
             return NextResponse.json(
                 { error: 'after_hours' },
                 { status: 400 },
+            );
+        }
+
+        const [closingHours, closingMinutes] = process.env.LIBRARY_CLOSING_TIME?.split(':').map(Number) || [19, 30];
+        const closingTotalMins = closingHours * 60 + closingMinutes;
+
+        const now = new Date();
+        const nowUTCMins = now.getUTCHours() * 60 + now.getUTCMinutes();
+
+        if (closingTotalMins - nowUTCMins < defaultStudyDurationMinutes) {
+            return NextResponse.json(
+                { error: 'after_hours' },
+                { status: 400 }
             );
         }
 
