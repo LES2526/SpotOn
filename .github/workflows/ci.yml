@@ -63,6 +63,15 @@ jobs:
 
       - run: npm ci
 
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Start test server
+        run: |
+          npx next dev --port 3001 --webpack &
+          # Wait up to 120 s for the server to be ready
+          timeout 120 bash -c 'until curl -sf http://localhost:3001 > /dev/null 2>&1; do sleep 2; done'
+
       - name: Run tests
         run: npm test -- --forceExit
 
