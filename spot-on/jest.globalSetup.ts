@@ -1,14 +1,9 @@
-import { execSync, spawn, spawnSync } from 'node:child_process';
-import fs from 'node:fs';
+import { execSync, spawnSync } from 'node:child_process';
 import path from 'node:path';
-import dotenv from 'dotenv';
 
 const DB_CONTAINER = 'spot-on-test-db';
 const DB_PORT = '5434';
 const TEST_DB_URL = `postgresql://admin:admin@localhost:${DB_PORT}/spot_on_test_db`;
-
-const SERVER_PORT = '3001';
-const SERVER_PID_FILE = '/tmp/spot-on-test-server.pid';
 
 function isContainerRunning(name: string): boolean {
     const result = spawnSync(
@@ -53,58 +48,10 @@ async function startTestDb(): Promise<void> {
     });
 }
 
-async function startNextServer(): Promise<void> {
-    // Load base env from .env so the server has all required secrets
-    dotenv.config({ path: path.join(__dirname, '.env') });
-
-    const server = spawn(
-        'npx', ['next', 'dev', '--port', SERVER_PORT, '--webpack'],
-        {
-            env: {
-                ...process.env,
-                DATABASE_URL: TEST_DB_URL,
-                NEXTAUTH_URL: `http://localhost:${SERVER_PORT}`,
-            },
-            cwd: __dirname,
-            stdio: ['ignore', 'pipe', 'pipe'],
-        }
-    );
-
-    if (server.pid) {
-        fs.writeFileSync(SERVER_PID_FILE, String(server.pid));
-    }
-
-    await new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(
-            () => reject(new Error('Next.js test server did not become ready within 120s')),
-            120_000
-        );
-
-        server.stdout?.on('data', (data: Buffer) => {
-            if (data.toString().includes('Ready in')) {
-                clearTimeout(timeout);
-                resolve();
-            }
-        });
-
-        server.on('error', (err) => {
-            clearTimeout(timeout);
-            reject(err);
-        });
-
-        server.on('exit', (code) => {
-            if (code !== 0 && code !== null) {
-                clearTimeout(timeout);
-                reject(new Error(`Next.js test server exited early with code ${code}`));
-            }
-        });
-    });
-}
-
 export default async function globalSetup() {
     if (process.env.CI) {
-        // In CI the database is provided by the workflow service — skip Docker.
-        // Just wipe and recreate the schema so each run starts clean.
+        // In CI the database is provided by the workflow service and DATABASE_URL
+        // is set at the job level — just wipe and recreate the schema.
         execSync('npx prisma db push --force-reset --skip-generate', {
             env: { ...process.env },
             stdio: 'inherit',
@@ -113,5 +60,11 @@ export default async function globalSetup() {
     } else {
         await startTestDb();
     }
-    await startNextServer();
+    // The Next.js server is NOT started here because env-var changes made in
+    // globalSetup (which runs in a separate Node process) do not propagate to
+    // Jest worker processes.  In CI the server is started as a dedicated
+    // workflow step before tests run so that all processes share the same
+    // DATABASE_URL / NEXTAUTH_URL values set at the job level.  For local
+    // development, start the dev server manually (e.g. `npm run dev`) with the
+    // appropriate DATABASE_URL and NEXTAUTH_URL before running `npm test`.
 }
