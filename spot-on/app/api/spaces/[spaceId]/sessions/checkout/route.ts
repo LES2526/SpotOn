@@ -10,7 +10,7 @@ import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/require-auth';
 import { NextResponse } from 'next/server';
 
-type Params = { params: { spaceId: string } };
+type Params = { params: Promise<{ spaceId: string }> };
 
 /**
  * @swagger
@@ -107,7 +107,7 @@ export async function POST(request: Request, { params }: Params) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { spaceId } = params;
+        const { spaceId } = await params;
         const userId = session.user.id;
         const body = await request.json().catch(() => ({}));
         const { targetUserId } = body;
