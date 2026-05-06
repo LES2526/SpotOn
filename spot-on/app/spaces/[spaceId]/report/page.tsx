@@ -2,8 +2,8 @@ import ReportForm from "@/components/report/ReportForm";
 import { redirect } from "next/navigation";
 
 type ReportPageProps = {
-    params: Promise<{ spaceId?: string }> | { spaceId?: string };
-    searchParams?: Promise<{ qrToken?: string }> | { qrToken?: string };
+    params: Promise<{ spaceId?: string }>;
+    searchParams?: Promise<{ qrToken?: string }>;
 };
 
 export default async function ReportPage({ params, searchParams,
