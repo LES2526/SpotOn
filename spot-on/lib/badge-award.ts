@@ -134,6 +134,10 @@ export async function hasMonthlyBadgeBeenAwarded(): Promise<boolean> {
     return !!awarded;
 }
 
+// Node.js silently clamps setTimeout delays > 2^31-1 ms to 1 ms, which turns
+// a ~27-day wait into a tight infinite loop. Split long waits into safe chunks.
+const MAX_SAFE_TIMEOUT_MS = 2_147_483_647;
+
 /**
  * Schedules the monthly badge award to run on the 1st of next month.
  *
@@ -146,8 +150,8 @@ export function scheduleMonthlyBadgeAward(): void {
     const next = getNextFirstOfMonth();
     const delay = next.getTime() - Date.now();
 
-    if (delay > MAX_TIMEOUT_MS) {
-        setTimeout(() => scheduleMonthlyBadgeAward(), MAX_TIMEOUT_MS);
+    if (delay > MAX_SAFE_TIMEOUT_MS) {
+        setTimeout(() => scheduleMonthlyBadgeAward(), MAX_SAFE_TIMEOUT_MS);
         return;
     }
 
