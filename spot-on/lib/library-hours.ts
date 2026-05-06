@@ -21,10 +21,9 @@ export function clampToClosingTime(expectedEndTime: Date): Date {
  * @returns boolean indicating if the current time is past the closing time.
  */
 export function isPastClosingTime(): boolean {
-    const [hours, minutes] = process.env.LIBRARY_CLOSING_TIME?.split(':').map(Number) || [20, 30];
+    const [hours, minutes] = process.env.LIBRARY_CLOSING_TIME?.split(':').map(Number) || [19, 30];
     const closingTime = new Date();
-    closingTime.setHours(hours, minutes, 0, 0);
-
+    closingTime.setUTCHours(hours, minutes, 0, 0);
     return new Date() > closingTime;
 }
 
