@@ -168,7 +168,27 @@ export const PATCH = async (_request: Request, props: Params) => {
                         sessionId: activeSession.id, status: 'OPEN'
                     }
                 });
-                if (!existingReport) throw new Error('NOT_FOUND');
+                if (!existingReport) {
+                    const expiredReport = await tx.report.findFirst({
+                        where: {
+                            sessionId: activeSession.id,
+                            status: 'EXPIRED',
+                            timeToConfirm: { lt: new Date() },
+                        },
+                        orderBy: { createdAt: 'desc' },
+                    });
+                    if (!expiredReport) {
+                        throw new Error('NOT_FOUND');
+                    }
+                    const sessionState = await tx.studySession.findUnique({
+                        where: { id: activeSession.id },
+                        select: { status: true },
+                    });
+                    return {
+                        expired: true,
+                        sessionEnded: sessionState?.status === 'EXPIRED',
+                    };
+                }
                 const alreadyConfirmed = await tx.reportConfirmation.findFirst({
                     where: {
                         reportId: existingReport.id,
