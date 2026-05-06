@@ -92,7 +92,7 @@ describe('POST /api/spaces/[spaceId]/sessions', () => {
         await prisma.$disconnect();
     });
 
-    it('deve criar sessão com utilizador autenticado', async () => {
+    it('should create a session for an authenticated user', async () => {
         (getServerSession as jest.Mock).mockResolvedValue({
             user: { id: testUser.id },
         });
@@ -119,7 +119,7 @@ describe('POST /api/spaces/[spaceId]/sessions', () => {
         expect(sessionInDb).toBeTruthy();
     });
 
-    it('deve devolver 401 se não autenticado', async () => {
+    it('should return 401 if not authenticated', async () => {
         (getServerSession as jest.Mock).mockResolvedValue(null);
 
         const response = await POST(
@@ -130,7 +130,7 @@ describe('POST /api/spaces/[spaceId]/sessions', () => {
         expect(response.status).toBe(401);
     });
 
-    it('deve devolver 404 se o espaço não existir', async () => {
+    it('should return 404 if the space does not exist', async () => {
         (getServerSession as jest.Mock).mockResolvedValue({
             user: { id: testUser.id },
         });
@@ -143,7 +143,7 @@ describe('POST /api/spaces/[spaceId]/sessions', () => {
         expect(response.status).toBe(404);
     });
 
-    it('deve devolver 409 se o espaço estiver ocupado', async () => {
+    it('should return 409 if the space is already occupied', async () => {
         (getServerSession as jest.Mock).mockResolvedValue({
             user: { id: testUser.id },
         });
@@ -165,7 +165,7 @@ describe('POST /api/spaces/[spaceId]/sessions', () => {
         expect(response.status).toBe(409);
     });
 
-    it('deve permitir nova sessão se anterior estiver COMPLETED', async () => {
+    it('should allow a new session if the previous one is COMPLETED', async () => {
         (getServerSession as jest.Mock).mockResolvedValue({
             user: { id: testUser.id },
         });
@@ -194,7 +194,7 @@ describe('POST /api/spaces/[spaceId]/sessions', () => {
         expect(count).toBe(2);
     });
 
-    it('deve definir expectedEndTime ≈ 1 hora', async () => {
+    it('should set expectedEndTime to approximately 1 hour from now', async () => {
         (getServerSession as jest.Mock).mockResolvedValue({
             user: { id: testUser.id },
         });

@@ -6,15 +6,19 @@ import LoadingStatus from "@/components/qrcode/Loading";
 import OccupiedStatus from "@/components/qrcode/Occupied";
 import SuccessStatus from "@/components/qrcode/Success";
 import UserOccupiedStatus from "@/components/qrcode/UserOccupied";
+import ExtendSession from "@/components/qrcode/ExtendSession";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import AfterHoursStatus from "@/components/qrcode/AfterHoursStatus";
 
 export default function OccupySpacePage() {
+
     const [status, setStatus] = useState<
-        'loading' | 'success' | 'occupied' | 'user_occupied' | 'expired' | 'error'
+        'loading' | 'success' | 'occupied' | 'user_occupied' | 'expired' | 'error' | 'extend' | 'after_hours'
     >('loading');
     const [reportToken, setReportToken] = useState<string | null>(null);
     const [isJoin, setIsJoin] = useState(false);
+    const [currentEndTime, setCurrentEndTime] = useState<string | null>(null);
 
     const searchParams = useSearchParams();
     const spaceId = searchParams.get('spaceId');
@@ -34,21 +38,48 @@ export default function OccupySpacePage() {
                 });
 
                 if (response.ok) {
-                    setStatus('success');
-                } else {
+                    const data = await response.json();
+                    if (data.message?.match(/already active/i)) {
+                        const sessionRes = await fetch(`/api/spaces/${spaceId}/sessions/current`);
+                        const sessionData = await sessionRes.json();
+                        setCurrentEndTime(sessionData.expectedEndTime);
+                        setStatus('extend');
+                    }
+                    else {
+                        setStatus('success');
+                    }
+                }
+                else {
                     const errorData = await response.json();
-                    if (response.status === 409 && errorData.error.match(/occupied/i)) {
-                        const spaceRes = await fetch(`/api/qrcode/display/${spaceId}`);
-                        const spaceData = await spaceRes.json();
-                        setReportToken(spaceData.currentQrToken ?? null);
-                        setStatus('occupied');
-                    } else if (response.status === 409 && errorData.error.match(/active session/i)) {
-                        setStatus('user_occupied');
-                    } else if (response.status === 400 && errorData.error === 'expired') {
+
+                    if(response.status === 409){
+
+                        if(errorData.error.match(/occupied/i)){
+                            const spaceRes = await fetch(`/api/qrcode/display/${spaceId}`);
+                            const spaceData = await spaceRes.json();
+                            setReportToken(spaceData.currentQrToken ?? null);
+                            setStatus('occupied');
+                        }
+
+                        if(errorData.error.match(/active session/i)){
+                            setStatus('user_occupied');
+                            return;
+                        }
+
+                    }
+
+                    else if (response.status === 400 && errorData.error === 'expired') {
                         setStatus('expired');
-                    } else {
+                    }
+
+                    else if (response.status === 400 && errorData.error === 'after_hours') {
+                        setStatus('after_hours');
+                    }
+
+                    else {
                         setStatus('error');
                     }
+
                 }
             } catch (error) {
                 console.error('Network error:', error);
@@ -95,9 +126,17 @@ export default function OccupySpacePage() {
                     onJoinSession={joinSession}
                 />
             )}
+            {status === 'extend' && (
+                <ExtendSession 
+                    spaceId={spaceId} 
+                    currentEndTime={currentEndTime!}
+                    onAfterHours={() => setStatus('after_hours')}
+                />
+            )}
             {status === 'user_occupied' && <UserOccupiedStatus />}
             {status === 'expired' && <ExpiredStatus />}
             {status === 'error' && <ErrorStatus />}
+            {status === 'after_hours' && <AfterHoursStatus />}
         </div>
     );
 }

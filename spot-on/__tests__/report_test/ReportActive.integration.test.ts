@@ -93,21 +93,21 @@ describe('GET /api/spaces/[spaceId]/reports/active', () => {
         await prisma.$disconnect();
     });
 
-    it('deve devolver 401 se não autenticado', async () => {
+    it('should return 401 if not authenticated', async () => {
         (getServerSession as jest.Mock).mockResolvedValue(null);
 
         const response = await GET({} as Request, { params: Promise.resolve({ spaceId: testSpace.id }) });
         expect(response.status).toBe(401);
     });
 
-    it('deve devolver 404 se o espaço não existir', async () => {
+    it('should return 404 if the space does not exist', async () => {
         (getServerSession as jest.Mock).mockResolvedValue({ user: { id: hostUser.id } });
 
         const response = await GET({} as Request, { params: Promise.resolve({ spaceId: 'nonexistent' }) });
         expect(response.status).toBe(404);
     });
 
-    it('deve devolver report: null se o utilizador não tiver sessão ativa no espaço', async () => {
+    it('should return report: null if the user has no active session in the space', async () => {
         const otherUser = await prisma.user.create({
             data: { email: `no-session-user-${Date.now()}@ualg.pt` },
         });
@@ -122,7 +122,7 @@ describe('GET /api/spaces/[spaceId]/reports/active', () => {
         await prisma.user.delete({ where: { id: otherUser.id } });
     });
 
-    it('deve devolver report: null se não houver report aberto para a sessão', async () => {
+    it('should return report: null if there is no open report for the session', async () => {
         (getServerSession as jest.Mock).mockResolvedValue({ user: { id: hostUser.id } });
 
         const response = await GET({} as Request, { params: Promise.resolve({ spaceId: testSpace.id }) });
@@ -131,7 +131,7 @@ describe('GET /api/spaces/[spaceId]/reports/active', () => {
         expect(body.report).toBeNull();
     });
 
-    it('deve devolver o report OPEN da sessão do utilizador', async () => {
+    it('should return the OPEN report for the user session', async () => {
         (getServerSession as jest.Mock).mockResolvedValue({ user: { id: hostUser.id } });
 
         const reporter = await prisma.user.create({

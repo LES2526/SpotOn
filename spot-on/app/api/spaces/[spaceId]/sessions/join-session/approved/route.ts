@@ -86,7 +86,6 @@ export async function PATCH(_request: Request, { params }: Params) {
             return NextResponse.json({ error: 'Study session not found' },
                 { status: 404 });
         }
- 
         if (studySession.hostId !== session.user.id) {
             return NextResponse.json({
                 error: 'You are not the host of this session.'
