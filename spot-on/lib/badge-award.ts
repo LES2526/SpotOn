@@ -140,9 +140,16 @@ export async function hasMonthlyBadgeBeenAwarded(): Promise<boolean> {
  * After awarding badges it reschedules itself for the following month,
  * so it runs indefinitely without needing a cron job.
  */
+const MAX_TIMEOUT_MS = 2_147_483_647; // max 32-bit signed integer (~24.8 days)
+
 export function scheduleMonthlyBadgeAward(): void {
     const next = getNextFirstOfMonth();
     const delay = next.getTime() - Date.now();
+
+    if (delay > MAX_TIMEOUT_MS) {
+        setTimeout(() => scheduleMonthlyBadgeAward(), MAX_TIMEOUT_MS);
+        return;
+    }
 
     console.log(
         `Monthly badge award scheduled for ${next.toISOString()} ` +
