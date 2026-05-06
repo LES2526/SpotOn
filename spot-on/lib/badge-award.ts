@@ -148,6 +148,7 @@ export function scheduleMonthlyBadgeAward(): void {
     const next = getNextFirstOfMonth();
     const delay = next.getTime() - Date.now();
 
+<<<<<<< HEAD
     if (delay > MAX_SAFE_TIMEOUT_MS) {
         setTimeout(() => scheduleMonthlyBadgeAward(), MAX_SAFE_TIMEOUT_MS);
         return;
