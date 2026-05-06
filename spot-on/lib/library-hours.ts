@@ -5,9 +5,9 @@
  * @returns Date object representing the adjusted end time, which will not be later than the library's closing time.
  */
 export function clampToClosingTime(expectedEndTime: Date): Date {
-    const [hours, minutes] = process.env.LIBRARY_CLOSING_TIME?.split(':').map(Number) || [20, 30];
+    const [hours, minutes] = process.env.LIBRARY_CLOSING_TIME?.split(':').map(Number) || [19, 30];
     const closingTime = new Date();
-    closingTime.setHours(hours, minutes, 0, 0);
+    closingTime.setUTCHours(hours, minutes, 0, 0);
 
     if (expectedEndTime > closingTime) {
         return closingTime;
@@ -16,12 +16,12 @@ export function clampToClosingTime(expectedEndTime: Date): Date {
     return expectedEndTime;
 }
 
-/** Returns true if the given date's local time is past the library closing time. */
+/** Returns true if the given date's UTC time is past the library closing time. */
 export function isAfterHours(date: Date): boolean {
-    const [closingHours, closingMinutes] = process.env.LIBRARY_CLOSING_TIME?.split(':').map(Number) || [20, 30];
+    const [closingHours, closingMinutes] = process.env.LIBRARY_CLOSING_TIME?.split(':').map(Number) || [19, 30];
 
-    const dateHours = date.getHours();
-    const dateMinutes = date.getMinutes();
+    const dateHours = date.getUTCHours();
+    const dateMinutes = date.getUTCMinutes();
 
     return dateHours * 60 + dateMinutes > closingHours * 60 + closingMinutes;
 }

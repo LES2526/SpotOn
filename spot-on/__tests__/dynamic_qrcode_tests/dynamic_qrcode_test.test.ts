@@ -417,7 +417,7 @@ describe('Sprint 3 — QR Code & Session API', () => {
 
         describe('Library hours clamping', () => {
             it('should clamp expectedEndTime to closing time if it exceeds it', async () => {
-                const closingTime = process.env.LIBRARY_CLOSING_TIME ?? '20:30';
+                const closingTime = process.env.LIBRARY_CLOSING_TIME ?? '19:30';
                 const [hours] = closingTime.split(':').map(Number);
 
                 // Use UTC hours so the test is timezone-agnostic (server runs in UTC)
@@ -438,18 +438,18 @@ describe('Sprint 3 — QR Code & Session API', () => {
             });
 
             it('should return 400 when less than 15 minutes remain before closing', async () => {
-                const closingTime = process.env.LIBRARY_CLOSING_TIME ?? '20:30';
+                const closingTime = process.env.LIBRARY_CLOSING_TIME ?? '19:30';
                 const [hours, minutes] = closingTime.split(':').map(Number);
 
                 // Mock current time to be 10 minutes before closing
                 const tenMinsBeforeClosing = new Date();
-                tenMinsBeforeClosing.setHours(hours, minutes - 10, 0, 0);
+                tenMinsBeforeClosing.setUTCHours(hours, minutes - 10, 0, 0);
 
                 // This test only runs meaningfully if current time is near closing
                 // Skip if we're not close enough to closing time to test this
                 const now = new Date();
                 const closingDate = new Date();
-                closingDate.setHours(hours, minutes, 0, 0);
+                closingDate.setUTCHours(hours, minutes, 0, 0);
                 const minsUntilClosing = (closingDate.getTime() - now.getTime()) / 60000;
 
                 if (minsUntilClosing > 0 && minsUntilClosing < 15) {
@@ -647,7 +647,7 @@ describe('Sprint 3 — QR Code & Session API', () => {
             });
 
             it('should clamp expectedEndTime to closing time if it exceeds it', async () => {
-                const closingTime = process.env.LIBRARY_CLOSING_TIME ?? '20:30';
+                const closingTime = process.env.LIBRARY_CLOSING_TIME ?? '19:30';
                 const [hours] = closingTime.split(':').map(Number);
 
                 // Use UTC hours so the test is timezone-agnostic (server runs in UTC)
