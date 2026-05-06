@@ -29,6 +29,10 @@ import {
 // Test fixtures
 // ---------------------------------------------------------------------------
 
+// Capture real setTimeout before jest.useFakeTimers replaces it so the
+// timer-based tests can wait for real async DB operations to complete.
+const realSetTimeout = setTimeout;
+
 describe('Session Expiry', () => {
     let testUser: User;
     let testFloorPlan: FloorPlan;
@@ -186,7 +190,7 @@ describe('Session Expiry', () => {
     // -------------------------------------------------------------------------
 
     describe('scheduleSessionExpiry', () => {
-        beforeEach(() => jest.useFakeTimers());
+        beforeEach(() => jest.useFakeTimers({ doNotFake: ['nextTick', 'setImmediate'] }));
         afterEach(() => jest.useRealTimers());
 
         it('should mark EXPIRED immediately if the end time has already passed', async () => {
@@ -201,8 +205,9 @@ describe('Session Expiry', () => {
 
             scheduleSessionExpiry(session.id, new Date(Date.now() - 1000));
 
-            // markSessionExpired is async — flush pending microtasks
-            await jest.runAllTimersAsync();
+            // Fire the 0 ms timer then wait for Prisma I/O to complete.
+            jest.advanceTimersByTime(1);
+            await new Promise<void>(resolve => realSetTimeout(resolve, 500));
 
             const updated = await prisma.studySession.findUnique({
                 where: { id: session.id },
@@ -222,8 +227,10 @@ describe('Session Expiry', () => {
 
             scheduleSessionExpiry(session.id, new Date(Date.now() + 5 * 60_000));
 
-            // sendExpiryWarning called synchronously (no timer), flush microtasks
-            await jest.runAllTimersAsync();
+            // Advance 1ms to fire the 0ms warning timer without also triggering
+            // the 5-minute expiry timer, then wait for Prisma to finish.
+            jest.advanceTimersByTime(1);
+            await new Promise<void>(resolve => realSetTimeout(resolve, 500));
 
             const notification = await prisma.notification.findFirst({
                 where: { userId: testUser.id, type: 'SESSION_EXPIRING_SOON' },
@@ -246,16 +253,17 @@ describe('Session Expiry', () => {
 
             // Advance 9 min — warning should NOT have fired yet
             jest.advanceTimersByTime(9 * 60_000);
-            await Promise.resolve(); // flush microtasks
 
             const notifBefore = await prisma.notification.findFirst({
                 where: { userId: testUser.id, type: 'SESSION_EXPIRING_SOON' },
             });
             expect(notifBefore).toBeNull();
 
-            // Advance past the 10-min warning mark (total: 11 min elapsed)
+            // Advance past the 10-min warning mark (total: 11 min elapsed).
+            // advanceTimersByTime fires the callback synchronously but starts an async DB
+            // operation; use a real-time wait so Prisma can finish.
             jest.advanceTimersByTime(2 * 60_000);
-            await jest.runAllTimersAsync();
+            await new Promise<void>(resolve => realSetTimeout(resolve, 500));
 
             const notifAfter = await prisma.notification.findFirst({
                 where: { userId: testUser.id, type: 'SESSION_EXPIRING_SOON' },
@@ -276,9 +284,9 @@ describe('Session Expiry', () => {
 
             scheduleSessionExpiry(session.id, endTime);
 
-            // Advance past expiry
+            // Advance past expiry, then give Prisma real time to process the update.
             jest.advanceTimersByTime(16 * 60_000);
-            await jest.runAllTimersAsync();
+            await new Promise<void>(resolve => realSetTimeout(resolve, 500));
 
             const updated = await prisma.studySession.findUnique({
                 where: { id: session.id },

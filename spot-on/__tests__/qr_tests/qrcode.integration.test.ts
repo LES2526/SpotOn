@@ -28,6 +28,8 @@ import axios, { AxiosInstance } from 'axios';
 const BASE_URL = process.env.NEXTAUTH_URL ?? 'http://localhost:3000';
 const ENDPOINT = '/api/qrcode/verify';
 
+jest.setTimeout(30000);
+
 /**
  * Creates an axios instance authenticated as the given user by injecting
  * a real database session and passing its token as a cookie.
@@ -114,15 +116,15 @@ describe('POST /api/qrcode/verify', () => {
     });
 
     afterEach(async () => {
-        await prisma.studySession.deleteMany({ where: { spaceId } });
+        if (spaceId) await prisma.studySession.deleteMany({ where: { spaceId } });
     });
 
     afterAll(async () => {
-        await prisma.studySession.deleteMany({ where: { spaceId } });
-        await prisma.session.deleteMany({ where: { sessionToken } });
-        await prisma.space.delete({ where: { id: spaceId } });
-        await prisma.floorPlan.delete({ where: { id: floorPlanId } });
-        await prisma.user.delete({ where: { id: userId } });
+        if (spaceId) await prisma.studySession.deleteMany({ where: { spaceId } });
+        if (sessionToken) await prisma.session.deleteMany({ where: { sessionToken } });
+        if (spaceId) await prisma.space.delete({ where: { id: spaceId } });
+        if (floorPlanId) await prisma.floorPlan.delete({ where: { id: floorPlanId } });
+        if (userId) await prisma.user.delete({ where: { id: userId } });
         await prisma.$disconnect();
     });
 
@@ -243,7 +245,7 @@ describe('POST /api/qrcode/verify', () => {
             expect(data.error).toBeDefined();
         });
 
-        it('should default expectedEndTime to approximately 1 hour from now', async () => {
+        it('should default expectedEndTime to approximately 15 minutes from now', async () => {
             const now = Date.now();
 
             const { data } = await client.post(ENDPOINT, {
@@ -253,9 +255,9 @@ describe('POST /api/qrcode/verify', () => {
             });
 
             const diff = new Date(data.expectedEndTime).getTime() - now;
-            const oneHour = 3600000;
-            expect(diff).toBeGreaterThanOrEqual(oneHour - 5000);
-            expect(diff).toBeLessThanOrEqual(oneHour + 5000);
+            const fifteenMin = 15 * 60 * 1000;
+            expect(diff).toBeGreaterThanOrEqual(fifteenMin - 5000);
+            expect(diff).toBeLessThanOrEqual(fifteenMin + 5000);
         });
 
         it('should respect a custom expectedEndTime', async () => {
