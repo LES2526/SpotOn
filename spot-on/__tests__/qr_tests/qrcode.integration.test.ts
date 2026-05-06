@@ -245,7 +245,7 @@ describe('POST /api/qrcode/verify', () => {
             expect(data.error).toBeDefined();
         });
 
-        it('should default expectedEndTime to approximately 1 hour from now', async () => {
+        it('should default expectedEndTime to approximately 15 minutes from now', async () => {
             const now = Date.now();
 
             const { data } = await client.post(ENDPOINT, {
@@ -255,9 +255,9 @@ describe('POST /api/qrcode/verify', () => {
             });
 
             const diff = new Date(data.expectedEndTime).getTime() - now;
-            const oneHour = 3600000;
-            expect(diff).toBeGreaterThanOrEqual(oneHour - 5000);
-            expect(diff).toBeLessThanOrEqual(oneHour + 5000);
+            const fifteenMin = 15 * 60 * 1000;
+            expect(diff).toBeGreaterThanOrEqual(fifteenMin - 5000);
+            expect(diff).toBeLessThanOrEqual(fifteenMin + 5000);
         });
 
         it('should respect a custom expectedEndTime', async () => {
