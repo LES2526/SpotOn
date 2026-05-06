@@ -12,11 +12,11 @@
  * @since 1.0.0
  */
 
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { clampToClosingTime, isAfterHours } from '@/lib/library-hours';
+import { clampToClosingTime } from '@/lib/library-hours';
 import { prisma } from '@/lib/prisma';
+import { requireAuth } from '@/lib/require-auth';
 import { scheduleSessionExpiry } from '@/lib/session-expiry';
-import { getServerSession } from 'next-auth';
+import { findActiveSession, findActiveSessionByHost, findSpace } from '@/lib/space-utils';
 import { NextResponse } from 'next/server';
 
 /**
@@ -80,26 +80,19 @@ type Params = { params: Promise<{ spaceId: string }> };
  */
 export async function POST(_request: Request, { params }: Params) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) {
+        const session = await requireAuth();
+        if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
         const { spaceId } = await Promise.resolve(params);
-        // Verify the space exists
-        const space = await prisma.space.findUnique({ where: { id: spaceId } });
+        const space = await findSpace(spaceId);
         if (!space) {
             return NextResponse.json({ error: 'Space not found' }, { status: 404 });
         }
-        // Check if the space is already occupied by an active session
-        const spaceOccupied = await prisma.studySession.findFirst({
-            where: {
-                spaceId, status: 'ACTIVE',
-            }
-        });
+        const spaceOccupied = await findActiveSession(spaceId);
         if (spaceOccupied) {
             return NextResponse.json({ error: 'Space is already occupied' }, { status: 409 });
         }
-        // Check if the user already has an active session in another space
         const userOccupied = await prisma.studySession.findFirst({
             where: {
                 hostId: session.user.id, status: 'ACTIVE',
@@ -108,7 +101,6 @@ export async function POST(_request: Request, { params }: Params) {
         if (userOccupied) {
             return NextResponse.json({ error: 'You already have an active session. Please release it first.' }, { status: 409 });
         }
-        // Create the new study session with a 1-hour duration
         const newSession = await prisma.studySession.create({
             data: {
                 spaceId,
@@ -175,18 +167,12 @@ export async function PATCH(request: Request, { params }: Params) {
     const { spaceId } = await Promise.resolve(params);
 
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) {
+        const session = await requireAuth();
+        if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const activeSession = await prisma.studySession.findFirst({
-            where: {
-                spaceId,
-                hostId: session.user.id,
-                status: 'ACTIVE',
-            },
-        });
+        const activeSession = await findActiveSessionByHost(spaceId, session.user.id);
 
         if (!activeSession) {
             return NextResponse.json({ error: 'No active session found for this space and user' }, { status: 404 });
@@ -202,13 +188,6 @@ export async function PATCH(request: Request, { params }: Params) {
         const newEndTime = new Date(expectedEndTime);
 
         const clampedExpectedEndTime = clampToClosingTime(newEndTime);
-
-        if (isAfterHours(newEndTime)) {
-            return NextResponse.json(
-                { error: 'Is not allowed to extend session beyond 20:30' },
-                { status: 400 }
-            );
-        }
 
         const updatedSession = await prisma.studySession.update({
             where: { id: activeSession.id },
@@ -274,22 +253,15 @@ export async function PATCH(request: Request, { params }: Params) {
  */
 export async function DELETE(_request: Request, { params }: Params) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) {
+        const session = await requireAuth();
+        if (!session) {
             return NextResponse.json(
                 { error: 'Unauthorized' }, { status: 401 });
         }
 
         const { spaceId } = await Promise.resolve(params);
 
-        // Find the user's active session in this space
-        const activeSession = await prisma.studySession.findFirst({
-            where: {
-                spaceId,
-                hostId: session.user.id,
-                status: 'ACTIVE'
-            }
-        });
+        const activeSession = await findActiveSessionByHost(spaceId, session.user.id);
 
         if (!activeSession) {
             return NextResponse.json({
@@ -297,7 +269,6 @@ export async function DELETE(_request: Request, { params }: Params) {
             }, { status: 404 });
         }
 
-        // Mark the session as completed and set the end time to now
         await prisma.studySession.update({
             where: { id: activeSession.id },
             data: {

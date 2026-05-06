@@ -11,12 +11,12 @@
  * @since 1.0.0
  */
 
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { createNotification } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { scheduleReportExpiry } from "@/lib/report-expiry";
+import { requireAuth } from "@/lib/require-auth";
+import { findActiveSession, findSpace, isAcceptedParticipant } from "@/lib/space-utils";
 import { sendProofOfPresenceEmail } from "@/lib/send-notification-email";
-import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
 type Params = { params: Promise<{ spaceId: string }> };
@@ -72,14 +72,12 @@ type Params = { params: Promise<{ spaceId: string }> };
 export const POST = async (_request: Request, props: Params) => {
     try {
         const params = await props.params;
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) {
+        const session = await requireAuth();
+        if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
         const { spaceId } = params;
-        const space = await prisma.space.findUnique({
-            where: { id: spaceId }
-        });
+        const space = await findSpace(spaceId);
         if (!space) {
             return NextResponse.json({ error: 'Space not found' },
                 { status: 404 });
@@ -93,9 +91,7 @@ export const POST = async (_request: Request, props: Params) => {
         if (!body.reason || body.reason.trim() === '') {
             return NextResponse.json({ error: 'Reason is required' }, { status: 400 });
         }
-        const activeSession = await prisma.studySession.findFirst({
-            where: { spaceId, status: 'ACTIVE' },
-        });
+        const activeSession = await findActiveSession(spaceId);
         if (!activeSession) {
             return NextResponse.json({
                 error: 'No active session found for this space'
@@ -106,13 +102,7 @@ export const POST = async (_request: Request, props: Params) => {
                 error: 'You cannot report your own session'
             }, { status: 400 });
         }
-        const isParticipant = await prisma.userOnStudySession.findFirst({
-            where: {
-                userId: session.user.id,
-                sessionId: activeSession.id,
-                status: 'ACCEPTED',
-            }
-        });
+        const isParticipant = await isAcceptedParticipant(session.user.id, activeSession.id);
         if (isParticipant) {
             return NextResponse.json({
                 error: 'Participants cannot report the session'

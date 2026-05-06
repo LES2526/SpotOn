@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
 import { buildQrUrl } from '@/lib/qr-utils';
+import { findSpace } from '@/lib/space-utils';
 
 
 /**
@@ -56,15 +57,13 @@ type Params = { params: Promise<{ spaceId: string }> };
 export async function GET(_request: Request, { params }: Params) {
     const { spaceId } = await params;
 
-    console.log(`Received request for QR code of space ${spaceId}`);
-
     if (!spaceId) {
         return NextResponse.json({ error: 'Missing spaceId parameter' }, { status: 400 });
     }
 
-    const existingSpace = await prisma.space.findUnique({ where: { id: spaceId } });
+    const space = await findSpace(spaceId);
 
-    if (!existingSpace) {
+    if (!space) {
         return NextResponse.json({ error: 'Space not found' }, { status: 404 });
     }
 
@@ -82,6 +81,6 @@ export async function GET(_request: Request, { params }: Params) {
     return NextResponse.json({
         qrCodeURL,
         isOccupied: Boolean(activeSession),
-        currentQrToken: existingSpace.currentQrToken,
+        currentQrToken: space.currentQrToken,
     });
 }
