@@ -1,5 +1,5 @@
-import { prisma } from '@/lib/prisma';
 import { Prisma } from '@/app/generated/prisma';
+import { prisma } from '@/lib/prisma';
 
 type Tx = Prisma.TransactionClient;
 
@@ -72,15 +72,15 @@ export async function handleExpiredReport(tx: Tx, reportId: string,
         });
 
         const participants = await tx.userOnStudySession.findMany({
-            where: {sessionId, status: 'ACCEPTED'}
+            where: { sessionId, status: 'ACCEPTED' }
         });
 
         const allAbsent = [hostId, ...participants.map(p => p.userId)];
 
-        for(const userId of allAbsent){
-            const user = await tx.user.findUnique({where: {id: userId}, select: {points: true}});
+        for (const userId of allAbsent) {
+            const user = await tx.user.findUnique({ where: { id: userId }, select: { points: true } });
             const penalty = Math.floor((user?.points ?? 0) * 0.1);
-            await tx.user.update({where: {id: userId}, data: {points: {decrement: penalty}}});
+            await tx.user.update({ where: { id: userId }, data: { points: { decrement: penalty } } });
         }
         return { expired: true, sessionEnded: true };
     }
@@ -108,11 +108,11 @@ export async function handleExpiredReport(tx: Tx, reportId: string,
         ...notConfirmed,
         ...(!confirmedUserIds.has(hostId) ? [hostId] : [])
     ];
-    
-    for(const userId of absentIds){
-        const user = await tx.user.findUnique({where: { id: userId }, select: {points: true}});
+
+    for (const userId of absentIds) {
+        const user = await tx.user.findUnique({ where: { id: userId }, select: { points: true } });
         const penalty = Math.floor((user?.points ?? 0) * 0.1);
-        await tx.user.update({where: {id : userId}, data: {points: {decrement: penalty}}});
+        await tx.user.update({ where: { id: userId }, data: { points: { decrement: penalty } } });
     }
     return { expired: true, sessionEnded: false };
 }
@@ -131,10 +131,10 @@ export async function handleExpiredReport(tx: Tx, reportId: string,
  * @returns The `scheduleReportExpiry` function is not returning anything as it has a return type of
  * `void`. It schedules the expiration of a report based on the provided `timeToConfirm` parameter.
  */
-export function scheduleReportExpiry(reportId: string, hostId:string, timeToConfirm: Date): void {
+export function scheduleReportExpiry(reportId: string, hostId: string, timeToConfirm: Date): void {
     const delay = timeToConfirm.getTime() - Date.now();
-    
-    if(delay <= 0){
+
+    if (delay <= 0) {
         markReportExpired(reportId, hostId);
         return;
     }
@@ -149,17 +149,16 @@ export function scheduleReportExpiry(reportId: string, hostId:string, timeToConf
 export async function restoreReportExpiries(): Promise<void> {
     try {
         const openReports = await prisma.report.findMany({
-            where: {status: 'OPEN'},
-            select: {id: true, timeToConfirm: true, session: {select: {hostId: true}}}
+            where: { status: 'OPEN' },
+            select: { id: true, timeToConfirm: true, session: { select: { hostId: true } } }
 
         });
         console.log(`Restoring expiry timers for ${openReports.length} open report(s)`);
 
-        for(const report of openReports){
+        for (const report of openReports) {
             scheduleReportExpiry(report.id, report.session.hostId, report.timeToConfirm);
         }
     } catch (error) {
         console.error('Failed to restore report expiries:', error);
     }
 }
-

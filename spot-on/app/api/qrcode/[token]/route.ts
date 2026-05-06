@@ -4,9 +4,8 @@
  * @module app/api/qrcode/[token]/route
  */
 
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
+import { requireAuth } from '@/lib/require-auth';
 import { NextResponse } from 'next/server';
 
 type Params = { params: Promise<{ token: string }> };
@@ -67,8 +66,8 @@ type Params = { params: Promise<{ token: string }> };
  *         description: QR code not recognised
  */
 export async function GET(_request: Request, props: Params) {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    const session = await requireAuth();
+    if (!session) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
