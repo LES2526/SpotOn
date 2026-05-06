@@ -95,7 +95,7 @@ describe('PATCH /api/spaces/[spaceId]/sessions/extend', () => {
         });
 
         const initialEndTime = new Date();
-        initialEndTime.setHours(14, 0, 0, 0); // 14:00
+        initialEndTime.setUTCHours(14, 0, 0, 0); // 14:00 UTC
 
         await prisma.studySession.create({
             data: {
@@ -107,7 +107,7 @@ describe('PATCH /api/spaces/[spaceId]/sessions/extend', () => {
         });
 
         const newEndTime = new Date();
-        newEndTime.setHours(15, 0, 0, 0); // 15:00
+        newEndTime.setUTCHours(15, 0, 0, 0); // 15:00 UTC
 
         const request = new Request('http://localhost', {
             method: 'PATCH',
@@ -121,13 +121,16 @@ describe('PATCH /api/spaces/[spaceId]/sessions/extend', () => {
         expect(new Date(body.expectedEndTime).toISOString()).toBe(newEndTime.toISOString());
     });
 
-    it('should not allow extending past 20:30', async () => {
+    it('should not allow extending past 19:30', async () => {
         (getServerSession as jest.Mock).mockResolvedValue({
             user: { id: testUser.id },
         });
 
+        const closingTime = process.env.LIBRARY_CLOSING_TIME ?? '19:30';
+        const [hours, minutes] = closingTime.split(':').map(Number);
+
         const newEndTimeInvalid = new Date();
-        newEndTimeInvalid.setHours(20, 31, 0, 0); // 20:31
+        newEndTimeInvalid.setUTCHours(hours, minutes + 1, 0, 0); // 1 min after closing (UTC)
 
         const request = new Request('http://localhost', {
             method: 'PATCH',
@@ -138,7 +141,7 @@ describe('PATCH /api/spaces/[spaceId]/sessions/extend', () => {
         expect(response.status).toBe(400);
 
         const body = await response.json();
-        expect(body.error).toBe('Is not allowed to extend session beyond 20:30');
+        expect(body.error).toBe('Is not allowed to extend session beyond 19:30');
     });
 
     it('should return 404 if there is no active session for the user', async () => {
@@ -147,7 +150,7 @@ describe('PATCH /api/spaces/[spaceId]/sessions/extend', () => {
         });
 
         const newEndTime = new Date();
-        newEndTime.setHours(15, 0, 0, 0); // 15:00
+        newEndTime.setUTCHours(15, 0, 0, 0); // 15:00 UTC
 
         const request = new Request('http://localhost', {
             method: 'PATCH',
