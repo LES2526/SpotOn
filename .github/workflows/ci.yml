@@ -49,9 +49,9 @@ jobs:
       NEXTAUTH_URL: http://localhost:3001
       NEXTAUTH_SECRET: ci-nextauth-secret
       ALLOWED_EMAIL_DOMAIN: ualg.pt
-      ALLOW_ANY_EMAIL_IN_DEV: "true"
+      ALLOW_ANY_EMAIL_IN_DEV: "false"
       QR_SECRET: ci-qr-secret
-      LIBRARY_CLOSING_TIME: "22:00"
+      LIBRARY_CLOSING_TIME: "20:30"
     steps:
       - uses: actions/checkout@v4
 
