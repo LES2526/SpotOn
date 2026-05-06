@@ -1,6 +1,5 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { requireAuth } from "@/lib/require-auth";
 import { NextResponse } from "next/server";
 
 type Params = { params: Promise<{ id: string }> };
@@ -36,8 +35,8 @@ type Params = { params: Promise<{ id: string }> };
  *         description: Not Found - notification does not exist or belongs to another user
  */
 export async function PATCH(_request: Request, { params }: Params) {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    const session = await requireAuth();
+    if (!session) {
         return NextResponse.json({
             error: 'Unauthorized'
         }, { status: 401 });
