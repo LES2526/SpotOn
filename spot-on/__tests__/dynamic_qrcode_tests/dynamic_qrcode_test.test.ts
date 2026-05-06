@@ -298,7 +298,7 @@ describe('Sprint 3 — QR Code & Session API', () => {
                 expect(sessionInDb?.hostId).toBe(userId);
             });
 
-            it('should default expectedEndTime to approximately 1 hour from now', async () => {
+            it('should default expectedEndTime to approximately 15 minutes from now', async () => {
                 const now = Date.now();
                 const qrWindow = currentWindow();
                 const { data } = await client.post('/api/qrcode/verify', {
@@ -308,9 +308,9 @@ describe('Sprint 3 — QR Code & Session API', () => {
                 });
 
                 const diff = new Date(data.expectedEndTime).getTime() - now;
-                const oneHour = 3600000;
-                expect(diff).toBeGreaterThanOrEqual(oneHour - 5000);
-                expect(diff).toBeLessThanOrEqual(oneHour + 5000);
+                const fifteenMin = 15 * 60 * 1000;
+                expect(diff).toBeGreaterThanOrEqual(fifteenMin - 5000);
+                expect(diff).toBeLessThanOrEqual(fifteenMin + 5000);
             });
 
             it('should respect a custom expectedEndTime', async () => {
