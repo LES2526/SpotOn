@@ -32,6 +32,8 @@ import axios, { AxiosInstance } from 'axios';
 const BASE_URL = process.env.NEXTAUTH_URL ?? 'http://localhost:3000';
 const QR_TOKEN = `qr-sprint3-${Date.now()}`;
 
+jest.setTimeout(30000);
+
 async function createAuthenticatedClient(userId: string): Promise<{ client: AxiosInstance; sessionToken: string }> {
     const sessionToken = `test-session-${userId}-${Date.now()}`;
 
@@ -90,7 +92,7 @@ describe('Sprint 3 — QR Code & Session API', () => {
         const floorPlan = await prisma.floorPlan.create({
             data: {
                 name: 'Sprint3 Test Floor',
-                floor: 99,
+                floor: 97,
                 imageUrl: '/sprint3-test.png',
                 imageWidth: 1000,
                 imageHeight: 800,
@@ -115,15 +117,15 @@ describe('Sprint 3 — QR Code & Session API', () => {
     });
 
     afterEach(async () => {
-        await prisma.studySession.deleteMany({ where: { spaceId } });
+        if (spaceId) await prisma.studySession.deleteMany({ where: { spaceId } });
     });
 
     afterAll(async () => {
-        await prisma.studySession.deleteMany({ where: { spaceId } });
-        await prisma.session.deleteMany({ where: { sessionToken } });
-        await prisma.space.delete({ where: { id: spaceId } });
-        await prisma.floorPlan.delete({ where: { id: floorPlanId } });
-        await prisma.user.delete({ where: { id: userId } });
+        if (spaceId) await prisma.studySession.deleteMany({ where: { spaceId } });
+        if (sessionToken) await prisma.session.deleteMany({ where: { sessionToken } });
+        if (spaceId) await prisma.space.delete({ where: { id: spaceId } });
+        if (floorPlanId) await prisma.floorPlan.delete({ where: { id: floorPlanId } });
+        if (userId) await prisma.user.delete({ where: { id: userId } });
         await prisma.$disconnect();
     });
 

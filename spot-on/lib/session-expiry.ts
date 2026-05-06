@@ -85,7 +85,7 @@ export function scheduleSessionExpiry(sessionId: string, expectedEndTime: Date):
     if (delay <= 0) {
         // Already expired — use a 0 ms timer so async test runners can track it
         console.log(`Session ${sessionId} already expired, marking EXPIRED immediately`);
-        setTimeout(() => void markSessionExpired(sessionId), 0);
+        setTimeout(() => markSessionExpired(sessionId), 0);
         return;
     }
 
@@ -93,12 +93,12 @@ export function scheduleSessionExpiry(sessionId: string, expectedEndTime: Date):
     console.log(`Session ${sessionId} scheduled to expire in ${Math.round(delay / 1000)}s`);
 
     if (warningDelay > 0) {
-        setTimeout(() => void sendExpiryWarning(sessionId), warningDelay);
+        setTimeout(() => sendExpiryWarning(sessionId), warningDelay);
     } else {
-        setTimeout(() => void sendExpiryWarning(sessionId), 0);
+        setTimeout(() => sendExpiryWarning(sessionId), 0);
     }
 
-    setTimeout(() => void markSessionExpired(sessionId), delay);
+    setTimeout(() => markSessionExpired(sessionId), delay);
 }
 
 

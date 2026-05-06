@@ -28,13 +28,13 @@ export function isPastClosingTime(): boolean {
     return new Date() > closingTime;
 }
 
-/** Returns true if the given date's time (in UTC) is past the library closing time. */
+/** Returns true if the given date's local time is past the library closing time. */
 export function isAfterHours(date: Date): boolean {
-    const [closingHours, closingMinutes] = process.env.LIBRARY_CLOSING_TIME?.split(':').map(Number) || [19, 30];
-    
-    const dateHours = date.getUTCHours();
-    const dateMinutes = date.getUTCMinutes();
-    
+    const [closingHours, closingMinutes] = process.env.LIBRARY_CLOSING_TIME?.split(':').map(Number) || [20, 30];
+
+    const dateHours = date.getHours();
+    const dateMinutes = date.getMinutes();
+
     return dateHours * 60 + dateMinutes > closingHours * 60 + closingMinutes;
 }
 

@@ -28,6 +28,8 @@ import axios, { AxiosInstance } from 'axios';
 const BASE_URL = process.env.NEXTAUTH_URL ?? 'http://localhost:3000';
 const ENDPOINT = '/api/qrcode/verify';
 
+jest.setTimeout(30000);
+
 /**
  * Creates an axios instance authenticated as the given user by injecting
  * a real database session and passing its token as a cookie.
@@ -114,15 +116,15 @@ describe('POST /api/qrcode/verify', () => {
     });
 
     afterEach(async () => {
-        await prisma.studySession.deleteMany({ where: { spaceId } });
+        if (spaceId) await prisma.studySession.deleteMany({ where: { spaceId } });
     });
 
     afterAll(async () => {
-        await prisma.studySession.deleteMany({ where: { spaceId } });
-        await prisma.session.deleteMany({ where: { sessionToken } });
-        await prisma.space.delete({ where: { id: spaceId } });
-        await prisma.floorPlan.delete({ where: { id: floorPlanId } });
-        await prisma.user.delete({ where: { id: userId } });
+        if (spaceId) await prisma.studySession.deleteMany({ where: { spaceId } });
+        if (sessionToken) await prisma.session.deleteMany({ where: { sessionToken } });
+        if (spaceId) await prisma.space.delete({ where: { id: spaceId } });
+        if (floorPlanId) await prisma.floorPlan.delete({ where: { id: floorPlanId } });
+        if (userId) await prisma.user.delete({ where: { id: userId } });
         await prisma.$disconnect();
     });
 

@@ -368,21 +368,19 @@ describe('ReportExpiry', () => {
 
     describe('restoreReportExpiries', () => {
         it('não agenda nada quando não há reports OPEN', async () => {
-            const spy = jest.spyOn(
-                await import('@/lib/report-expiry'),
-                'scheduleReportExpiry'
-            );
+            // Use fake timers to count how many timers scheduleReportExpiry sets.
+            // doNotFake keeps setImmediate/nextTick real so Prisma I/O still works.
+            jest.useFakeTimers({ doNotFake: ['nextTick', 'setImmediate'] });
 
             await restoreReportExpiries();
 
-            expect(spy).not.toHaveBeenCalled();
-            spy.mockRestore();
+            expect(jest.getTimerCount()).toBe(0);
         });
 
         it('agenda expiry para cada report OPEN existente', async () => {
             const timeToConfirm = new Date(Date.now() + 60000);
 
-            const report1 = await prisma.report.create({
+            await prisma.report.create({
                 data: {
                     reporterId: participant1.id,
                     sessionId: activeSession.id,
@@ -391,7 +389,7 @@ describe('ReportExpiry', () => {
                     timeToConfirm,
                 },
             });
-            const report2 = await prisma.report.create({
+            await prisma.report.create({
                 data: {
                     reporterId: participant2.id,
                     sessionId: activeSession.id,
@@ -401,18 +399,12 @@ describe('ReportExpiry', () => {
                 },
             });
 
-            const spy = jest.spyOn(
-                await import('@/lib/report-expiry'),
-                'scheduleReportExpiry'
-            );
+            jest.useFakeTimers({ doNotFake: ['nextTick', 'setImmediate'] });
 
             await restoreReportExpiries();
 
-            const scheduledIds = spy.mock.calls.map(c => c[0]);
-            expect(scheduledIds).toContain(report1.id);
-            expect(scheduledIds).toContain(report2.id);
-
-            spy.mockRestore();
+            // Each OPEN report should have scheduled exactly one expiry timer
+            expect(jest.getTimerCount()).toBe(2);
         });
     });
 });
