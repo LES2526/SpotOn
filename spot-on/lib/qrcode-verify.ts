@@ -1,4 +1,4 @@
-import { clampToClosingTime, isPastClosingTime } from '@/lib/library-hours';
+import { clampToClosingTime, isAfterHours } from '@/lib/library-hours';
 import { prisma } from '@/lib/prisma';
 import { type VerifyResult, verifyQrCode } from '@/lib/qr-utils';
 import { requireAuth } from '@/lib/require-auth';
@@ -26,9 +26,9 @@ export async function handleQrVerification(request: Request) {
         let rawEndTime = expectedEndTime
             ? new Date(expectedEndTime)
             : new Date(Date.now() + defaultStudyDurationMinutes * 60 * 1000);
-        
+
         rawEndTime = clampToClosingTime(rawEndTime);
-        
+
         const spaceOccupied = await prisma.studySession.findFirst({
             where: { spaceId: qrCode.spaceId, status: 'ACTIVE' },
         });
@@ -67,7 +67,7 @@ export async function handleQrVerification(request: Request) {
             );
         }
 
-        if(isPastClosingTime()){
+        if (isAfterHours(new Date())) {
             return NextResponse.json(
                 { error: 'after_hours' },
                 { status: 400 },
@@ -101,7 +101,7 @@ export async function handleQrVerification(request: Request) {
                 expectedEndTime: rawEndTime,
             },
         });
-        
+
         scheduleSessionExpiry(newSession.id, rawEndTime);
         return NextResponse.json(newSession, { status: 201 });
     } catch (error) {
