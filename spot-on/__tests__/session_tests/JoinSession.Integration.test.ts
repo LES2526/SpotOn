@@ -111,14 +111,14 @@ describe('Join Session API', () => {
     // ============================================================
 
     describe('POST /api/spaces/[spaceId]/sessions/join-session', () => {
-        it('deve devolver 401 se não autenticado', async () => {
+        it('should return 401 if not authenticated', async () => {
             (getServerSession as jest.Mock).mockResolvedValue(null);
 
             const response = await POST(mockRequest({}), { params: Promise.resolve({ spaceId: testSpace.id }) });
             expect(response.status).toBe(401);
         });
 
-        it('deve devolver 404 se o espaço não existir', async () => {
+        it('should return 404 if the space does not exist', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({
                 user: { id: requesterUser.id, email: requesterUser.email },
             });
@@ -127,7 +127,7 @@ describe('Join Session API', () => {
             expect(response.status).toBe(404);
         });
 
-        it('deve devolver 409 se o utilizador já for host de uma sessão ativa', async () => {
+        it('should return 409 if the user is already host of an active session', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({
                 user: { id: hostUser.id, email: hostUser.email },
             });
@@ -136,7 +136,7 @@ describe('Join Session API', () => {
             expect(response.status).toBe(409);
         });
 
-        it('deve devolver 409 se o utilizador já tiver um pedido ativo', async () => {
+        it('should return 409 if the user already has a pending join request', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({
                 user: { id: requesterUser.id, email: requesterUser.email },
             });
@@ -149,7 +149,7 @@ describe('Join Session API', () => {
             expect(response.status).toBe(409);
         });
 
-        it('deve criar pedido de entrada com status PENDING e notificar o host', async () => {
+        it('should create a PENDING join request and notify the host', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({
                 user: { id: requesterUser.id, email: requesterUser.email },
             });
@@ -236,7 +236,7 @@ describe('Join Session API', () => {
             });
         });
 
-        it('deve devolver 401 se não autenticado', async () => {
+        it('should return 401 if not authenticated', async () => {
             (getServerSession as jest.Mock).mockResolvedValue(null);
 
             const response = await PATCH(
@@ -246,7 +246,7 @@ describe('Join Session API', () => {
             expect(response.status).toBe(401);
         });
 
-        it('deve devolver 404 se o espaço não existir', async () => {
+        it('should return 404 if the space does not exist', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({
                 user: { id: hostUser.id },
             });
@@ -258,7 +258,7 @@ describe('Join Session API', () => {
             expect(response.status).toBe(404);
         });
 
-        it('deve devolver 403 se o utilizador não for o host', async () => {
+        it('should return 403 if the user is not the host', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({
                 user: { id: requesterUser.id },
             });
@@ -270,7 +270,7 @@ describe('Join Session API', () => {
             expect(response.status).toBe(403);
         });
 
-        it('deve aprovar o pedido e marcar como ACCEPTED', async () => {
+        it('should approve the request and mark it as ACCEPTED', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({
                 user: { id: hostUser.id },
             });

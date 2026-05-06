@@ -127,8 +127,12 @@ enum ReportStatus {
 }
 
 enum NotificationType {
-  PROOF_OF_PRESENCE
-  JOIN_REQUEST
+    PROOF_OF_PRESENCE
+    JOIN_REQUEST
+    SESSION_EXPIRING_SOON
+    CHECKOUT
+    KICKED_FROM_SESSION
+    LEADERSHIP_TRANSFERRED
 }
 
 enum NotificationStatus {
