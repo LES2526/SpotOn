@@ -3,6 +3,10 @@ import { prisma } from '@/lib/prisma';
 
 type Tx = Prisma.TransactionClient;
 
+function unrefTimer(timer: ReturnType<typeof setTimeout>) {
+    timer.unref?.();
+}
+
 /**
  * The function `markReportExpired` asynchronously marks a report as expired and penalizes the host if
  * the report is open.
@@ -139,7 +143,8 @@ export function scheduleReportExpiry(reportId: string, hostId: string, timeToCon
         return;
     }
     console.log(`Report ${reportId} scheduled to expire in ${Math.round(delay / 1000)}s`);
-    setTimeout(() => markReportExpired(reportId, hostId), delay);
+    const timer = setTimeout(() => markReportExpired(reportId, hostId), delay);
+    unrefTimer(timer);
 }
 
 /**
