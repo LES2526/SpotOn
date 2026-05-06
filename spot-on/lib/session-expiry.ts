@@ -11,6 +11,10 @@ import { createNotification } from '@/lib/notifications';
 import { prisma } from '@/lib/prisma';
 import { sendSessionExpiringSoonEmail } from '@/lib/send-notification-email';
 
+function unrefTimer(timer: ReturnType<typeof setTimeout>) {
+    timer.unref?.();
+}
+
 
 /**
  * Marks a single session as EXPIRED.
@@ -85,7 +89,8 @@ export function scheduleSessionExpiry(sessionId: string, expectedEndTime: Date):
     if (delay <= 0) {
         // Already expired — use a 0 ms timer so async test runners can track it
         console.log(`Session ${sessionId} already expired, marking EXPIRED immediately`);
-        setTimeout(() => markSessionExpired(sessionId), 0);
+        const timer = setTimeout(() => markSessionExpired(sessionId), 0);
+        unrefTimer(timer);
         return;
     }
 
@@ -93,12 +98,15 @@ export function scheduleSessionExpiry(sessionId: string, expectedEndTime: Date):
     console.log(`Session ${sessionId} scheduled to expire in ${Math.round(delay / 1000)}s`);
 
     if (warningDelay > 0) {
-        setTimeout(() => sendExpiryWarning(sessionId), warningDelay);
+        const warningTimer = setTimeout(() => sendExpiryWarning(sessionId), warningDelay);
+        unrefTimer(warningTimer);
     } else {
-        setTimeout(() => sendExpiryWarning(sessionId), 0);
+        const warningTimer = setTimeout(() => sendExpiryWarning(sessionId), 0);
+        unrefTimer(warningTimer);
     }
 
-    setTimeout(() => markSessionExpired(sessionId), delay);
+    const expiryTimer = setTimeout(() => markSessionExpired(sessionId), delay);
+    unrefTimer(expiryTimer);
 }
 
 
