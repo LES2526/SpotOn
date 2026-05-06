@@ -102,6 +102,16 @@ async function startNextServer(): Promise<void> {
 }
 
 export default async function globalSetup() {
-    await startTestDb();
+    if (process.env.CI) {
+        // In CI the database is provided by the workflow service — skip Docker.
+        // Just wipe and recreate the schema so each run starts clean.
+        execSync('npx prisma db push --force-reset --skip-generate', {
+            env: { ...process.env },
+            stdio: 'inherit',
+            cwd: path.resolve(__dirname),
+        });
+    } else {
+        await startTestDb();
+    }
     await startNextServer();
 }

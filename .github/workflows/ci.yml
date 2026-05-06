@@ -34,19 +34,19 @@ jobs:
         working-directory: spot-on
     services:
       postgres:
-        image: postgres:16
+        image: postgres:17-alpine
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: spoton_test
+          POSTGRES_USER: admin
+          POSTGRES_PASSWORD: admin
+          POSTGRES_DB: spot_on_test_db
         options: >-
-          --health-cmd pg_isready --health-interval 10s --health-timeout 5s
-          --health-retries 5
+          --health-cmd "pg_isready -U admin" --health-interval 10s
+          --health-timeout 5s --health-retries 5
         ports:
-          - 5432:5432
+          - 5434:5432
     env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/spoton_test
-      NEXTAUTH_URL: http://localhost:3000
+      DATABASE_URL: postgresql://admin:admin@localhost:5434/spot_on_test_db
+      NEXTAUTH_URL: http://localhost:3001
       NEXTAUTH_SECRET: ci-nextauth-secret
       ALLOWED_EMAIL_DOMAIN: ualg.pt
       ALLOW_ANY_EMAIL_IN_DEV: "true"
@@ -62,9 +62,6 @@ jobs:
           cache-dependency-path: spot-on/package-lock.json
 
       - run: npm ci
-
-      - name: Run Prisma migrations
-        run: npx prisma migrate deploy
 
       - name: Run tests
         run: npm test -- --forceExit
