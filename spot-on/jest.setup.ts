@@ -45,3 +45,11 @@ globalThis.TextDecoder ??= TextDecoder as typeof globalThis.TextDecoder;
  * jsdom doesn't provide crypto.subtle or crypto.randomUUID by default.
  */
 globalThis.crypto ??= webcrypto as Crypto;
+
+jest.mock('@/lib/send-notification-email', () => ({
+    sendProofOfPresenceEmail: jest.fn().mockResolvedValue(undefined),
+    sendJoinRequestEmail: jest.fn().mockResolvedValue(undefined),
+    sendNotAcceptedJoinRequestEmail: jest.fn().mockResolvedValue(undefined),
+    sendApprovedJoinRequestEmail: jest.fn().mockResolvedValue(undefined),
+    sendSessionExpiringSoonEmail: jest.fn().mockResolvedValue(undefined),
+}));
