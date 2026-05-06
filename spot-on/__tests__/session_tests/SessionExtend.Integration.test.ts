@@ -126,8 +126,11 @@ describe('PATCH /api/spaces/[spaceId]/sessions/extend', () => {
             user: { id: testUser.id },
         });
 
+        const closingTime = process.env.LIBRARY_CLOSING_TIME ?? '19:30';
+        const [hours, minutes] = closingTime.split(':').map(Number);
+
         const newEndTimeInvalid = new Date();
-        newEndTimeInvalid.setUTCHours(19, 31, 0, 0); // 19:31 UTC
+        newEndTimeInvalid.setUTCHours(hours, minutes + 1, 0, 0); // 1 min after closing (UTC)
 
         const request = new Request('http://localhost', {
             method: 'PATCH',
