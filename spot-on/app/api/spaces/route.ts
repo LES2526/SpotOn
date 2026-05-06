@@ -1,11 +1,69 @@
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { SpaceType } from '@/app/generated/prisma';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
+import { requireAuth } from '@/lib/require-auth';
 import { NextResponse } from 'next/server';
 
+/**
+ * @swagger
+ * /api/spaces:
+ *   get:
+ *     summary: List spaces with optional filters
+ *     description: Returns all spaces matching the given query parameters. All filters are optional and combinable.
+ *     tags:
+ *       - Spaces
+ *     parameters:
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *           enum: [INDIVIDUAL_DESK, GROUP_ROOM]
+ *         description: Filter by space type
+ *       - in: query
+ *         name: capacity
+ *         schema:
+ *           type: integer
+ *         description: Minimum number of seats required
+ *       - in: query
+ *         name: hasPowerOutlet
+ *         schema:
+ *           type: boolean
+ *       - in: query
+ *         name: hasComputer
+ *         schema:
+ *           type: boolean
+ *       - in: query
+ *         name: hasInteractiveBoard
+ *         schema:
+ *           type: boolean
+ *       - in: query
+ *         name: isOccupied
+ *         schema:
+ *           type: boolean
+ *         description: Filter by current occupancy status
+ *       - in: query
+ *         name: floor
+ *         schema:
+ *           type: string
+ *         description: Filter by floor plan name
+ *     responses:
+ *       200:
+ *         description: Filtered list of spaces
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 spaces:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
 export async function GET(request: Request) {
-    const session = await getServerSession(authOptions);
+    const session = await requireAuth();
 
     if (!session) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
