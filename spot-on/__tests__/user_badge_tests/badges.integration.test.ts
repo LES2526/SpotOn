@@ -5,7 +5,7 @@
 /**
  * @fileoverview Integration tests for POST /api/user/[id]/badge.
  *
- * Tests badge awarding via HTTP using axios against a running Next.js dev server.
+ * Tests badge awarding via HTTP using fetch against a running Next.js dev server.
  *
  * Requires the app and database to be running before executing:
  * `docker compose up` then `npm test`
@@ -17,7 +17,6 @@
  */
 
 import { prisma } from '@/lib/prisma';
-import axios, { AxiosInstance } from 'axios';
 
 // ---------------------------------------------------------------------------
 // Setup
@@ -27,7 +26,25 @@ const BASE_URL = process.env.NEXTAUTH_URL ?? 'http://localhost:3000';
 
 jest.setTimeout(15000);
 
-async function createAuthenticatedClient(userId: string): Promise<{ client: AxiosInstance; sessionToken: string }> {
+interface Client {
+    post: (path: string, body: object) => Promise<{ status: number; data: any }>;
+}
+
+function createClient(headers: Record<string, string> = {}): Client {
+    return {
+        post: async (path, body) => {
+            const res = await fetch(`${BASE_URL}${path}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...headers },
+                body: JSON.stringify(body),
+            });
+            const data = await res.json().catch(() => null);
+            return { status: res.status, data };
+        },
+    };
+}
+
+async function createAuthenticatedClient(userId: string): Promise<{ client: Client; sessionToken: string }> {
     const sessionToken = `test-session-${userId}-${Date.now()}`;
 
     await prisma.session.create({
@@ -38,11 +55,7 @@ async function createAuthenticatedClient(userId: string): Promise<{ client: Axio
         },
     });
 
-    const client = axios.create({
-        baseURL: BASE_URL,
-        headers: { Cookie: `next-auth.session-token=${sessionToken}` },
-        validateStatus: () => true,
-    });
+    const client = createClient({ Cookie: `next-auth.session-token=${sessionToken}` });
 
     return { client, sessionToken };
 }
@@ -55,16 +68,13 @@ describe('POST /api/user/[id]/badge', () => {
     let userId: string;
     let badgeId: string;
     let sessionToken: string;
-    let client: AxiosInstance;
-    let unauthClient: AxiosInstance;
+    let client: Client;
+    let unauthClient: Client;
 
     const timestamp = Date.now();
 
     beforeAll(async () => {
-        unauthClient = axios.create({
-            baseURL: BASE_URL,
-            validateStatus: () => true,
-        });
+        unauthClient = createClient();
 
         const user = await prisma.user.create({
             data: { email: `badges-test-${timestamp}@ualg.pt` },
@@ -160,7 +170,7 @@ describe('POST /api/user/[id]/badge', () => {
         });
 
         it('should set awardedAt to approximately now', async () => {
-            const before = Date.now();
+            const before = Date.now() - 5000; // 5s buffer for clock skew
             await client.post(`/api/user/${userId}/badge`, { badgeId });
 
             const userBadge = await prisma.userBadge.findUnique({
@@ -168,7 +178,7 @@ describe('POST /api/user/[id]/badge', () => {
             });
 
             expect(userBadge?.awardedAt.getTime()).toBeGreaterThanOrEqual(before);
-            expect(userBadge?.awardedAt.getTime()).toBeLessThanOrEqual(Date.now());
+            expect(userBadge?.awardedAt.getTime()).toBeLessThanOrEqual(Date.now() + 5000);
         });
 
         it('should return 409 when user already has the badge', async () => {
