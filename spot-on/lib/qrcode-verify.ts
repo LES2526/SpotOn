@@ -1,18 +1,18 @@
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { clampToClosingTime, isPastClosingTime } from '@/lib/library-hours';
 import { prisma } from '@/lib/prisma';
 import { type VerifyResult, verifyQrCode } from '@/lib/qr-utils';
+import { requireAuth } from '@/lib/require-auth';
 import { scheduleSessionExpiry } from '@/lib/session-expiry';
-import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 
+/** Verifies a QR code scan and creates or confirms a study session for the authenticated user. */
 export async function handleQrVerification(request: Request) {
 
     const defaultStudyDurationMinutes = 15; // Default duration if not provided
 
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) {
+        const session = await requireAuth();
+        if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
         const { spaceId, qrWindow, sig, expectedEndTime } =
