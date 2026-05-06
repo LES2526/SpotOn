@@ -1,5 +1,7 @@
 'use client'
 
+export const dynamic = 'force-dynamic';
+
 import ErrorStatus from "@/components/qrcode/Error";
 import ExpiredStatus from "@/components/qrcode/Expired";
 import LoadingStatus from "@/components/qrcode/Loading";
@@ -139,3 +141,4 @@ export default function OccupySpacePage() {
         </div>
     );
 }
+
