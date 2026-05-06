@@ -12,11 +12,11 @@
  * @since 1.0.0
  */
 
-import { clampToClosingTime, isAfterHours } from '@/lib/library-hours';
+import { clampToClosingTime } from '@/lib/library-hours';
 import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/require-auth';
-import { findActiveSession, findActiveSessionByHost, findSpace } from '@/lib/space-utils';
 import { scheduleSessionExpiry } from '@/lib/session-expiry';
+import { findActiveSession, findActiveSessionByHost, findSpace } from '@/lib/space-utils';
 import { NextResponse } from 'next/server';
 
 /**
@@ -188,13 +188,6 @@ export async function PATCH(request: Request, { params }: Params) {
         const newEndTime = new Date(expectedEndTime);
 
         const clampedExpectedEndTime = clampToClosingTime(newEndTime);
-
-        if (isAfterHours(newEndTime)) {
-            return NextResponse.json(
-                { error: 'Is not allowed to extend session beyond 20:30' },
-                { status: 400 }
-            );
-        }
 
         const updatedSession = await prisma.studySession.update({
             where: { id: activeSession.id },
