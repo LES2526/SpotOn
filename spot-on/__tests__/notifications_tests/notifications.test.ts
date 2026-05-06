@@ -48,14 +48,14 @@ describe('Notifications API', () => {
     // ============================================================
 
     describe('GET /api/notifications', () => {
-        it('deve devolver 401 se não autenticado', async () => {
+        it('should return 401 if not authenticated', async () => {
             (getServerSession as jest.Mock).mockResolvedValue(null);
 
             const response = await GET();
             expect(response.status).toBe(401);
         });
 
-        it('deve devolver array vazio se não houver notificações pendentes', async () => {
+        it('should return an empty array if there are no pending notifications', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({
                 user: { id: testUser.id },
             });
@@ -67,7 +67,7 @@ describe('Notifications API', () => {
             expect(body).toHaveLength(0);
         });
 
-        it('deve devolver apenas notificações PENDING do utilizador', async () => {
+        it('should return only PENDING notifications for the user', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({
                 user: { id: testUser.id },
             });
@@ -87,7 +87,7 @@ describe('Notifications API', () => {
             expect(body.every((n: Notification) => n.status === 'PENDING')).toBe(true);
         });
 
-        it('não deve devolver notificações de outros utilizadores', async () => {
+        it('should not return notifications belonging to other users', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({
                 user: { id: testUser.id },
             });
@@ -117,7 +117,7 @@ describe('Notifications API', () => {
             });
         });
 
-        it('deve devolver 401 se não autenticado', async () => {
+        it('should return 401 if not authenticated', async () => {
             (getServerSession as jest.Mock).mockResolvedValue(null);
 
             const response = await PATCH(
@@ -127,7 +127,7 @@ describe('Notifications API', () => {
             expect(response.status).toBe(401);
         });
 
-        it('deve devolver 404 se a notificação não existir', async () => {
+        it('should return 404 if the notification does not exist', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({
                 user: { id: testUser.id },
             });
@@ -139,7 +139,7 @@ describe('Notifications API', () => {
             expect(response.status).toBe(404);
         });
 
-        it('deve devolver 404 se a notificação pertencer a outro utilizador', async () => {
+        it('should return 404 if the notification belongs to another user', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({
                 user: { id: otherUser.id },
             });
@@ -151,7 +151,7 @@ describe('Notifications API', () => {
             expect(response.status).toBe(404);
         });
 
-        it('deve marcar a notificação como RESOLVED', async () => {
+        it('should mark the notification as RESOLVED', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({
                 user: { id: testUser.id },
             });

@@ -49,29 +49,28 @@ export default function SpacePanel({ spaces }: Readonly<SpacePanelProps>) {
         .some(key => searchParams.has(key));
 
     return (
-        <div className="absolute top-4 left-4 z-20 flex flex-col items-start">
+        <div className="absolute top-4 left-4 z-20">
+        {/* Hamburger button — always fixed at top left, independent of panel height */}
+        <button
+            onClick={() => setIsOpen(prev => !prev)}
+            className="flex flex-col items-center justify-center gap-1 w-8 h-8 mb-2 rounded-lg bg-gray-800/95 backdrop-blur-sm border border-gray-700 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
+            aria-label={isOpen ? 'Close panel' : 'Open panel'}
+        >
+            <span className="w-4 h-0.5 bg-current rounded-full" />
+            <span className="w-4 h-0.5 bg-current rounded-full" />
+            <span className="w-4 h-0.5 bg-current rounded-full" />
+        </button>
 
-            {/* Hamburger toggle button — always visible above the panel */}
-            <button
-                onClick={() => setIsOpen(prev => !prev)}
-                className="flex flex-col items-center justify-center gap-1 w-8 h-8 mb-2 rounded-lg bg-gray-800/95 backdrop-blur-sm border border-gray-700 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
-                aria-label={isOpen ? 'Close panel' : 'Open panel'}
-            >
-                <span className="w-4 h-0.5 bg-current rounded-full" />
-                <span className="w-4 h-0.5 bg-current rounded-full" />
-                <span className="w-4 h-0.5 bg-current rounded-full" />
-            </button>
-
-            {/* Panel */}
-            <div className={`
-                flex flex-col
-                w-64 max-h-[calc(100vh-8rem)]
-                bg-gray-900/95 backdrop-blur-sm
-                border border-gray-700 rounded-xl shadow-2xl
-                overflow-hidden
-                transition-all duration-300 ease-in-out
-                ${isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none h-0 border-0'}
-            `}>
+        {/* Panel — scrollable, capped at viewport height minus space for button */}
+        <div className={`
+            flex flex-col
+            w-64 max-h-[calc(100vh-6rem)]
+            bg-gray-900/95 backdrop-blur-sm
+            border border-gray-700 rounded-xl shadow-2xl
+            overflow-hidden
+            transition-all duration-300 ease-in-out
+            ${isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none h-0 border-0'}
+        `}>
                 {/* Panel header */}
                 <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
                     <span className="text-sm font-semibold text-white">Study Spaces</span>

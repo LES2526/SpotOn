@@ -4,21 +4,38 @@ import { FloorPlanData } from "@/components/floor-plan/type";
 import FloorFilter from "@/components/floor/FloorFilter";
 import OccupanceCard from "@/components/occupance/SpacesOccupance";
 import { prisma } from "@/lib/prisma";
+import { SpaceType } from "@/app/generated/prisma";
 import fs from "node:fs";
 import path from "node:path";
-
 
 // Disable caching so occupancy status is always up to date
 export const dynamic = 'force-dynamic';
 
-export default async function DashboardPage({ searchParams }: Readonly<{ searchParams: Promise<{ floor?: string }> }>) {
-    // Read the selected floor from the URL query param (?floor=Piso 1)
-    const { floor } = await searchParams;
-    const selectedFloor = floor == undefined ? null : Number(floor);
+type SearchParams = {
+    floor?: string;
+    type?: string;
+    hasPowerOutlet?: string;
+    hasComputer?: string;
+    hasInteractiveBoard?: string;
+    isOccupied?: string;
+};
+
+const parseBool = (val: string | undefined) =>
+    val === undefined ? undefined : val === 'true';
+
+export default async function DashboardPage({ searchParams }: Readonly<{ searchParams: Promise<SearchParams> }>) {
+    const { floor, type, hasPowerOutlet, hasComputer, hasInteractiveBoard, isOccupied } = await searchParams;
+
+    const selectedFloor = floor === undefined ? null : Number(floor);
+
+    // Validate type against SpaceType enum
+    const spaceType = type && Object.values(SpaceType).includes(type as SpaceType)
+        ? (type as SpaceType)
+        : undefined;
 
     // Fetch all data in parallel to avoid waterfall requests
     const [spaces, floorPlans, floorPlan] = await Promise.all([
-        // Spaces filtered by floor (if selected), with their active sessions
+        // Spaces filtered by floor and panel filters, with their active sessions
         prisma.space.findMany({
             include: {
                 // Only fetch active, non-expired sessions — used to determine occupancy
@@ -28,22 +45,31 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
                     take: 1,
                 },
             },
-            where: selectedFloor ? { floorPlan: { floor: selectedFloor } } : undefined,
+            where: {
+                floorPlan: selectedFloor !== null ? { floor: selectedFloor } : undefined,
+                type: spaceType,
+                hasPowerOutlet: parseBool(hasPowerOutlet),
+                hasComputer: parseBool(hasComputer),
+                hasInteractiveBoard: parseBool(hasInteractiveBoard),
+                sessions: isOccupied
+                    ? isOccupied === 'true'
+                        ? { some: { status: 'ACTIVE', expectedEndTime: { gt: new Date() } } }
+                        : { none: { status: 'ACTIVE', expectedEndTime: { gt: new Date() } } }
+                    : undefined,
+            },
             orderBy: { createdAt: 'desc' },
         }),
-        // All floor — used to populate the floor selector
+        // All floors — used to populate the floor selector
         prisma.floorPlan.findMany({
             select: { floor: true },
             orderBy: { floor: 'asc' },
         }),
         // SVG image info for the selected floor — used to render the floor plan
         prisma.floorPlan.findFirst({
-            where: selectedFloor ? { floor: selectedFloor } : undefined,
+            where: selectedFloor !== null ? { floor: selectedFloor } : undefined,
             select: { imageUrl: true, imageWidth: true, imageHeight: true },
         })
     ]);
-
-
 
     // No floor plan found means there's nothing to render
     if (!floorPlan) {
@@ -58,9 +84,9 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
     const svgRaw = fs.readFileSync(svgPath, "utf-8");
     const viewBoxMatch = svgRaw.match(/viewBox="([^"]+)"/);
     const viewBox = viewBoxMatch?.[1] ?? `0 0 ${floorPlan.imageWidth} ${floorPlan.imageHeight}`;
-    const svgContent = svgRaw.replace(/<svg[^>]*>/, '').replace(/<\/svg>\s*$/, ''); //strip
+    const svgContent = svgRaw.replace(/<svg[^>]*>/, '').replace(/<\/svg>\s*$/, ''); // strip outer svg tag
 
-    // Map Prisma result to the FloorPlanData DTO (Data Transfer Object) used by the floor plan components
+    // Map Prisma result to the FloorPlanData DTO used by the floor plan components
     const floorPlanData: FloorPlanData = {
         imageUrl: floorPlan.imageUrl,
         imageWidth: floorPlan.imageWidth,
@@ -82,10 +108,11 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
             shape: space.shape,
         })),
     };
-    const totalDesks: number = floorPlanData.spaces.filter(s => s.type === "INDIVIDUAL_DESK").length
-    const occupiedDesks: number = floorPlanData.spaces.filter(s => s.type === "INDIVIDUAL_DESK" && s.isOccupied).length
-    const totalRooms: number = floorPlanData.spaces.filter(s => s.type === "GROUP_ROOM").length
-    const occupiedRooms: number = floorPlanData.spaces.filter(s => s.type === "GROUP_ROOM" && s.isOccupied).length
+
+    const totalDesks: number = floorPlanData.spaces.filter(s => s.type === "INDIVIDUAL_DESK").length;
+    const occupiedDesks: number = floorPlanData.spaces.filter(s => s.type === "INDIVIDUAL_DESK" && s.isOccupied).length;
+    const totalRooms: number = floorPlanData.spaces.filter(s => s.type === "GROUP_ROOM").length;
+    const occupiedRooms: number = floorPlanData.spaces.filter(s => s.type === "GROUP_ROOM" && s.isOccupied).length;
 
     return (
         <main className="min-h-screen bg-gray-950 p-8 text-white">
@@ -93,7 +120,12 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
                 <DashboardHeader />
                 <FloorFilter floorPlans={floorPlans} selectedFloor={selectedFloor} />
                 <FloorPlanSection floorPlan={floorPlanData} />
-                <OccupanceCard totalDesks={totalDesks} occupiedDesks={occupiedDesks} totalRooms={totalRooms} occupiedRooms={occupiedRooms} />
+                <OccupanceCard
+                    totalDesks={totalDesks}
+                    occupiedDesks={occupiedDesks}
+                    totalRooms={totalRooms}
+                    occupiedRooms={occupiedRooms}
+                />
             </section>
         </main>
     );

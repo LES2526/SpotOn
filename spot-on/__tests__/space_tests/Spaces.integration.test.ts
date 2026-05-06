@@ -61,11 +61,8 @@ describe('GET /api/spaces', () => {
     let client: AxiosInstance;
     let unauthClient: AxiosInstance;
 
-    let individualDeskId: string;
-    let groupRoomId: string;
     let computerDeskId: string;
     let interactiveBoardRoomId: string;
-    let powerOutletDeskId: string;
     let occupiedSpaceId: string;
 
     const timestamp = Date.now();
@@ -96,7 +93,7 @@ describe('GET /api/spaces', () => {
         floorPlanId = floorPlan.id;
 
         // Individual desk — no extras
-        const individualDesk = await prisma.space.create({
+        await prisma.space.create({
             data: {
                 floorPlanId,
                 name: 'Individual Desk',
@@ -109,10 +106,8 @@ describe('GET /api/spaces', () => {
                 hasInteractiveBoard: false,
             },
         });
-        individualDeskId = individualDesk.id;
-
         // Group room — capacity 6
-        const groupRoom = await prisma.space.create({
+        await prisma.space.create({
             data: {
                 floorPlanId,
                 name: 'Group Room',
@@ -125,8 +120,6 @@ describe('GET /api/spaces', () => {
                 hasInteractiveBoard: false,
             },
         });
-        groupRoomId = groupRoom.id;
-
         // Desk with computer
         const computerDesk = await prisma.space.create({
             data: {
@@ -160,7 +153,7 @@ describe('GET /api/spaces', () => {
         interactiveBoardRoomId = interactiveBoardRoom.id;
 
         // Desk with power outlet only
-        const powerOutletDesk = await prisma.space.create({
+        await prisma.space.create({
             data: {
                 floorPlanId,
                 name: 'Power Outlet Desk',
@@ -173,8 +166,6 @@ describe('GET /api/spaces', () => {
                 hasInteractiveBoard: false,
             },
         });
-        powerOutletDeskId = powerOutletDesk.id;
-
         // Occupied space
         const occupiedSpace = await prisma.space.create({
             data: {

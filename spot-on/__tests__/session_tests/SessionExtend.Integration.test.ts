@@ -89,7 +89,7 @@ describe('PATCH /api/spaces/[spaceId]/sessions/extend', () => {
         await prisma.$disconnect();
     });
 
-    it('deve estender a sessão com sucesso', async () => {
+    it('should extend the session successfully', async () => {
         (getServerSession as jest.Mock).mockResolvedValue({
             user: { id: testUser.id },
         });
@@ -121,7 +121,7 @@ describe('PATCH /api/spaces/[spaceId]/sessions/extend', () => {
         expect(new Date(body.expectedEndTime).toISOString()).toBe(newEndTime.toISOString());
     });
 
-    it('não deve permitir estender para lá das 20:30', async () => {
+    it('should not allow extending past 20:30', async () => {
         (getServerSession as jest.Mock).mockResolvedValue({
             user: { id: testUser.id },
         });
@@ -141,7 +141,7 @@ describe('PATCH /api/spaces/[spaceId]/sessions/extend', () => {
         expect(body.error).toBe('Is not allowed to extend session beyond 20:30');
     });
 
-    it('deve devolver 404 se não houver sessão ativa para o utilizador', async () => {
+    it('should return 404 if there is no active session for the user', async () => {
         (getServerSession as jest.Mock).mockResolvedValue({
             user: { id: testUser.id },
         });
@@ -158,7 +158,7 @@ describe('PATCH /api/spaces/[spaceId]/sessions/extend', () => {
         expect(response.status).toBe(404);
     });
 
-    it('deve devolver 401 se não autenticado', async () => {
+    it('should return 401 if not authenticated', async () => {
         (getServerSession as jest.Mock).mockResolvedValue(null);
 
         const request = new Request('http://localhost', {

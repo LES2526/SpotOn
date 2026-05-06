@@ -11,7 +11,7 @@ SWAGGER_PATH ?= /api-doc
 
 .DEFAULT_GOAL := help
 
-.PHONY: help install dev build start lint test test-watch prisma-generate prisma-seed prisma-studio swagger-url swagger-check swagger-open docker-up docker-down docker-build docker-logs docker-ps docker-seed docker-wait-web docker-recreate docker-prune
+.PHONY: help install dev build start lint test test-watch prisma-generate prisma-seed prisma-studio swagger-url swagger-check swagger-open docker-up docker-down docker-build docker-logs docker-ps docker-seed docker-wait-web docker-recreate docker-prune eslint-ignore lint-fix
 
 help: ## Show available targets
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage: make <target>\n\nTargets:\n"} /^[a-zA-Z0-9_.-]+:.*##/ {printf "  %-18s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -116,3 +116,11 @@ docker-recreate: docker-down docker-build docker-up docker-wait-web docker-seed 
 
 docker-prune: ## Remove dangling docker images/containers/networks
 	docker system prune -f
+
+eslint-ignore: ## Create .eslintignore to exclude generated files from linting
+	@echo "Creating .eslintignore (overwrites if exists)"
+	@printf '/app/generated/\n/app/generated/prisma/\n/app/generated/prisma/**\n/app/generated/prisma/runtime/wasm.js\n' > .eslintignore
+	@echo '.eslintignore created.'
+
+lint-fix: ## Run linter with --fix to apply auto-fixable changes
+	$(NPM) run lint -- --fix
