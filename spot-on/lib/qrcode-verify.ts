@@ -74,7 +74,7 @@ export async function handleQrVerification(request: Request) {
             );
         }
 
-        const [closingHours, closingMinutes] = process.env.LIBRARY_CLOSING_TIME?.split(':').map(Number) || [20, 30];
+        const [closingHours, closingMinutes] = process.env.LIBRARY_CLOSING_TIME?.split(':').map(Number) || [19, 30];
         const closingTotalMins = closingHours * 60 + closingMinutes;
 
         const now = new Date();
