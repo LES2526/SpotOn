@@ -11,6 +11,9 @@ const prisma = new PrismaClient();
 
 async function main() {
     console.log('Seeding database...');
+    await prisma.notification.deleteMany({});
+    await prisma.userBadge.deleteMany({});
+    await prisma.reportConfirmation.deleteMany({});
     await prisma.report.deleteMany({});
     await prisma.userOnStudySession.deleteMany({});
     await prisma.studySession.deleteMany({});
@@ -19,6 +22,7 @@ async function main() {
     await prisma.verificationToken.deleteMany({});
     await prisma.space.deleteMany({});
     await prisma.floorPlan.deleteMany({});
+    await prisma.badge.deleteMany({});
     await prisma.user.deleteMany({});
 
     const now = new Date();
