@@ -13,6 +13,11 @@
 
 import { prisma } from '@/lib/prisma';
 
+function isPrismaUniqueError(error: unknown): boolean {
+    return typeof error === 'object' && error !== null && 'code' in error
+        && (error as { code: string }).code === 'P2002';
+}
+
 /**
  * Returns the date of the 1st of next month at midnight.
  */
@@ -66,21 +71,26 @@ export async function awardMonthlyBadges(): Promise<void> {
             return;
         }
 
-        // Filter out users who already have this badge to avoid constraint violations
-        const existingAwards = await prisma.userBadge.findMany({
-            where: { badgeId: badge.id, userId: { in: topUsers.map(u => u.id) } },
-            select: { userId: true },
-        });
-        const alreadyAwarded = new Set(existingAwards.map(b => b.userId));
-        const usersToAward = topUsers.filter(u => !alreadyAwarded.has(u.id));
+        console.log(`Awarding badge "${badge.name}" to ${topUsers.length} user(s)`);
 
-        console.log(`Awarding badge "${badge.name}" to ${usersToAward.length} user(s) (${alreadyAwarded.size} already have it)`);
-
-        for (const user of usersToAward) {
-            await prisma.userBadge.create({
-                data: { userId: user.id, badgeId: badge.id },
-            });
-            console.log(`Badge awarded to ${user.email} (${user.points} points)`);
+        // Award badge to each user — skip if already awarded
+        for (const user of topUsers) {
+            try {
+                await prisma.userBadge.create({
+                    data: {
+                        userId: user.id,
+                        badgeId: badge.id,
+                    },
+                });
+                console.log(`Badge awarded to ${user.email} (${user.points} points)`);
+            } catch (error: unknown) {
+                // Unique constraint violation — user already has this badge
+                if (isPrismaUniqueError(error)) {
+                    console.log(`User ${user.email} already has badge "${badge.name}" — skipping`);
+                } else {
+                    console.error(`Failed to award badge to ${user.email}:`, error);
+                }
+            }
         }
 
         console.log(`Monthly badge award complete for ${month}/${year}`);
@@ -124,32 +134,31 @@ export async function hasMonthlyBadgeBeenAwarded(): Promise<boolean> {
     return !!awarded;
 }
 
-// Node.js setTimeout only supports 32-bit signed integer delays (~24.8 days max)
-const MAX_TIMEOUT_MS = 2 ** 31 - 1;
-const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+// Node.js silently clamps setTimeout delays > 2^31-1 ms to 1 ms, which turns
+// a ~27-day wait into a tight infinite loop. Split long waits into safe chunks.
+const MAX_SAFE_TIMEOUT_MS = 2_147_483_647;
 
 /**
  * Schedules the monthly badge award to run on the 1st of next month.
  *
  * After awarding badges it reschedules itself for the following month,
  * so it runs indefinitely without needing a cron job.
- *
- * When the delay exceeds the 32-bit setTimeout limit (~24.8 days), it
- * re-checks daily until close enough to schedule precisely.
  */
+const MAX_TIMEOUT_MS = 2_147_483_647; // max 32-bit signed integer (~24.8 days)
+
 export function scheduleMonthlyBadgeAward(): void {
     const next = getNextFirstOfMonth();
     const delay = next.getTime() - Date.now();
+
+    if (delay > MAX_SAFE_TIMEOUT_MS) {
+        setTimeout(() => scheduleMonthlyBadgeAward(), MAX_SAFE_TIMEOUT_MS);
+        return;
+    }
 
     console.log(
         `Monthly badge award scheduled for ${next.toISOString()} ` +
         `(in ${Math.round(delay / 1000 / 60)} minutes)`
     );
-
-    if (delay > MAX_TIMEOUT_MS) {
-        setTimeout(() => scheduleMonthlyBadgeAward(), ONE_DAY_MS);
-        return;
-    }
 
     setTimeout(async () => {
         await awardMonthlyBadges();

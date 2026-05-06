@@ -1,15 +1,18 @@
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { clampToClosingTime, isPastClosingTime } from '@/lib/library-hours';
+import { clampToClosingTime, isAfterHours } from '@/lib/library-hours';
 import { prisma } from '@/lib/prisma';
 import { type VerifyResult, verifyQrCode } from '@/lib/qr-utils';
+import { requireAuth } from '@/lib/require-auth';
 import { scheduleSessionExpiry } from '@/lib/session-expiry';
-import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 
+/** Verifies a QR code scan and creates or confirms a study session for the authenticated user. */
 export async function handleQrVerification(request: Request) {
+
+    const defaultStudyDurationMinutes = 15; // Default duration if not provided
+
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) {
+        const session = await requireAuth();
+        if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
         const { spaceId, qrWindow, sig, expectedEndTime } =
@@ -22,10 +25,10 @@ export async function handleQrVerification(request: Request) {
         }
         let rawEndTime = expectedEndTime
             ? new Date(expectedEndTime)
-            : new Date(Date.now() + 60 * 60 * 1000);
-        
+            : new Date(Date.now() + defaultStudyDurationMinutes * 60 * 1000);
+
         rawEndTime = clampToClosingTime(rawEndTime);
-        
+
         const spaceOccupied = await prisma.studySession.findFirst({
             where: { spaceId: qrCode.spaceId, status: 'ACTIVE' },
         });
@@ -64,10 +67,23 @@ export async function handleQrVerification(request: Request) {
             );
         }
 
-        if(isPastClosingTime()){
+        if (isAfterHours(new Date())) {
             return NextResponse.json(
                 { error: 'after_hours' },
                 { status: 400 },
+            );
+        }
+
+        const [closingHours, closingMinutes] = process.env.LIBRARY_CLOSING_TIME?.split(':').map(Number) || [19, 30];
+        const closingTotalMins = closingHours * 60 + closingMinutes;
+
+        const now = new Date();
+        const nowUTCMins = now.getUTCHours() * 60 + now.getUTCMinutes();
+
+        if (closingTotalMins - nowUTCMins < defaultStudyDurationMinutes) {
+            return NextResponse.json(
+                { error: 'after_hours' },
+                { status: 400 }
             );
         }
 
@@ -85,7 +101,7 @@ export async function handleQrVerification(request: Request) {
                 expectedEndTime: rawEndTime,
             },
         });
-        
+
         scheduleSessionExpiry(newSession.id, rawEndTime);
         return NextResponse.json(newSession, { status: 201 });
     } catch (error) {

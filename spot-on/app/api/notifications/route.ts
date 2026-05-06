@@ -7,9 +7,8 @@
  */
 
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { requireAuth } from "@/lib/require-auth";
 import { NextResponse } from "next/server";
-import { authOptions } from "../auth/[...nextauth]/route";
 
 /**
  * @swagger
@@ -48,8 +47,8 @@ import { authOptions } from "../auth/[...nextauth]/route";
  *         description: Unauthorized - user not authenticated
  */
 export async function GET() {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    const session = await requireAuth();
+    if (!session) {
         return NextResponse.json(
             { error: 'Unauthorized' }, { status: 401 });
     }
