@@ -15,12 +15,12 @@
  * @since 1.0.0
  */
 
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { Prisma } from "@/app/generated/prisma";
 import { resolveNotifications } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { handleExpiredReport } from "@/lib/report-expiry";
-import { getServerSession } from "next-auth";
+import { requireAuth } from "@/lib/require-auth";
+import { findActiveSession, findSpace, isAcceptedParticipant } from "@/lib/space-utils";
 import { NextResponse } from "next/server";
 
 type Params = { params: Promise<{ spaceId: string }> };
@@ -131,16 +131,14 @@ async function handleActiveReport(tx: Tx, reportId: string,
 export const PATCH = async (_request: Request, props: Params) => {
     try {
         const params = await props.params;
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) {
+        const session = await requireAuth();
+        if (!session) {
             return NextResponse.json(
                 { error: 'Unauthorized' },
                 { status: 401 });
         }
         const { spaceId } = params;
-        const space = await prisma.space.findUnique({
-            where: { id: spaceId }
-        });
+        const space = await findSpace(spaceId);
         if (!space) {
             return NextResponse.json(
                 { error: 'Space not found' }, { status: 404 });
@@ -150,21 +148,13 @@ export const PATCH = async (_request: Request, props: Params) => {
             return NextResponse.json(
                 { error: 'Invalid QR token' }, { status: 400 });
         }
-        const activeSession = await prisma.studySession.findFirst({
-            where: { spaceId, status: 'ACTIVE' },
-        });
+        const activeSession = await findActiveSession(spaceId);
         if (!activeSession) {
             return NextResponse.json({
                 error: 'No active session found for this space'
             }, { status: 404 });
         }
-        const isParticipant = await prisma.userOnStudySession.findFirst({
-            where: {
-                userId: session.user.id,
-                sessionId: activeSession.id,
-                status: 'ACCEPTED'
-            }
-        });
+        const isParticipant = await isAcceptedParticipant(session.user.id, activeSession.id);
         if (!isParticipant && activeSession.hostId !== session.user.id) {
             return NextResponse.json({
                 error: 'Only participants and host can confirm reports'
