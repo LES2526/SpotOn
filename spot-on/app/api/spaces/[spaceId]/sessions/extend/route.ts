@@ -1,8 +1,8 @@
 import { isAfterHours } from "@/lib/library-hours";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/require-auth";
-import { findActiveSessionByHost, findSpace } from "@/lib/space-utils";
 import { scheduleSessionExpiry } from "@/lib/session-expiry";
+import { findActiveSessionByHost, findSpace } from "@/lib/space-utils";
 import { NextResponse } from "next/server";
 
 type Params = { params: Promise<{ spaceId: string }> };
@@ -12,7 +12,7 @@ type Params = { params: Promise<{ spaceId: string }> };
  * /api/spaces/{spaceId}/sessions/extend:
  *   patch:
  *     summary: Extend an active study session
- *     description: Extends the expected end time of the current user's active session in the specified space. The new end time cannot exceed 20:30.
+ *     description: Extends the expected end time of the current user's active session in the specified space. The new end time cannot exceed 19:30.
  *     tags:
  *       - Sessions
  *     parameters:
@@ -49,7 +49,7 @@ type Params = { params: Promise<{ spaceId: string }> };
  *                   type: string
  *                   format: date-time
  *       400:
- *         description: Bad request (missing expectedEndTime or time exceeds 20:30)
+ *         description: Bad request (missing expectedEndTime or time exceeds 19:30)
  *       401:
  *         description: Unauthorized
  *       404:
@@ -83,7 +83,7 @@ export const PATCH = async (_request: Request, { params }: Params) => {
 
         if (isAfterHours(newEndTime)) {
             return NextResponse.json(
-                { error: 'Is not allowed to extend session beyond 20:30' },
+                { error: 'Is not allowed to extend session beyond 19:30' },
                 { status: 400 }
             );
         }
