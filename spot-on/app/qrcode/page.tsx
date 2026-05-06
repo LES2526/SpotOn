@@ -1,17 +1,17 @@
 'use client'
 
+import AfterHoursStatus from "@/components/qrcode/AfterHoursStatus";
 import ErrorStatus from "@/components/qrcode/Error";
 import ExpiredStatus from "@/components/qrcode/Expired";
+import ExtendSession from "@/components/qrcode/ExtendSession";
 import LoadingStatus from "@/components/qrcode/Loading";
 import OccupiedStatus from "@/components/qrcode/Occupied";
 import SuccessStatus from "@/components/qrcode/Success";
 import UserOccupiedStatus from "@/components/qrcode/UserOccupied";
-import ExtendSession from "@/components/qrcode/ExtendSession";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import AfterHoursStatus from "@/components/qrcode/AfterHoursStatus";
+import { Suspense, useEffect, useState } from "react";
 
-export default function OccupySpacePage() {
+function OccupySpaceContent() {
 
     const [status, setStatus] = useState<
         'loading' | 'success' | 'occupied' | 'user_occupied' | 'expired' | 'error' | 'extend' | 'after_hours'
@@ -52,16 +52,16 @@ export default function OccupySpacePage() {
                 else {
                     const errorData = await response.json();
 
-                    if(response.status === 409){
+                    if (response.status === 409) {
 
-                        if(errorData.error.match(/occupied/i)){
+                        if (errorData.error.match(/occupied/i)) {
                             const spaceRes = await fetch(`/api/qrcode/display/${spaceId}`);
                             const spaceData = await spaceRes.json();
                             setReportToken(spaceData.currentQrToken ?? null);
                             setStatus('occupied');
                         }
 
-                        if(errorData.error.match(/active session/i)){
+                        if (errorData.error.match(/active session/i)) {
                             setStatus('user_occupied');
                             return;
                         }
@@ -126,8 +126,8 @@ export default function OccupySpacePage() {
                 />
             )}
             {status === 'extend' && (
-                <ExtendSession 
-                    spaceId={spaceId} 
+                <ExtendSession
+                    spaceId={spaceId}
                     currentEndTime={currentEndTime!}
                     onAfterHours={() => setStatus('after_hours')}
                 />
@@ -137,5 +137,13 @@ export default function OccupySpacePage() {
             {status === 'error' && <ErrorStatus />}
             {status === 'after_hours' && <AfterHoursStatus />}
         </div>
+    );
+}
+
+export default function OccupySpacePage() {
+    return (
+        <Suspense fallback={<LoadingStatus />}>
+            <OccupySpaceContent />
+        </Suspense>
     );
 }
