@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="-EwyWxBUdCuHQjTAdV0J" name="Page-1">
-        <mxGraphModel dx="1649" dy="691" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+        <mxGraphModel dx="735" dy="648" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -146,7 +146,7 @@
                 <mxCell id="303" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endArrow=none;endFill=0;" edge="1" parent="1" source="299" target="api_port_qr">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="309" value="" style="group" vertex="1" connectable="0" parent="1">
+                <mxCell id="309" value="" style="group;dashed=1;dashPattern=12 12;" vertex="1" connectable="0" parent="1">
                     <mxGeometry x="50" y="941" width="2200" height="989" as="geometry"/>
                 </mxCell>
                 <mxCell id="services" value="&lt;div&gt;&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;&lt;&lt;component&gt;&gt;&lt;/span&gt;&lt;br&gt;Application Services" style="shape=component;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=14;verticalAlign=top;align=center;spacingTop=5;" parent="309" vertex="1">
@@ -157,6 +157,9 @@
                 </mxCell>
                 <mxCell id="require_auth" value="&amp;lt;&amp;gt;&lt;br&gt;Auth Middleware" style="shape=component;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=10;" parent="services" vertex="1">
                     <mxGeometry x="667" y="640" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="471" style="edgeStyle=none;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;dashed=1;endArrow=open;endFill=0;" edge="1" parent="services" source="session_expiry" target="notifications_svc">
+                    <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="session_expiry" value="&lt;&lt;component&gt;&gt;&lt;br&gt;Session Expiry Scheduler" style="shape=component;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=10;" parent="services" vertex="1">
                     <mxGeometry x="1267" y="640" width="180" height="80" as="geometry"/>
@@ -219,17 +222,41 @@
                 <mxCell id="329" value="" style="shape=mxgraph.archimate3.port;fillColor=#82b366;strokeColor=#82b366;" vertex="1" parent="services">
                     <mxGeometry x="1093" y="-10" width="14" height="14" as="geometry"/>
                 </mxCell>
-                <mxCell id="444" value="" style="group;rotation=90;" connectable="0" vertex="1" parent="services">
-                    <mxGeometry x="1670" y="340" width="42" height="44" as="geometry"/>
+                <mxCell id="472" style="edgeStyle=none;html=1;exitX=0.087;exitY=0.508;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;dashed=1;endArrow=open;endFill=0;exitPerimeter=0;" edge="1" parent="services" source="session_expiry" target="send_email">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="1367" y="650" as="sourcePoint"/>
+                        <mxPoint x="1367" y="234" as="targetPoint"/>
+                    </mxGeometry>
                 </mxCell>
-                <mxCell id="445" value="" style="group" connectable="0" vertex="1" parent="444">
-                    <mxGeometry y="4" width="42" height="40" as="geometry"/>
+                <mxCell id="474" style="edgeStyle=none;html=1;dashed=1;endArrow=open;endFill=0;exitX=0.75;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="services" source="qr_code_verify">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="1293" y="691" as="sourcePoint"/>
+                        <mxPoint x="1283" y="640" as="targetPoint"/>
+                    </mxGeometry>
                 </mxCell>
-                <mxCell id="446" value="&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;ISessionExpiry&lt;/span&gt;" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fontSize=8;" vertex="1" parent="445">
-                    <mxGeometry x="3" width="36" height="36" as="geometry"/>
+                <mxCell id="475" style="edgeStyle=none;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;dashed=1;endArrow=open;endFill=0;" edge="1" parent="services" source="report_expiry" target="prisma_client">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="1079" y="221" as="sourcePoint"/>
+                        <mxPoint x="927" y="220" as="targetPoint"/>
+                    </mxGeometry>
                 </mxCell>
-                <mxCell id="447" value="" style="shape=requiredInterface;html=1;verticalLabelPosition=bottom;sketch=0;rotation=-90;" vertex="1" parent="444">
-                    <mxGeometry x="12" y="-12" width="18" height="42" as="geometry"/>
+                <mxCell id="476" style="edgeStyle=none;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.25;entryDx=0;entryDy=0;dashed=1;endArrow=open;endFill=0;" edge="1" parent="services" source="badge_award" target="prisma_client">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="1116" y="236" as="sourcePoint"/>
+                        <mxPoint x="505" y="650" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="477" style="edgeStyle=none;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.25;entryDx=0;entryDy=0;dashed=1;endArrow=open;endFill=0;" edge="1" parent="services" source="notifications_svc" target="prisma_client">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="1622" y="236" as="sourcePoint"/>
+                        <mxPoint x="550" y="670" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="479" style="edgeStyle=none;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;dashed=1;endArrow=open;endFill=0;exitX=0.096;exitY=0.523;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="services" source="require_auth" target="prisma_client">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="681" y="680" as="sourcePoint"/>
+                        <mxPoint x="150" y="984" as="targetPoint"/>
+                    </mxGeometry>
                 </mxCell>
                 <mxCell id="223" style="edgeStyle=none;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endArrow=none;endFill=0;" edge="1" parent="309" source="svc_port_auth" target="220">
                     <mxGeometry relative="1" as="geometry"/>
@@ -528,18 +555,6 @@
                     <mxGeometry x="12" y="-12" width="18" height="42" as="geometry"/>
                 </mxCell>
                 <mxCell id="442" style="edgeStyle=none;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endArrow=none;endFill=0;" edge="1" parent="309" source="329" target="440">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="451" value="" style="group" connectable="0" vertex="1" parent="309">
-                    <mxGeometry x="1336" y="619" width="42" height="51" as="geometry"/>
-                </mxCell>
-                <mxCell id="452" value="&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;ISessionExpiry&lt;/span&gt;" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fontSize=8;" vertex="1" parent="451">
-                    <mxGeometry x="3" width="36" height="36" as="geometry"/>
-                </mxCell>
-                <mxCell id="453" value="" style="shape=requiredInterface;html=1;verticalLabelPosition=bottom;sketch=0;rotation=90;" vertex="1" parent="451">
-                    <mxGeometry x="11" y="9" width="20" height="42" as="geometry"/>
-                </mxCell>
-                <mxCell id="455" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=none;endFill=0;" edge="1" parent="309" source="453" target="session_expiry">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="469" value="&lt;&lt;delegate&gt;&gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="309" source="report_expiry">
