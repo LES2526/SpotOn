@@ -1,0 +1,457 @@
+<mxfile host="65bd71144e">
+    <diagram id="CfFBbH1mf-YBOR0IXDAI" name="Page-1">
+        <mxGraphModel dx="362" dy="499" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2400" pageHeight="3200" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="api_layer" value="&lt;&lt;component&gt;&gt;&#xa;API Layer" style="shape=component;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=14;verticalAlign=top;align=center;spacingTop=5;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="50" width="2200" height="820" as="geometry"/>
+                </mxCell>
+                <mxCell id="auth_route" value="&lt;&lt;component&gt;&gt;&#xa;AuthRoute&#xa;(NextAuth)" style="shape=component;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=10;" parent="api_layer" vertex="1">
+                    <mxGeometry x="40" y="80" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="auth_route_label" value="POST /api/auth/[...nextauth]" style="text;html=1;fontSize=8;align=center;fillColor=none;strokeColor=none;" parent="api_layer" vertex="1">
+                    <mxGeometry x="20" y="168" width="220" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="spaces_route" value="&lt;&lt;component&gt;&gt;&#xa;SpacesRoute" style="shape=component;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=10;" parent="api_layer" vertex="1">
+                    <mxGeometry x="240" y="80" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="spaces_route_label" value="GET /api/spaces" style="text;html=1;fontSize=8;align=center;fillColor=none;strokeColor=none;" parent="api_layer" vertex="1">
+                    <mxGeometry x="220" y="168" width="220" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="space_route" value="&lt;&lt;component&gt;&gt;&#xa;SpaceRoute" style="shape=component;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=10;" parent="api_layer" vertex="1">
+                    <mxGeometry x="440" y="80" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="space_route_label" value="GET/PATCH /api/spaces/[spaceId]" style="text;html=1;fontSize=8;align=center;fillColor=none;strokeColor=none;" parent="api_layer" vertex="1">
+                    <mxGeometry x="420" y="168" width="220" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="qr_display_route" value="&lt;&lt;component&gt;&gt;&#xa;QRCodeDisplayRoute" style="shape=component;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=10;" parent="api_layer" vertex="1">
+                    <mxGeometry x="640" y="80" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="qr_display_label" value="GET /api/qrcode/display/[spaceId]" style="text;html=1;fontSize=8;align=center;fillColor=none;strokeColor=none;" parent="api_layer" vertex="1">
+                    <mxGeometry x="620" y="168" width="220" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="qr_token_route" value="&lt;&lt;component&gt;&gt;&#xa;QRCodeTokenRoute" style="shape=component;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=10;" parent="api_layer" vertex="1">
+                    <mxGeometry x="840" y="80" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="qr_token_label" value="GET /api/qrcode/[token]" style="text;html=1;fontSize=8;align=center;fillColor=none;strokeColor=none;" parent="api_layer" vertex="1">
+                    <mxGeometry x="820" y="168" width="220" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="qr_verify_route" value="&lt;&lt;component&gt;&gt;&#xa;QRCodeVerifyRoute" style="shape=component;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=10;" parent="api_layer" vertex="1">
+                    <mxGeometry x="1040" y="80" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="qr_verify_label" value="POST /api/qrcode/verify" style="text;html=1;fontSize=8;align=center;fillColor=none;strokeColor=none;" parent="api_layer" vertex="1">
+                    <mxGeometry x="1020" y="168" width="220" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="sessions_route" value="&lt;&lt;component&gt;&gt;&#xa;SessionsRoute" style="shape=component;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=10;" parent="api_layer" vertex="1">
+                    <mxGeometry x="40" y="280" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="sessions_label" value="POST/PATCH/DELETE /api/spaces/[id]/sessions" style="text;html=1;fontSize=8;align=center;fillColor=none;strokeColor=none;" parent="api_layer" vertex="1">
+                    <mxGeometry x="20" y="368" width="220" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="current_session_route" value="&lt;&lt;component&gt;&gt;&#xa;CurrentSessionRoute" style="shape=component;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=10;" parent="api_layer" vertex="1">
+                    <mxGeometry x="240" y="280" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="current_session_label" value="GET /api/spaces/[id]/sessions/current" style="text;html=1;fontSize=8;align=center;fillColor=none;strokeColor=none;" parent="api_layer" vertex="1">
+                    <mxGeometry x="220" y="368" width="220" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="checkout_route" value="&lt;&lt;component&gt;&gt;&#xa;SessionCheckoutRoute" style="shape=component;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=10;" parent="api_layer" vertex="1">
+                    <mxGeometry x="440" y="280" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="checkout_label" value="POST /api/spaces/[id]/sessions/checkout" style="text;html=1;fontSize=8;align=center;fillColor=none;strokeColor=none;" parent="api_layer" vertex="1">
+                    <mxGeometry x="420" y="368" width="220" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="extend_route" value="&lt;&lt;component&gt;&gt;&#xa;SessionExtendRoute" style="shape=component;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=10;" parent="api_layer" vertex="1">
+                    <mxGeometry x="640" y="280" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="extend_label" value="POST /api/spaces/[id]/sessions/extend" style="text;html=1;fontSize=8;align=center;fillColor=none;strokeColor=none;" parent="api_layer" vertex="1">
+                    <mxGeometry x="620" y="368" width="220" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="join_route" value="&lt;&lt;component&gt;&gt;&#xa;JoinSessionRoute" style="shape=component;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=10;" parent="api_layer" vertex="1">
+                    <mxGeometry x="840" y="280" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="join_label" value="POST /api/spaces/[id]/sessions/join-session" style="text;html=1;fontSize=8;align=center;fillColor=none;strokeColor=none;" parent="api_layer" vertex="1">
+                    <mxGeometry x="820" y="368" width="220" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="join_approved_route" value="&lt;&lt;component&gt;&gt;&#xa;JoinApprovedRoute" style="shape=component;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=10;" parent="api_layer" vertex="1">
+                    <mxGeometry x="1040" y="280" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="join_approved_label" value="PATCH /api/spaces/[id]/sessions/join-session/approved" style="text;html=1;fontSize=8;align=center;fillColor=none;strokeColor=none;" parent="api_layer" vertex="1">
+                    <mxGeometry x="1020" y="368" width="220" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="join_rejected_route" value="&lt;&lt;component&gt;&gt;&#xa;JoinRejectedRoute" style="shape=component;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=10;" parent="api_layer" vertex="1">
+                    <mxGeometry x="1240" y="280" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="join_rejected_label" value="PATCH /api/spaces/[id]/sessions/join-session/rejected" style="text;html=1;fontSize=8;align=center;fillColor=none;strokeColor=none;" parent="api_layer" vertex="1">
+                    <mxGeometry x="1220" y="368" width="220" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="reports_route" value="&lt;&lt;component&gt;&gt;&#xa;ReportsRoute" style="shape=component;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=10;" parent="api_layer" vertex="1">
+                    <mxGeometry x="40" y="480" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="reports_label" value="POST /api/spaces/[id]/reports" style="text;html=1;fontSize=8;align=center;fillColor=none;strokeColor=none;" parent="api_layer" vertex="1">
+                    <mxGeometry x="20" y="568" width="220" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="reports_active_route" value="&lt;&lt;component&gt;&gt;&#xa;ReportsActiveRoute" style="shape=component;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=10;" parent="api_layer" vertex="1">
+                    <mxGeometry x="240" y="480" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="reports_active_label" value="PATCH /api/spaces/[id]/reports/active" style="text;html=1;fontSize=8;align=center;fillColor=none;strokeColor=none;" parent="api_layer" vertex="1">
+                    <mxGeometry x="220" y="568" width="220" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="reports_confirm_route" value="&lt;&lt;component&gt;&gt;&#xa;ReportsConfirmRoute" style="shape=component;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=10;" parent="api_layer" vertex="1">
+                    <mxGeometry x="440" y="480" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="reports_confirm_label" value="PATCH /api/spaces/[id]/reports/confirm" style="text;html=1;fontSize=8;align=center;fillColor=none;strokeColor=none;" parent="api_layer" vertex="1">
+                    <mxGeometry x="420" y="568" width="220" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="notif_route" value="&lt;&lt;component&gt;&gt;&#xa;NotificationsRoute" style="shape=component;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=10;" parent="api_layer" vertex="1">
+                    <mxGeometry x="640" y="480" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="notif_label" value="GET/PATCH /api/notifications" style="text;html=1;fontSize=8;align=center;fillColor=none;strokeColor=none;" parent="api_layer" vertex="1">
+                    <mxGeometry x="620" y="568" width="220" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="notif_resolve_route" value="&lt;&lt;component&gt;&gt;&#xa;NotificationResolveRoute" style="shape=component;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=10;" parent="api_layer" vertex="1">
+                    <mxGeometry x="840" y="480" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="notif_resolve_label" value="PATCH /api/notifications/[id]/resolve" style="text;html=1;fontSize=8;align=center;fillColor=none;strokeColor=none;" parent="api_layer" vertex="1">
+                    <mxGeometry x="820" y="568" width="220" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="leader_route" value="&lt;&lt;component&gt;&gt;&#xa;LeaderboardRoute" style="shape=component;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=10;" parent="api_layer" vertex="1">
+                    <mxGeometry x="1040" y="480" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="leader_label" value="GET /api/leaderboard" style="text;html=1;fontSize=8;align=center;fillColor=none;strokeColor=none;" parent="api_layer" vertex="1">
+                    <mxGeometry x="1020" y="568" width="220" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="badge_route" value="&lt;&lt;component&gt;&gt;&#xa;UserBadgeRoute" style="shape=component;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=10;" parent="api_layer" vertex="1">
+                    <mxGeometry x="1240" y="480" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="badge_label" value="GET /api/user/[id]/badge" style="text;html=1;fontSize=8;align=center;fillColor=none;strokeColor=none;" parent="api_layer" vertex="1">
+                    <mxGeometry x="1220" y="568" width="220" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="api_port_auth" value="" style="shape=mxgraph.archimate3.port;fillColor=#6c8ebf;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="200" y="860" width="14" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="api_port_qr" value="" style="shape=mxgraph.archimate3.port;fillColor=#6c8ebf;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="500" y="860" width="14" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="api_port_sessions" value="" style="shape=mxgraph.archimate3.port;fillColor=#6c8ebf;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="800" y="860" width="14" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="api_port_reports" value="" style="shape=mxgraph.archimate3.port;fillColor=#6c8ebf;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="1100" y="860" width="14" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="api_port_notif" value="" style="shape=mxgraph.archimate3.port;fillColor=#6c8ebf;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="1400" y="860" width="14" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="api_port_leaders" value="" style="shape=mxgraph.archimate3.port;fillColor=#6c8ebf;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="1700" y="860" width="14" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="del_auth" value="&lt;&lt;delegate&gt;&gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="1" source="auth_route" target="api_port_auth" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="del_qr" value="&lt;&lt;delegate&gt;&gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="1" source="qr_verify_route" target="api_port_qr" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="del_sessions" value="&lt;&lt;delegate&gt;&gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="1" source="sessions_route" target="api_port_sessions" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="del_reports" value="&lt;&lt;delegate&gt;&gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="1" source="reports_route" target="api_port_reports" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="del_notif" value="&lt;&lt;delegate&gt;&gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="1" source="notif_route" target="api_port_notif" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="del_leaders" value="&lt;&lt;delegate&gt;&gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="1" source="leader_route" target="api_port_leaders" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="api_iface_auth" value="authSvc" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=8;" parent="1" vertex="1">
+                    <mxGeometry x="189" y="886" width="36" height="36" as="geometry"/>
+                </mxCell>
+                <mxCell id="api_iface_auth_line" style="endArrow=none;html=1;" parent="1" source="api_port_auth" target="api_iface_auth" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="api_iface_qr" value="qrSvc" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=8;" parent="1" vertex="1">
+                    <mxGeometry x="489" y="886" width="36" height="36" as="geometry"/>
+                </mxCell>
+                <mxCell id="api_iface_qr_line" style="endArrow=none;html=1;" parent="1" source="api_port_qr" target="api_iface_qr" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="api_iface_sessions" value="sessionSvc" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=8;" parent="1" vertex="1">
+                    <mxGeometry x="789" y="886" width="36" height="36" as="geometry"/>
+                </mxCell>
+                <mxCell id="api_iface_sessions_line" style="endArrow=none;html=1;" parent="1" source="api_port_sessions" target="api_iface_sessions" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="api_iface_reports" value="reportSvc" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=8;" parent="1" vertex="1">
+                    <mxGeometry x="1089" y="886" width="36" height="36" as="geometry"/>
+                </mxCell>
+                <mxCell id="api_iface_reports_line" style="endArrow=none;html=1;" parent="1" source="api_port_reports" target="api_iface_reports" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="api_iface_notif" value="notifSvc" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=8;" parent="1" vertex="1">
+                    <mxGeometry x="1389" y="886" width="36" height="36" as="geometry"/>
+                </mxCell>
+                <mxCell id="api_iface_notif_line" style="endArrow=none;html=1;" parent="1" source="api_port_notif" target="api_iface_notif" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="api_iface_leaders" value="leaderSvc" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=8;" parent="1" vertex="1">
+                    <mxGeometry x="1689" y="886" width="36" height="36" as="geometry"/>
+                </mxCell>
+                <mxCell id="api_iface_leaders_line" style="endArrow=none;html=1;" parent="1" source="api_port_leaders" target="api_iface_leaders" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="services" value="&lt;&lt;component&gt;&gt;&#xa;Services" style="shape=component;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=14;verticalAlign=top;align=center;spacingTop=5;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="1000" width="2200" height="900" as="geometry"/>
+                </mxCell>
+                <mxCell id="qr_utils" value="&lt;&lt;component&gt;&gt;&#xa;QRUtils" style="shape=component;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=10;" parent="services" vertex="1">
+                    <mxGeometry x="40" y="80" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="qr_utils_label" value="currentWindow() previousWindow()&#xa;generateSignature() buildQrUrl() verifyQrCode()" style="text;html=1;fontSize=7;align=center;fillColor=none;strokeColor=none;" parent="services" vertex="1">
+                    <mxGeometry x="20" y="168" width="220" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="qr_code_verify" value="&lt;&lt;component&gt;&gt;&#xa;QRCodeVerify" style="shape=component;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=10;" parent="services" vertex="1">
+                    <mxGeometry x="240" y="80" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="qr_verify_svc_label" value="handleQrVerification()" style="text;html=1;fontSize=7;align=center;fillColor=none;strokeColor=none;" parent="services" vertex="1">
+                    <mxGeometry x="220" y="168" width="220" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="auth_utils" value="&lt;&lt;component&gt;&gt;&#xa;AuthUtils" style="shape=component;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=10;" parent="services" vertex="1">
+                    <mxGeometry x="440" y="80" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="auth_utils_label" value="isEmailAllowed() extractStudentId()&#xa;shouldAllowAnyEmail()" style="text;html=1;fontSize=7;align=center;fillColor=none;strokeColor=none;" parent="services" vertex="1">
+                    <mxGeometry x="420" y="168" width="220" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="require_auth" value="&lt;&lt;component&gt;&gt;&#xa;RequireAuth" style="shape=component;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=10;" parent="services" vertex="1">
+                    <mxGeometry x="640" y="80" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="require_auth_label" value="requireAuth()" style="text;html=1;fontSize=7;align=center;fillColor=none;strokeColor=none;" parent="services" vertex="1">
+                    <mxGeometry x="620" y="168" width="220" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="library_hours" value="&lt;&lt;component&gt;&gt;&#xa;LibraryHours" style="shape=component;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=10;" parent="services" vertex="1">
+                    <mxGeometry x="840" y="80" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="library_hours_label" value="clampToClosingTime() isAfterHours()" style="text;html=1;fontSize=7;align=center;fillColor=none;strokeColor=none;" parent="services" vertex="1">
+                    <mxGeometry x="820" y="168" width="220" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="session_expiry" value="&lt;&lt;component&gt;&gt;&#xa;SessionExpiry" style="shape=component;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=10;" parent="services" vertex="1">
+                    <mxGeometry x="1040" y="80" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="session_expiry_label" value="scheduleSessionExpiry() markSessionExpired()&#xa;sendExpiryWarning() restoreSessionExpiries()" style="text;html=1;fontSize=7;align=center;fillColor=none;strokeColor=none;" parent="services" vertex="1">
+                    <mxGeometry x="1020" y="168" width="220" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="checkout_utils" value="&lt;&lt;component&gt;&gt;&#xa;CheckoutUtils" style="shape=component;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=10;" parent="services" vertex="1">
+                    <mxGeometry x="40" y="310" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="checkout_utils_label" value="calculateCheckoutPoints()&#xa;findUserSession() incrementPoints()" style="text;html=1;fontSize=7;align=center;fillColor=none;strokeColor=none;" parent="services" vertex="1">
+                    <mxGeometry x="20" y="398" width="220" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="space_utils" value="&lt;&lt;component&gt;&gt;&#xa;SpaceUtils" style="shape=component;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=10;" parent="services" vertex="1">
+                    <mxGeometry x="240" y="310" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="space_utils_label" value="findSpace() findActiveSession()&#xa;findActiveSessionByHost() isAcceptedParticipant()" style="text;html=1;fontSize=7;align=center;fillColor=none;strokeColor=none;" parent="services" vertex="1">
+                    <mxGeometry x="220" y="398" width="220" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="notifications_svc" value="&lt;&lt;component&gt;&gt;&#xa;Notifications" style="shape=component;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=10;" parent="services" vertex="1">
+                    <mxGeometry x="440" y="310" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="notifications_label" value="createNotification()&#xa;resolveNotificationById() resolveNotifications()" style="text;html=1;fontSize=7;align=center;fillColor=none;strokeColor=none;" parent="services" vertex="1">
+                    <mxGeometry x="420" y="398" width="220" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="badge_award" value="&lt;&lt;component&gt;&gt;&#xa;BadgeAward" style="shape=component;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=10;" parent="services" vertex="1">
+                    <mxGeometry x="640" y="310" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="badge_award_label" value="awardMonthlyBadges()&#xa;scheduleMonthlyBadgeAward() initializeBadgeAwardScheduler()" style="text;html=1;fontSize=7;align=center;fillColor=none;strokeColor=none;" parent="services" vertex="1">
+                    <mxGeometry x="620" y="398" width="220" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="report_expiry" value="&lt;&lt;component&gt;&gt;&#xa;ReportExpiry" style="shape=component;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=10;" parent="services" vertex="1">
+                    <mxGeometry x="840" y="310" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="report_expiry_label" value="markReportExpired()&#xa;scheduleReportExpiry() restoreReportExpiries()" style="text;html=1;fontSize=7;align=center;fillColor=none;strokeColor=none;" parent="services" vertex="1">
+                    <mxGeometry x="820" y="398" width="220" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="send_email" value="&lt;&lt;component&gt;&gt;&#xa;SendNotificationEmail" style="shape=component;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=10;" parent="services" vertex="1">
+                    <mxGeometry x="1040" y="310" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="send_email_label" value="sendProofOfPresenceEmail()&#xa;sendJoinRequestEmail() sendApprovedJoinRequestEmail()&#xa;sendSessionExpiringSoonEmail()" style="text;html=1;fontSize=7;align=center;fillColor=none;strokeColor=none;" parent="services" vertex="1">
+                    <mxGeometry x="1020" y="398" width="220" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="avatar_utils" value="&lt;&lt;component&gt;&gt;&#xa;AvatarUtils" style="shape=component;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=10;" parent="services" vertex="1">
+                    <mxGeometry x="1240" y="310" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="avatar_utils_label" value="getAvatarForUser()" style="text;html=1;fontSize=7;align=center;fillColor=none;strokeColor=none;" parent="services" vertex="1">
+                    <mxGeometry x="1220" y="398" width="220" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="prisma_client" value="&lt;&lt;component&gt;&gt;&#xa;PrismaClient" style="shape=component;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=10;" parent="services" vertex="1">
+                    <mxGeometry x="1440" y="310" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="prisma_client_label" value="prisma (singleton)" style="text;html=1;fontSize=7;align=center;fillColor=none;strokeColor=none;" parent="services" vertex="1">
+                    <mxGeometry x="1420" y="398" width="220" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="svc_port_auth" value="" style="shape=mxgraph.archimate3.port;fillColor=#82b366;strokeColor=#82b366;" parent="1" vertex="1">
+                    <mxGeometry x="200" y="990" width="14" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="svc_port_qr" value="" style="shape=mxgraph.archimate3.port;fillColor=#82b366;strokeColor=#82b366;" parent="1" vertex="1">
+                    <mxGeometry x="500" y="990" width="14" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="svc_port_sessions" value="" style="shape=mxgraph.archimate3.port;fillColor=#82b366;strokeColor=#82b366;" parent="1" vertex="1">
+                    <mxGeometry x="800" y="990" width="14" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="svc_port_reports" value="" style="shape=mxgraph.archimate3.port;fillColor=#82b366;strokeColor=#82b366;" parent="1" vertex="1">
+                    <mxGeometry x="1100" y="990" width="14" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="svc_port_notif" value="" style="shape=mxgraph.archimate3.port;fillColor=#82b366;strokeColor=#82b366;" parent="1" vertex="1">
+                    <mxGeometry x="1400" y="990" width="14" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="svc_port_leaders" value="" style="shape=mxgraph.archimate3.port;fillColor=#82b366;strokeColor=#82b366;" parent="1" vertex="1">
+                    <mxGeometry x="1700" y="990" width="14" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="conn_auth" style="endArrow=ERmandOne;startArrow=ERmandOne;html=1;strokeWidth=2;" parent="1" source="api_iface_auth" target="svc_port_auth" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="conn_qr" style="endArrow=ERmandOne;startArrow=ERmandOne;html=1;strokeWidth=2;" parent="1" source="api_iface_qr" target="svc_port_qr" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="conn_sessions" style="endArrow=ERmandOne;startArrow=ERmandOne;html=1;strokeWidth=2;" parent="1" source="api_iface_sessions" target="svc_port_sessions" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="conn_reports" style="endArrow=ERmandOne;startArrow=ERmandOne;html=1;strokeWidth=2;" parent="1" source="api_iface_reports" target="svc_port_reports" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="conn_notif" style="endArrow=ERmandOne;startArrow=ERmandOne;html=1;strokeWidth=2;" parent="1" source="api_iface_notif" target="svc_port_notif" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="conn_leaders" style="endArrow=ERmandOne;startArrow=ERmandOne;html=1;strokeWidth=2;" parent="1" source="api_iface_leaders" target="svc_port_leaders" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="del_svc_auth" value="&lt;&lt;delegate&gt;&gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="1" source="require_auth" target="svc_port_auth" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="del_svc_qr" value="&lt;&lt;delegate&gt;&gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="1" source="qr_code_verify" target="svc_port_qr" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="del_svc_sessions" value="&lt;&lt;delegate&gt;&gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="1" source="session_expiry" target="svc_port_sessions" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="del_svc_reports" value="&lt;&lt;delegate&gt;&gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="1" source="report_expiry" target="svc_port_reports" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="del_svc_notif" value="&lt;&lt;delegate&gt;&gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="1" source="notifications_svc" target="svc_port_notif" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="del_svc_leaders" value="&lt;&lt;delegate&gt;&gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="1" source="badge_award" target="svc_port_leaders" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="svc_port_db" value="" style="shape=mxgraph.archimate3.port;fillColor=#82b366;strokeColor=#82b366;" parent="1" vertex="1">
+                    <mxGeometry x="500" y="1890" width="14" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="svc_port_nextauth" value="" style="shape=mxgraph.archimate3.port;fillColor=#82b366;strokeColor=#82b366;" parent="1" vertex="1">
+                    <mxGeometry x="800" y="1890" width="14" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="svc_port_smtp" value="" style="shape=mxgraph.archimate3.port;fillColor=#82b366;strokeColor=#82b366;" parent="1" vertex="1">
+                    <mxGeometry x="1100" y="1890" width="14" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="svc_port_scheduler" value="" style="shape=mxgraph.archimate3.port;fillColor=#82b366;strokeColor=#82b366;" parent="1" vertex="1">
+                    <mxGeometry x="1400" y="1890" width="14" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="del_svc_db" value="&lt;&lt;delegate&gt;&gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="1" source="prisma_client" target="svc_port_db" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="del_svc_nextauth" value="&lt;&lt;delegate&gt;&gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="1" source="require_auth" target="svc_port_nextauth" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="del_svc_smtp" value="&lt;&lt;delegate&gt;&gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="1" source="send_email" target="svc_port_smtp" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="del_svc_scheduler" value="&lt;&lt;delegate&gt;&gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="1" source="session_expiry" target="svc_port_scheduler" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="svc_iface_db" value="db" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=8;" parent="1" vertex="1">
+                    <mxGeometry x="489" y="1916" width="36" height="36" as="geometry"/>
+                </mxCell>
+                <mxCell id="svc_iface_db_line" style="endArrow=none;html=1;" parent="1" source="svc_port_db" target="svc_iface_db" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="svc_iface_nextauth" value="nextAuth" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=8;" parent="1" vertex="1">
+                    <mxGeometry x="789" y="1916" width="36" height="36" as="geometry"/>
+                </mxCell>
+                <mxCell id="svc_iface_nextauth_line" style="endArrow=none;html=1;" parent="1" source="svc_port_nextauth" target="svc_iface_nextauth" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="svc_iface_smtp" value="smtp" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=8;" parent="1" vertex="1">
+                    <mxGeometry x="1089" y="1916" width="36" height="36" as="geometry"/>
+                </mxCell>
+                <mxCell id="svc_iface_smtp_line" style="endArrow=none;html=1;" parent="1" source="svc_port_smtp" target="svc_iface_smtp" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="svc_iface_scheduler" value="scheduler" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=8;" parent="1" vertex="1">
+                    <mxGeometry x="1389" y="1916" width="36" height="36" as="geometry"/>
+                </mxCell>
+                <mxCell id="svc_iface_scheduler_line" style="endArrow=none;html=1;" parent="1" source="svc_port_scheduler" target="svc_iface_scheduler" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="infra" value="&lt;&lt;component&gt;&gt;&#xa;Infrastructure" style="shape=component;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=14;verticalAlign=top;align=center;spacingTop=5;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="2080" width="2200" height="400" as="geometry"/>
+                </mxCell>
+                <mxCell id="postgres" value="&lt;&lt;component&gt;&gt;&#xa;PostgreSQL" style="shape=component;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=11;" parent="infra" vertex="1">
+                    <mxGeometry x="40" y="100" width="200" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="postgres_label" value="TCP5432 / Prisma ORM" style="text;html=1;fontSize=8;align=center;fillColor=none;strokeColor=none;" parent="infra" vertex="1">
+                    <mxGeometry x="20" y="208" width="240" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="nextauth_comp" value="&lt;&lt;component&gt;&gt;&#xa;NextAuth.js" style="shape=component;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=11;" parent="infra" vertex="1">
+                    <mxGeometry x="400" y="100" width="200" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="nextauth_label" value="getServerSession()" style="text;html=1;fontSize=8;align=center;fillColor=none;strokeColor=none;" parent="infra" vertex="1">
+                    <mxGeometry x="380" y="208" width="240" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="nodemailer" value="&lt;&lt;component&gt;&gt;&#xa;Nodemailer" style="shape=component;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=11;" parent="infra" vertex="1">
+                    <mxGeometry x="760" y="100" width="200" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="nodemailer_label" value="sendMail() via SMTP" style="text;html=1;fontSize=8;align=center;fillColor=none;strokeColor=none;" parent="infra" vertex="1">
+                    <mxGeometry x="740" y="208" width="240" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="nodecron" value="&lt;&lt;component&gt;&gt;&#xa;node-cron / setTimeout" style="shape=component;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=11;" parent="infra" vertex="1">
+                    <mxGeometry x="1120" y="100" width="240" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="nodecron_label" value="Job scheduling" style="text;html=1;fontSize=8;align=center;fillColor=none;strokeColor=none;" parent="infra" vertex="1">
+                    <mxGeometry x="1100" y="208" width="280" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="infra_port_db" value="" style="shape=mxgraph.archimate3.port;fillColor=#d6b656;strokeColor=#d6b656;" parent="1" vertex="1">
+                    <mxGeometry x="500" y="2070" width="14" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="infra_port_nextauth" value="" style="shape=mxgraph.archimate3.port;fillColor=#d6b656;strokeColor=#d6b656;" parent="1" vertex="1">
+                    <mxGeometry x="800" y="2070" width="14" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="infra_port_smtp" value="" style="shape=mxgraph.archimate3.port;fillColor=#d6b656;strokeColor=#d6b656;" parent="1" vertex="1">
+                    <mxGeometry x="1100" y="2070" width="14" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="infra_port_scheduler" value="" style="shape=mxgraph.archimate3.port;fillColor=#d6b656;strokeColor=#d6b656;" parent="1" vertex="1">
+                    <mxGeometry x="1400" y="2070" width="14" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="conn_db" style="endArrow=ERmandOne;startArrow=ERmandOne;html=1;strokeWidth=2;" parent="1" source="svc_iface_db" target="infra_port_db" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="conn_nextauth" style="endArrow=ERmandOne;startArrow=ERmandOne;html=1;strokeWidth=2;" parent="1" source="svc_iface_nextauth" target="infra_port_nextauth" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="conn_smtp" style="endArrow=ERmandOne;startArrow=ERmandOne;html=1;strokeWidth=2;" parent="1" source="svc_iface_smtp" target="infra_port_smtp" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="conn_scheduler" style="endArrow=ERmandOne;startArrow=ERmandOne;html=1;strokeWidth=2;" parent="1" source="svc_iface_scheduler" target="infra_port_scheduler" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="del_infra_db" value="&lt;&lt;delegate&gt;&gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="1" source="postgres" target="infra_port_db" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="del_infra_nextauth" value="&lt;&lt;delegate&gt;&gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="1" source="nextauth_comp" target="infra_port_nextauth" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="del_infra_smtp" value="&lt;&lt;delegate&gt;&gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="1" source="nodemailer" target="infra_port_smtp" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="del_infra_scheduler" value="&lt;&lt;delegate&gt;&gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="1" source="nodecron" target="infra_port_scheduler" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
