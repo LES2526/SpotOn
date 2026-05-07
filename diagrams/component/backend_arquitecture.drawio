@@ -1,10 +1,10 @@
 <mxfile host="65bd71144e">
     <diagram id="CfFBbH1mf-YBOR0IXDAI" name="Page-1">
-        <mxGraphModel dx="835" dy="374" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2400" pageHeight="3200" math="0" shadow="0">
+        <mxGraphModel dx="419" dy="321" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2400" pageHeight="3200" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
-                <mxCell id="api_layer" value="&amp;lt;&amp;lt;component&amp;gt;&amp;gt;&lt;br&gt;API Layer" style="shape=component;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=14;verticalAlign=top;align=center;spacingTop=5;" parent="1" vertex="1">
+                <mxCell id="api_layer" value="&lt;div&gt;&lt;br&gt;&lt;/div&gt;&amp;lt;&amp;lt;component&amp;gt;&amp;gt;&lt;br&gt;API Layer" style="shape=component;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=14;verticalAlign=top;align=center;spacingTop=5;" parent="1" vertex="1">
                     <mxGeometry x="50" y="50" width="2200" height="820" as="geometry"/>
                 </mxCell>
                 <mxCell id="auth_route" value="&amp;lt;&amp;lt;component&amp;gt;&amp;gt;&lt;br&gt;AuthRoute&lt;br&gt;(NextAuth)" style="shape=component;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=10;" parent="api_layer" vertex="1">
@@ -189,7 +189,7 @@
                 <mxCell id="del_leaders" value="&amp;lt;&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;&amp;lt;delegate&amp;gt;&lt;/span&gt;&amp;gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="1" source="leader_route" target="api_port_leaders" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="services" value="&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;&amp;lt;&amp;lt;component&amp;gt;&amp;gt;&lt;/span&gt;&lt;br&gt;Services" style="shape=component;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=14;verticalAlign=top;align=center;spacingTop=5;" parent="1" vertex="1">
+                <mxCell id="services" value="&lt;div&gt;&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;&amp;lt;&amp;lt;component&amp;gt;&amp;gt;&lt;/span&gt;&lt;br&gt;Services" style="shape=component;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=14;verticalAlign=top;align=center;spacingTop=5;" parent="1" vertex="1">
                     <mxGeometry x="50" y="1000" width="2200" height="900" as="geometry"/>
                 </mxCell>
                 <mxCell id="qr_utils" value="&amp;lt;&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;&amp;lt;component&amp;gt;&lt;/span&gt;&amp;gt;&lt;br&gt;QRUtils" style="shape=component;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=10;" parent="services" vertex="1">
@@ -304,7 +304,7 @@
                         <mxPoint as="offset"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="del_svc_sessions" value="&amp;lt;&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;&amp;lt;delegate&amp;gt;&lt;/span&gt;&amp;gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="1" source="session_expiry" target="svc_port_sessions" edge="1">
+                <mxCell id="del_svc_sessions" value="&amp;lt;&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;&amp;lt;delegate&amp;gt;&lt;/span&gt;&amp;gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;exitX=0.25;exitY=0;exitDx=0;exitDy=0;" parent="1" source="session_expiry" target="svc_port_sessions" edge="1">
                     <mxGeometry x="0.0028" relative="1" as="geometry">
                         <mxPoint as="offset"/>
                     </mxGeometry>
@@ -347,35 +347,32 @@
                         <mxPoint as="offset"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="del_svc_scheduler" value="&lt;&lt;delegate&gt;&gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="1" source="session_expiry" target="svc_port_scheduler" edge="1">
+                <mxCell id="del_svc_scheduler" value="&amp;lt;&amp;lt;delegate&amp;gt;&amp;gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="1" source="session_expiry" target="svc_port_scheduler" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="infra" value="&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;&amp;lt;&amp;lt;component&amp;gt;&amp;gt;&lt;/span&gt;&lt;br&gt;Infrastructure" style="shape=component;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=14;verticalAlign=top;align=center;spacingTop=5;" parent="1" vertex="1">
+                <mxCell id="infra" value="&lt;div&gt;&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;&amp;lt;&amp;lt;component&amp;gt;&amp;gt;&lt;/span&gt;&lt;br&gt;Infrastructure" style="shape=component;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=14;verticalAlign=top;align=center;spacingTop=5;" parent="1" vertex="1">
                     <mxGeometry x="50" y="2080" width="2200" height="400" as="geometry"/>
                 </mxCell>
                 <mxCell id="postgres" value="&amp;lt;&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 10px;&quot;&gt;&amp;lt;component&amp;gt;&lt;/span&gt;&amp;gt;&lt;br&gt;PostgreSQL" style="shape=component;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=11;" parent="infra" vertex="1">
                     <mxGeometry x="40" y="100" width="200" height="100" as="geometry"/>
                 </mxCell>
-                <mxCell id="postgres_label" value="TCP5432 / Prisma ORM" style="text;html=1;fontSize=8;align=center;fillColor=none;strokeColor=none;" parent="infra" vertex="1">
-                    <mxGeometry x="20" y="208" width="240" height="20" as="geometry"/>
-                </mxCell>
                 <mxCell id="nextauth_comp" value="&amp;lt;&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 10px;&quot;&gt;&amp;lt;component&amp;gt;&lt;/span&gt;&amp;gt;&lt;br&gt;NextAuth.js" style="shape=component;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=11;" parent="infra" vertex="1">
                     <mxGeometry x="400" y="100" width="200" height="100" as="geometry"/>
                 </mxCell>
-                <mxCell id="nextauth_label" value="getServerSession()" style="text;html=1;fontSize=8;align=center;fillColor=none;strokeColor=none;" parent="infra" vertex="1">
-                    <mxGeometry x="380" y="208" width="240" height="20" as="geometry"/>
-                </mxCell>
-                <mxCell id="nodemailer" value="&amp;lt;&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 10px;&quot;&gt;&amp;lt;component&amp;gt;&lt;/span&gt;&amp;gt;&lt;br&gt;Nodemailer" style="shape=component;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=11;" parent="infra" vertex="1">
+                <mxCell id="nodemailer" value="&amp;lt;&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 10px;&quot;&gt;&amp;lt;component&amp;gt;&lt;/span&gt;&amp;gt;&lt;br&gt;Resend" style="shape=component;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=11;" parent="infra" vertex="1">
                     <mxGeometry x="760" y="100" width="200" height="100" as="geometry"/>
                 </mxCell>
-                <mxCell id="nodemailer_label" value="sendMail() via SMTP" style="text;html=1;fontSize=8;align=center;fillColor=none;strokeColor=none;" parent="infra" vertex="1">
-                    <mxGeometry x="740" y="208" width="240" height="20" as="geometry"/>
-                </mxCell>
-                <mxCell id="nodecron" value="&lt;&lt;component&gt;&gt;&#xa;node-cron / setTimeout" style="shape=component;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=11;" parent="infra" vertex="1">
+                <mxCell id="nodecron" value="&amp;lt;&amp;lt;component&amp;gt;&amp;gt;&lt;br&gt;node-cron / setTimeout" style="shape=component;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=11;" parent="infra" vertex="1">
                     <mxGeometry x="1120" y="100" width="240" height="100" as="geometry"/>
                 </mxCell>
-                <mxCell id="nodecron_label" value="Job scheduling" style="text;html=1;fontSize=8;align=center;fillColor=none;strokeColor=none;" parent="infra" vertex="1">
-                    <mxGeometry x="1100" y="208" width="280" height="20" as="geometry"/>
+                <mxCell id="104" value="&lt;font style=&quot;font-size: 9px;&quot;&gt;TCP 5432&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="infra">
+                    <mxGeometry x="420" width="60" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="106" value="&lt;font style=&quot;font-size: 9px;&quot;&gt;HTTP 3000&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="infra">
+                    <mxGeometry x="720" width="70" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="107" value="&lt;font style=&quot;font-size: 9px;&quot;&gt;HTTPS 443&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="infra">
+                    <mxGeometry x="1020" width="70" height="30" as="geometry"/>
                 </mxCell>
                 <mxCell id="82" style="edgeStyle=none;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endArrow=none;endFill=0;" edge="1" parent="1" source="infra_port_db" target="60">
                     <mxGeometry relative="1" as="geometry"/>
@@ -548,6 +545,9 @@
                 </mxCell>
                 <mxCell id="102" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endArrow=none;endFill=0;" edge="1" parent="1" source="96" target="svc_port_scheduler">
                     <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="105" value="&lt;font size=&quot;1&quot;&gt;HTTP 3000&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+                    <mxGeometry x="466" y="1900" width="70" height="30" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>
