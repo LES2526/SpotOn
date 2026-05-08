@@ -84,6 +84,10 @@ export const authOptions: NextAuthOptions = {
         EmailProvider({
             from: process.env.EMAIL_FROM,
             maxAge: 300,
+            /**
+             * Sends the magic-link email via Resend (HTTPS API).
+             * SMTP is not used because Railway blocks outbound SMTP connections.
+             */
             sendVerificationRequest: async ({ identifier: email, url, provider: { from } }) => {
                 const resend = new Resend(process.env.RESEND_API_KEY);
                 await resend.emails.send({
