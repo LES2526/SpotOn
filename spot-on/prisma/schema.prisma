@@ -177,7 +177,7 @@ model Space {
     createdAt DateTime @default(now())
     updatedAt DateTime @default(now()) @updatedAt
 
-    floorPlan FloorPlan      @relation(fields: [floorPlanId], references: [id])
+    floorPlan FloorPlan      @relation(fields: [floorPlanId], references: [id], onDelete: Cascade)
     sessions  StudySession[]
 }
 
@@ -199,7 +199,7 @@ model StudySession {
     createdAt DateTime @default(now())
     updatedAt DateTime @default(now()) @updatedAt
 
-    space Space @relation(fields: [spaceId], references: [id])
+    space Space @relation(fields: [spaceId], references: [id], onDelete: Cascade)
     host  User  @relation("SessionHost", fields: [hostId], references: [id])
 
     participants UserOnStudySession[]
@@ -217,8 +217,8 @@ model UserOnStudySession {
     status   InvitationStatus @default(PENDING)
     joinedAt DateTime         @default(now())
 
-    user    User         @relation(fields: [userId], references: [id])
-    session StudySession @relation(fields: [sessionId], references: [id])
+    user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+    session StudySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
     @@id([userId, sessionId])
 }
@@ -240,7 +240,7 @@ model Report {
     confirmedAt   DateTime?
 
     reporter            User                 @relation(fields: [reporterId], references: [id])
-    session             StudySession         @relation(fields: [sessionId], references: [id])
+    session             StudySession         @relation(fields: [sessionId], references: [id], onDelete: Cascade)
     reportConfirmations ReportConfirmation[]
 }
 
@@ -249,7 +249,7 @@ model ReportConfirmation {
     userId      String   @db.VarChar(30)
     confirmedAt DateTime @default(now())
 
-    report Report @relation(fields: [reportId], references: [id])
+    report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
     user   User   @relation(fields: [userId], references: [id])
 
     @@id([reportId, userId])
