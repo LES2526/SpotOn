@@ -38,7 +38,7 @@ export default function FloorPlanSection({ floorPlan, userSession }: Readonly<{ 
     }
 
     if (floorPlan.spaces.length === 0) {
-        return <p className="text-sm text-gray-500">Nenhum espaço encontrado neste piso.</p>
+        return <p className="text-sm text-gray-500">Nenhum espaço encontrado neste piso.</p>;
     }
     return (
         <div>
