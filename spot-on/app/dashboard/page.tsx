@@ -86,7 +86,7 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
                     { participants: { some: { userId, status: 'ACCEPTED' } } },
                 ],
             },
-            select: { spaceId: true },
+            select: { spaceId: true, hostId: true, expectedEndTime: true },
         }) : null,
     ]);
 
@@ -124,6 +124,7 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
             expectedEndTime: space.sessions[0]?.expectedEndTime ?? null,
             shape: space.shape,
             currentUserIsInSession: space.id === userActiveSession?.spaceId,
+            currentUserIsHost: space.id === userActiveSession?.spaceId && userActiveSession?.hostId === userId,
             currentOcuppants: space.sessions[0]
                 ? 1 + (space.sessions[0].participants?.length ?? 0)
                 : 0,
@@ -156,7 +157,14 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
             <section className="mx-auto max-w-6xl">
                 <DashboardHeader />
                 <FloorFilter floorPlans={floorPlans} selectedFloor={selectedFloor} />
-                <FloorPlanSection floorPlan={floorPlanData} />
+                <FloorPlanSection
+                    floorPlan={floorPlanData}
+                    userSession={userActiveSession ? {
+                        spaceId: userActiveSession.spaceId,
+                        expectedEndTime: userActiveSession.expectedEndTime,
+                        isHost: userActiveSession.hostId === userId,
+                    } : null}
+                />
                 <OccupanceCard
                     totalDesks={totalDesks}
                     occupiedDesks={occupiedDesks}
