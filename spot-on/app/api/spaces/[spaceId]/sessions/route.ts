@@ -105,7 +105,7 @@ export async function POST(_request: Request, { params }: Params) {
             data: {
                 spaceId,
                 hostId: session.user.id,
-                expectedEndTime: new Date(Date.now() + 60 * 60 * 1000)
+                expectedEndTime: new Date(Date.now() + 30 * 60 * 1000) // 30 min (teste)
             }
         });
 

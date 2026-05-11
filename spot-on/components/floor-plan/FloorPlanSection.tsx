@@ -6,8 +6,15 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import SpaceDetailPanel from "./SpaceDetailPanel";
 import SpacePanel from "../dashboard/SpacePanel";
+import SessionExpiryModal from "./SessionExpiryModal";
 
-export default function FloorPlanSection({ floorPlan }: Readonly<{ floorPlan: FloorPlanData }>) {
+type UserSession = {
+    spaceId: string;
+    expectedEndTime: Date;
+    isHost: boolean;
+};
+
+export default function FloorPlanSection({ floorPlan, userSession }: Readonly<{ floorPlan: FloorPlanData; userSession: UserSession | null }>) {
     const [selectedSpaceId, setSelectedSpaceId] = useState<string | null>(null);
     const [pointsToast, setPointsToast] = useState<number | null>(null);
     const router = useRouter();
@@ -35,6 +42,13 @@ export default function FloorPlanSection({ floorPlan }: Readonly<{ floorPlan: Fl
     }
     return (
         <div>
+            {userSession && (
+                <SessionExpiryModal
+                    spaceId={userSession.spaceId}
+                    expectedEndTime={userSession.expectedEndTime}
+                    isHost={userSession.isHost}
+                />
+            )}
             {pointsToast !== null && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
                     <div className="rounded-2xl border border-green-700 bg-gray-900 px-10 py-8 text-center shadow-2xl">
