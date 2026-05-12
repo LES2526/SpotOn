@@ -155,14 +155,6 @@
                 <mxCell id="prisma_client" value="&amp;lt;&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;&amp;lt;component&amp;gt;&lt;/span&gt;&amp;gt;&lt;br&gt;Data Access Layer" style="shape=component;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=10;" parent="services" vertex="1">
                     <mxGeometry x="360" y="640" width="180" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="svc_port_smtp" value="" style="shape=mxgraph.archimate3.port;fillColor=#82b366;strokeColor=#82b366;" parent="services" vertex="1">
-                    <mxGeometry x="1034" y="886" width="14" height="14" as="geometry"/>
-                </mxCell>
-                <mxCell id="del_svc_smtp" value="&amp;lt;&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;&amp;lt;delegate&amp;gt;&lt;/span&gt;&amp;gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="services" source="send_email" target="svc_port_smtp" edge="1">
-                    <mxGeometry x="0.0025" relative="1" as="geometry">
-                        <mxPoint as="offset"/>
-                    </mxGeometry>
-                </mxCell>
                 <mxCell id="304" value="&amp;lt;&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;&amp;lt;delegate&amp;gt;&lt;/span&gt;&amp;gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="services" source="badge_award" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <mxPoint x="1607" y="490" as="sourcePoint"/>
@@ -419,6 +411,14 @@
                         <mxPoint x="1283" y="699" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
+                <mxCell id="svc_port_smtp" value="" style="shape=mxgraph.archimate3.port;fillColor=#82b366;strokeColor=#82b366;" parent="309" vertex="1">
+                    <mxGeometry x="1034" y="949" width="14" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="del_svc_smtp" value="&amp;lt;&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;&amp;lt;delegate&amp;gt;&lt;/span&gt;&amp;gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="309" source="send_email" target="svc_port_smtp" edge="1">
+                    <mxGeometry x="0.0025" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
                 <mxCell id="310" value="" style="group" parent="1" vertex="1" connectable="0">
                     <mxGeometry x="50" y="1970" width="2200" height="470" as="geometry"/>
                 </mxCell>
@@ -470,18 +470,18 @@
                 <mxCell id="infra_port_scheduler" value="" style="shape=mxgraph.archimate3.port;fillColor=#d6b656;strokeColor=#d6b656;" parent="310" vertex="1">
                     <mxGeometry x="1350" y="60" width="14" height="14" as="geometry"/>
                 </mxCell>
-                <mxCell id="del_infra_db" value="&lt;&lt;delegate&gt;&gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="310" source="postgres" target="infra_port_db" edge="1">
+                <mxCell id="del_infra_db" value="&amp;lt;&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;&amp;lt;delegate&amp;gt;&lt;/span&gt;&amp;gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="310" source="postgres" target="infra_port_db" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="del_infra_nextauth" value="&lt;&lt;delegate&gt;&gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="310" source="nextauth_comp" target="infra_port_nextauth" edge="1">
+                <mxCell id="del_infra_nextauth" value="&amp;lt;&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;&amp;lt;delegate&amp;gt;&lt;/span&gt;&amp;gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="310" source="nextauth_comp" target="infra_port_nextauth" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="del_infra_smtp" value="&lt;&lt;delegate&gt;&gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="310" source="nodemailer" target="infra_port_smtp" edge="1">
+                <mxCell id="del_infra_smtp" value="&amp;lt;&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;&amp;lt;delegate&amp;gt;&lt;/span&gt;&amp;gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="310" source="nodemailer" target="infra_port_smtp" edge="1">
                     <mxGeometry x="0.0059" relative="1" as="geometry">
                         <mxPoint as="offset"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="del_infra_scheduler" value="&lt;&lt;delegate&gt;&gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="310" source="nodecron" target="infra_port_scheduler" edge="1">
+                <mxCell id="del_infra_scheduler" value="&amp;lt;&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;&amp;lt;delegate&amp;gt;&lt;/span&gt;&amp;gt;" style="endArrow=open;dashed=1;fontSize=8;html=1;" parent="310" source="nodecron" target="infra_port_scheduler" edge="1">
                     <mxGeometry x="-0.0071" relative="1" as="geometry">
                         <mxPoint as="offset"/>
                     </mxGeometry>
