@@ -77,14 +77,14 @@ describe('Sessions route – DELETE & PATCH', () => {
     // ============================================================
 
     describe('DELETE /api/spaces/[spaceId]/sessions', () => {
-        it('deve devolver 401 se não autenticado', async () => {
+        it('should return 401 if not authenticated', async () => {
             (getServerSession as jest.Mock).mockResolvedValue(null);
 
             const response = await DELETE({} as Request, { params: Promise.resolve({ spaceId: testSpace.id }) });
             expect(response.status).toBe(401);
         });
 
-        it('deve devolver 404 se não houver sessão ativa para o utilizador', async () => {
+        it('should return 404 if there is no active session for the user', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({
                 user: { id: testUser.id },
             });
@@ -93,7 +93,7 @@ describe('Sessions route – DELETE & PATCH', () => {
             expect(response.status).toBe(404);
         });
 
-        it('deve marcar a sessão como COMPLETED e definir actualEndTime', async () => {
+        it('should mark the session as COMPLETED and set actualEndTime', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({
                 user: { id: testUser.id },
             });
@@ -123,7 +123,7 @@ describe('Sessions route – DELETE & PATCH', () => {
     // ============================================================
 
     describe('PATCH /api/spaces/[spaceId]/sessions', () => {
-        it('deve devolver 401 se não autenticado', async () => {
+        it('should return 401 if not authenticated', async () => {
             (getServerSession as jest.Mock).mockResolvedValue(null);
 
             const request = new Request('http://localhost', {
@@ -135,7 +135,7 @@ describe('Sessions route – DELETE & PATCH', () => {
             expect(response.status).toBe(401);
         });
 
-        it('deve devolver 404 se não houver sessão ativa', async () => {
+        it('should return 404 if there is no active session', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({
                 user: { id: testUser.id },
             });
@@ -149,7 +149,7 @@ describe('Sessions route – DELETE & PATCH', () => {
             expect(response.status).toBe(404);
         });
 
-        it('deve devolver 400 se expectedEndTime for no passado', async () => {
+        it('should return 400 if expectedEndTime is in the past', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({
                 user: { id: testUser.id },
             });
@@ -172,7 +172,7 @@ describe('Sessions route – DELETE & PATCH', () => {
             expect(response.status).toBe(400);
         });
 
-        it('deve atualizar o expectedEndTime com sucesso', async () => {
+        it('should update expectedEndTime successfully', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({
                 user: { id: testUser.id },
             });

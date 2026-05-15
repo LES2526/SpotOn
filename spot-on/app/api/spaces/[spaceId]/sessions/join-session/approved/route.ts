@@ -1,8 +1,8 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { resolveNotificationById } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
+import { requireAuth } from "@/lib/require-auth";
 import { sendApprovedJoinRequestEmail } from "@/lib/send-notification-email";
-import { getServerSession } from "next-auth";
+import { findActiveSession, findSpace } from "@/lib/space-utils";
 import { NextResponse } from "next/server";
 
 type Params = { params: Promise<{ spaceId: string }> };
@@ -63,36 +63,28 @@ type Params = { params: Promise<{ spaceId: string }> };
 
 export async function PATCH(_request: Request, { params }: Params) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) {
+        const session = await requireAuth();
+        if (!session) {
             return NextResponse.json(
                 { error: 'Unauthorized' }, { status: 401 });
         }
         const { spaceId } = await Promise.resolve(params);
-        const space = await prisma.space.findUnique({
-            where: { id: spaceId }
-        });
+        const space = await findSpace(spaceId);
         if (!space) {
             return NextResponse.json({ error: 'Space not found' },
                 { status: 404 });
         }
-        const studySession = await prisma.studySession.findFirst({
-            where: {
-                spaceId,
-                status: 'ACTIVE'
-            }
-        });
+        const studySession = await findActiveSession(spaceId);
         if (!studySession) {
             return NextResponse.json({ error: 'Study session not found' },
                 { status: 404 });
         }
- 
         if (studySession.hostId !== session.user.id) {
             return NextResponse.json({
                 error: 'You are not the host of this session.'
             }, { status: 403 });
         }
-        
+
         const body = await _request.json();
         const { userId, notificationId } = body;
         const pending = await prisma.joinRequest.findFirst({
@@ -109,7 +101,7 @@ export async function PATCH(_request: Request, { params }: Params) {
             where: { id: pending.id },
             data: { status: 'ACCEPTED' }
         });
-        
+
         await prisma.userOnStudySession.create({
             data: {
                 userId,
@@ -126,8 +118,10 @@ export async function PATCH(_request: Request, { params }: Params) {
         if (notificationId) {
             await resolveNotificationById(notificationId);
         }
-        await sendApprovedJoinRequestEmail(requester.email);
-        
+        if (requester.email) {
+            await sendApprovedJoinRequestEmail(requester.email);
+        }
+
         return NextResponse.json(acceptJoinRequest, { status: 200 });
     } catch (error) {
         console.error('Error approving session:', error);

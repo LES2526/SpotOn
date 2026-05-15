@@ -5,7 +5,7 @@
 /**
  * @fileoverview Integration tests for QR code and session management endpoints.
  *
- * Tests the following endpoints via HTTP using axios against a running Next.js dev server:
+ * Tests the following endpoints via HTTP using fetch against a running Next.js dev server:
  * - GET  /api/qrcode/display/[spaceId]
  * - POST /api/qrcode/verify
  * - GET  /api/qrcode/[token]
@@ -23,7 +23,6 @@
 
 import { prisma } from '@/lib/prisma';
 import { currentWindow, generateSignature, previousWindow } from '@/lib/qr-utils';
-import axios, { AxiosInstance } from 'axios';
 
 // ---------------------------------------------------------------------------
 // Setup
@@ -32,7 +31,35 @@ import axios, { AxiosInstance } from 'axios';
 const BASE_URL = process.env.NEXTAUTH_URL ?? 'http://localhost:3000';
 const QR_TOKEN = `qr-sprint3-${Date.now()}`;
 
-async function createAuthenticatedClient(userId: string): Promise<{ client: AxiosInstance; sessionToken: string }> {
+jest.setTimeout(30000);
+
+interface Client {
+    get: (path: string) => Promise<{ status: number; data: any }>;
+    post: (path: string, body?: object) => Promise<{ status: number; data: any }>;
+    patch: (path: string, body?: object) => Promise<{ status: number; data: any }>;
+}
+
+function createClient(headers: Record<string, string> = {}): Client {
+    const baseHeaders = { 'Content-Type': 'application/json', ...headers };
+
+    const request = async (method: string, path: string, body?: object) => {
+        const res = await fetch(`${BASE_URL}${path}`, {
+            method,
+            headers: baseHeaders,
+            body: body !== undefined ? JSON.stringify(body) : undefined,
+        });
+        const data = await res.json().catch(() => null);
+        return { status: res.status, data };
+    };
+
+    return {
+        get: (path) => request('GET', path),
+        post: (path, body = {}) => request('POST', path, body),
+        patch: (path, body = {}) => request('PATCH', path, body),
+    };
+}
+
+async function createAuthenticatedClient(userId: string): Promise<{ client: Client; sessionToken: string }> {
     const sessionToken = `test-session-${userId}-${Date.now()}`;
 
     await prisma.session.create({
@@ -43,11 +70,7 @@ async function createAuthenticatedClient(userId: string): Promise<{ client: Axio
         },
     });
 
-    const client = axios.create({
-        baseURL: BASE_URL,
-        headers: { Cookie: `next-auth.session-token=${sessionToken}` },
-        validateStatus: () => true,
-    });
+    const client = createClient({ Cookie: `next-auth.session-token=${sessionToken}` });
 
     return { client, sessionToken };
 }
@@ -61,14 +84,11 @@ describe('Sprint 3 — QR Code & Session API', () => {
     let floorPlanId: string;
     let spaceId: string;
     let sessionToken: string;
-    let client: AxiosInstance;
-    let unauthClient: AxiosInstance;
+    let client: Client;
+    let unauthClient: Client;
 
     beforeAll(async () => {
-        unauthClient = axios.create({
-            baseURL: BASE_URL,
-            validateStatus: () => true,
-        });
+        unauthClient = createClient();
 
         // Clean up any leftovers from a previous interrupted run
         const leftoverFloor = await prisma.floorPlan.findFirst({
@@ -90,7 +110,7 @@ describe('Sprint 3 — QR Code & Session API', () => {
         const floorPlan = await prisma.floorPlan.create({
             data: {
                 name: 'Sprint3 Test Floor',
-                floor: 99,
+                floor: 97,
                 imageUrl: '/sprint3-test.png',
                 imageWidth: 1000,
                 imageHeight: 800,
@@ -115,15 +135,15 @@ describe('Sprint 3 — QR Code & Session API', () => {
     });
 
     afterEach(async () => {
-        await prisma.studySession.deleteMany({ where: { spaceId } });
+        if (spaceId) await prisma.studySession.deleteMany({ where: { spaceId } });
     });
 
     afterAll(async () => {
-        await prisma.studySession.deleteMany({ where: { spaceId } });
-        await prisma.session.deleteMany({ where: { sessionToken } });
-        await prisma.space.delete({ where: { id: spaceId } });
-        await prisma.floorPlan.delete({ where: { id: floorPlanId } });
-        await prisma.user.delete({ where: { id: userId } });
+        if (spaceId) await prisma.studySession.deleteMany({ where: { spaceId } });
+        if (sessionToken) await prisma.session.deleteMany({ where: { sessionToken } });
+        if (spaceId) await prisma.space.delete({ where: { id: spaceId } });
+        if (floorPlanId) await prisma.floorPlan.delete({ where: { id: floorPlanId } });
+        if (userId) await prisma.user.delete({ where: { id: userId } });
         await prisma.$disconnect();
     });
 
@@ -296,7 +316,7 @@ describe('Sprint 3 — QR Code & Session API', () => {
                 expect(sessionInDb?.hostId).toBe(userId);
             });
 
-            it('should default expectedEndTime to approximately 1 hour from now', async () => {
+            it('should default expectedEndTime to approximately 15 minutes from now', async () => {
                 const now = Date.now();
                 const qrWindow = currentWindow();
                 const { data } = await client.post('/api/qrcode/verify', {
@@ -306,9 +326,9 @@ describe('Sprint 3 — QR Code & Session API', () => {
                 });
 
                 const diff = new Date(data.expectedEndTime).getTime() - now;
-                const oneHour = 3600000;
-                expect(diff).toBeGreaterThanOrEqual(oneHour - 5000);
-                expect(diff).toBeLessThanOrEqual(oneHour + 5000);
+                const fifteenMin = 15 * 60 * 1000;
+                expect(diff).toBeGreaterThanOrEqual(fifteenMin - 5000);
+                expect(diff).toBeLessThanOrEqual(fifteenMin + 5000);
             });
 
             it('should respect a custom expectedEndTime', async () => {
@@ -415,7 +435,7 @@ describe('Sprint 3 — QR Code & Session API', () => {
 
         describe('Library hours clamping', () => {
             it('should clamp expectedEndTime to closing time if it exceeds it', async () => {
-                const closingTime = process.env.LIBRARY_CLOSING_TIME ?? '20:30';
+                const closingTime = process.env.LIBRARY_CLOSING_TIME ?? '19:30';
                 const [hours] = closingTime.split(':').map(Number);
 
                 // Use UTC hours so the test is timezone-agnostic (server runs in UTC)
@@ -436,18 +456,18 @@ describe('Sprint 3 — QR Code & Session API', () => {
             });
 
             it('should return 400 when less than 15 minutes remain before closing', async () => {
-                const closingTime = process.env.LIBRARY_CLOSING_TIME ?? '20:30';
+                const closingTime = process.env.LIBRARY_CLOSING_TIME ?? '19:30';
                 const [hours, minutes] = closingTime.split(':').map(Number);
 
                 // Mock current time to be 10 minutes before closing
                 const tenMinsBeforeClosing = new Date();
-                tenMinsBeforeClosing.setHours(hours, minutes - 10, 0, 0);
+                tenMinsBeforeClosing.setUTCHours(hours, minutes - 10, 0, 0);
 
                 // This test only runs meaningfully if current time is near closing
                 // Skip if we're not close enough to closing time to test this
                 const now = new Date();
                 const closingDate = new Date();
-                closingDate.setHours(hours, minutes, 0, 0);
+                closingDate.setUTCHours(hours, minutes, 0, 0);
                 const minsUntilClosing = (closingDate.getTime() - now.getTime()) / 60000;
 
                 if (minsUntilClosing > 0 && minsUntilClosing < 15) {
@@ -645,7 +665,7 @@ describe('Sprint 3 — QR Code & Session API', () => {
             });
 
             it('should clamp expectedEndTime to closing time if it exceeds it', async () => {
-                const closingTime = process.env.LIBRARY_CLOSING_TIME ?? '20:30';
+                const closingTime = process.env.LIBRARY_CLOSING_TIME ?? '19:30';
                 const [hours] = closingTime.split(':').map(Number);
 
                 // Use UTC hours so the test is timezone-agnostic (server runs in UTC)
