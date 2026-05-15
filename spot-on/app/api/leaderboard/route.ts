@@ -12,9 +12,8 @@
  * @since 1.0.0
  */
 
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
+import { requireAuth } from '@/lib/require-auth';
 import { NextResponse } from 'next/server';
 
 /**
@@ -91,13 +90,12 @@ export type LeaderboardEntry = {
  */
 export async function GET() {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) {//verifica a sessão
+        const session = await requireAuth();
+        if (!session) {
             return NextResponse.json({
                 error: 'Unauthorized'
             }, { status: 401 });
         }
-        //vai à base de dados
         const users = await prisma.user.findMany({
             orderBy: { points: 'desc' },
             select: {
@@ -107,7 +105,6 @@ export async function GET() {
                 points: true,
             },
         });
-        //mostra o ranking
         const leaderboard: LeaderboardEntry[] = users.map((user, index) => ({
             rank: index + 1,
             ...user,

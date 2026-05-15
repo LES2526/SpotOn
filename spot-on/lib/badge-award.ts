@@ -13,6 +13,11 @@
 
 import { prisma } from '@/lib/prisma';
 
+function isPrismaUniqueError(error: unknown): boolean {
+    return typeof error === 'object' && error !== null && 'code' in error
+        && (error as { code: string }).code === 'P2002';
+}
+
 /**
  * Returns the date of the 1st of next month at midnight.
  */
@@ -35,7 +40,6 @@ export async function awardMonthlyBadges(): Promise<void> {
         const now = new Date();
         const month = now.getMonth() + 1; // getMonth() is 0-indexed
         const year = now.getFullYear();
-
         console.log(`Awarding monthly badges for ${month}/${year}`);
 
         // Find the badge for this month and year
@@ -79,9 +83,9 @@ export async function awardMonthlyBadges(): Promise<void> {
                     },
                 });
                 console.log(`Badge awarded to ${user.email} (${user.points} points)`);
-            } catch (error: any) {
+            } catch (error: unknown) {
                 // Unique constraint violation — user already has this badge
-                if (error.code === 'P2002') {
+                if (isPrismaUniqueError(error)) {
                     console.log(`User ${user.email} already has badge "${badge.name}" — skipping`);
                 } else {
                     console.error(`Failed to award badge to ${user.email}:`, error);
@@ -130,15 +134,26 @@ export async function hasMonthlyBadgeBeenAwarded(): Promise<boolean> {
     return !!awarded;
 }
 
+// Node.js silently clamps setTimeout delays > 2^31-1 ms to 1 ms, which turns
+// a ~27-day wait into a tight infinite loop. Split long waits into safe chunks.
+const MAX_SAFE_TIMEOUT_MS = 2_147_483_647;
+
 /**
  * Schedules the monthly badge award to run on the 1st of next month.
  *
  * After awarding badges it reschedules itself for the following month,
  * so it runs indefinitely without needing a cron job.
  */
+const MAX_TIMEOUT_MS = 2_147_483_647; // max 32-bit signed integer (~24.8 days)
+
 export function scheduleMonthlyBadgeAward(): void {
     const next = getNextFirstOfMonth();
     const delay = next.getTime() - Date.now();
+
+    if (delay > MAX_SAFE_TIMEOUT_MS) {
+        setTimeout(() => scheduleMonthlyBadgeAward(), MAX_SAFE_TIMEOUT_MS);
+        return;
+    }
 
     console.log(
         `Monthly badge award scheduled for ${next.toISOString()} ` +

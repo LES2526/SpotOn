@@ -1,6 +1,8 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { isAfterHours } from "@/lib/library-hours";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { requireAuth } from "@/lib/require-auth";
+import { scheduleSessionExpiry } from "@/lib/session-expiry";
+import { findActiveSessionByHost, findSpace } from "@/lib/space-utils";
 import { NextResponse } from "next/server";
 
 type Params = { params: Promise<{ spaceId: string }> };
@@ -10,7 +12,7 @@ type Params = { params: Promise<{ spaceId: string }> };
  * /api/spaces/{spaceId}/sessions/extend:
  *   patch:
  *     summary: Extend an active study session
- *     description: Extends the expected end time of the current user's active session in the specified space. The new end time cannot exceed 20:30.
+ *     description: Extends the expected end time of the current user's active session in the specified space. The new end time cannot exceed 19:30.
  *     tags:
  *       - Sessions
  *     parameters:
@@ -47,7 +49,7 @@ type Params = { params: Promise<{ spaceId: string }> };
  *                   type: string
  *                   format: date-time
  *       400:
- *         description: Bad request (missing expectedEndTime or time exceeds 20:30)
+ *         description: Bad request (missing expectedEndTime or time exceeds 19:30)
  *       401:
  *         description: Unauthorized
  *       404:
@@ -57,49 +59,60 @@ type Params = { params: Promise<{ spaceId: string }> };
  */
 export const PATCH = async (_request: Request, { params }: Params) => {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) {
+        const session = await requireAuth();
+        if (!session) {
             return NextResponse.json(
                 { error: 'Unauthorized' }, { status: 401 });
         }
         const { spaceId } = await Promise.resolve(params);
-        const space = await prisma.space.findUnique({
-            where: { id: spaceId }
-        });
+        const space = await findSpace(spaceId);
+
         if (!space) {
             return NextResponse.json({ error: 'Space not found' },
                 { status: 404 });
         }
+
         const { expectedEndTime } = await _request.json();
         if (!expectedEndTime) {
             return NextResponse.json(
                 { error: 'Expected end time is required' },
                 { status: 400 });
         }
+
         const newEndTime = new Date(expectedEndTime);
-        if (newEndTime.getHours() * 60 + newEndTime.getMinutes() > 1230) {
+
+        if (isAfterHours(newEndTime)) {
             return NextResponse.json(
-                { error: 'Is not allowed to extend session beyond 20:30' },
+                { error: 'Is not allowed to extend session beyond 19:30' },
                 { status: 400 }
             );
         }
-        const studySession = await prisma.studySession.findFirst({
-            where: {
-                spaceId,
-                hostId: session.user.id,
-                status: 'ACTIVE'
-            }
-        });
+
+
+
+        const studySession = await findActiveSessionByHost(spaceId, session.user.id);
+
         if (!studySession) {
             return NextResponse.json(
                 { error: 'No active session found for this space and user' },
                 { status: 404 }
             );
         }
+
+        if (newEndTime <= studySession.expectedEndTime) {
+            return NextResponse.json(
+                { error: 'New end time must be later than the current end time' },
+                { status: 400 }
+            );
+        }
+
         const updatedSession = await prisma.studySession.update({
             where: { id: studySession.id },
             data: { expectedEndTime: new Date(expectedEndTime) }
         });
+
+        scheduleSessionExpiry(updatedSession.id, newEndTime);
+
         return NextResponse.json(updatedSession, { status: 200 });
     } catch (error) {
         console.error('Error extending session:', error);

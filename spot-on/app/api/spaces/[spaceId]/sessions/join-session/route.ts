@@ -1,8 +1,8 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { createNotification } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
+import { requireAuth } from "@/lib/require-auth";
+import { findActiveSession, findSpace } from "@/lib/space-utils";
 import { sendJoinRequestEmail } from "@/lib/send-notification-email";
-import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { verifyQrCode } from '@/lib/qr-utils';
 
@@ -60,31 +60,23 @@ type Params = { params: Promise<{ spaceId: string }> };
 
 export async function POST(_request: Request, { params }: Params) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) {
+        const session = await requireAuth();
+        if (!session) {
             return NextResponse.json(
                 { error: 'Unauthorized' }, { status: 401 });
         }
         const { spaceId } = await Promise.resolve(params);
         const { qrWindow, sig } = await _request.json();
-        const verification = verifyQrCode(spaceId,qrWindow, sig);
+        const verification = verifyQrCode(spaceId, qrWindow, sig);
         if (!verification.valid) {
             return NextResponse.json({ error: 'Invalid QR code' }, { status: 403 });
         }
-        const space = await prisma.space.findUnique({
-            where: { id: spaceId },
-            select: { id: true, capacity: true }
-        });
+        const space = await findSpace(spaceId);
         if (!space) {
             return NextResponse.json({ error: 'Space not found' },
                 { status: 404 });
         }
-        const studySession = await prisma.studySession.findFirst({
-            where: {
-                spaceId,
-                status: 'ACTIVE'
-            }
-        });
+        const studySession = await findActiveSession(spaceId);
         if (!studySession) {
             return NextResponse.json({ error: 'Study session not found' },
                 { status: 404 });
