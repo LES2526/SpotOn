@@ -7,7 +7,7 @@
 generator client {
   provider      = "prisma-client-js"
   output        = "../app/generated/prisma"
-  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x", "linux-musl-openssl-3.0.x", "darwin-arm64", "windows"]
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x", "linux-musl-openssl-3.0.x", "darwin-arm64", "windows", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -129,6 +129,10 @@ enum ReportStatus {
 enum NotificationType {
   PROOF_OF_PRESENCE
   JOIN_REQUEST
+  SESSION_EXPIRING_SOON
+  CHECKOUT
+  KICKED_FROM_SESSION
+  LEADERSHIP_TRANSFERRED
 }
 
 enum NotificationStatus {
@@ -175,7 +179,7 @@ model Space {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 
-  floorPlan    FloorPlan      @relation(fields: [floorPlanId], references: [id])
+  floorPlan    FloorPlan      @relation(fields: [floorPlanId], references: [id], onDelete: Cascade)
   sessions     StudySession[]
   joinRequests JoinRequest[]
 }
@@ -198,7 +202,7 @@ model StudySession {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 
-  space Space @relation(fields: [spaceId], references: [id])
+  space Space @relation(fields: [spaceId], references: [id], onDelete: Cascade)
   host  User  @relation("SessionHost", fields: [hostId], references: [id])
 
   participants UserOnStudySession[]
@@ -216,8 +220,8 @@ model UserOnStudySession {
 
   joinedAt DateTime @default(now())
 
-  user    User         @relation(fields: [userId], references: [id])
-  session StudySession @relation(fields: [sessionId], references: [id])
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session StudySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@id([userId, sessionId])
 }
@@ -252,7 +256,7 @@ model Report {
   confirmedAt   DateTime?
 
   reporter            User                 @relation(fields: [reporterId], references: [id])
-  session             StudySession         @relation(fields: [sessionId], references: [id])
+  session             StudySession         @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   reportConfirmations ReportConfirmation[]
 }
 
@@ -261,7 +265,7 @@ model ReportConfirmation {
   userId      String   @db.VarChar(30)
   confirmedAt DateTime @default(now())
 
-  report Report @relation(fields: [reportId], references: [id])
+  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
   user   User   @relation(fields: [userId], references: [id])
 
   @@id([reportId, userId])

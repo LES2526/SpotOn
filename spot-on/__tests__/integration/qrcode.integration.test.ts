@@ -6,7 +6,7 @@
  * @fileoverview Integration tests for POST /api/qrcode/verify.
  *
  * Tests the HMAC-based QR code verification and session creation endpoint
- * via HTTP using axios against a running Next.js dev server.
+ * via HTTP using fetch against a running Next.js dev server.
  *
  * Requires the app and database to be running before executing:
  * `docker compose up` then `npm test`
@@ -19,20 +19,39 @@
 
 import { prisma } from '@/lib/prisma';
 import { currentWindow, generateSignature, previousWindow } from '@/lib/qr-utils';
-import axios, { AxiosInstance } from 'axios';
 
 // ---------------------------------------------------------------------------
-// Axios setup
+// Fetch setup
 // ---------------------------------------------------------------------------
 
 const BASE_URL = process.env.NEXTAUTH_URL ?? 'http://localhost:3000';
 const ENDPOINT = '/api/qrcode/verify';
 
+jest.setTimeout(30000);
+
+interface Client {
+    post: (path: string, body: object) => Promise<{ status: number; data: any }>;
+}
+
+function createClient(headers: Record<string, string> = {}): Client {
+    return {
+        post: async (path, body) => {
+            const res = await fetch(`${BASE_URL}${path}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...headers },
+                body: JSON.stringify(body),
+            });
+            const data = await res.json().catch(() => null);
+            return { status: res.status, data };
+        },
+    };
+}
+
 /**
- * Creates an axios instance authenticated as the given user by injecting
+ * Creates a fetch client authenticated as the given user by injecting
  * a real database session and passing its token as a cookie.
  */
-async function createAuthenticatedClient(userId: string): Promise<{ client: AxiosInstance; sessionToken: string }> {
+async function createAuthenticatedClient(userId: string): Promise<{ client: Client; sessionToken: string }> {
     const sessionToken = `test-session-${userId}-${Date.now()}`;
 
     await prisma.session.create({
@@ -43,11 +62,7 @@ async function createAuthenticatedClient(userId: string): Promise<{ client: Axio
         },
     });
 
-    const client = axios.create({
-        baseURL: BASE_URL,
-        headers: { Cookie: `next-auth.session-token=${sessionToken}` },
-        validateStatus: () => true,
-    });
+    const client = createClient({ Cookie: `next-auth.session-token=${sessionToken}` });
 
     return { client, sessionToken };
 }
@@ -61,14 +76,11 @@ describe('POST /api/qrcode/verify', () => {
     let floorPlanId: string;
     let spaceId: string;
     let sessionToken: string;
-    let client: AxiosInstance;
-    let unauthClient: AxiosInstance;
+    let client: Client;
+    let unauthClient: Client;
 
     beforeAll(async () => {
-        unauthClient = axios.create({
-            baseURL: BASE_URL,
-            validateStatus: () => true,
-        });
+        unauthClient = createClient();
 
         const user = await prisma.user.create({
             data: { email: `qr-verify-${Date.now()}@ualg.pt` },
@@ -114,15 +126,15 @@ describe('POST /api/qrcode/verify', () => {
     });
 
     afterEach(async () => {
-        await prisma.studySession.deleteMany({ where: { spaceId } });
+        if (spaceId) await prisma.studySession.deleteMany({ where: { spaceId } });
     });
 
     afterAll(async () => {
-        await prisma.studySession.deleteMany({ where: { spaceId } });
-        await prisma.session.deleteMany({ where: { sessionToken } });
-        await prisma.space.delete({ where: { id: spaceId } });
-        await prisma.floorPlan.delete({ where: { id: floorPlanId } });
-        await prisma.user.delete({ where: { id: userId } });
+        if (spaceId) await prisma.studySession.deleteMany({ where: { spaceId } });
+        if (sessionToken) await prisma.session.deleteMany({ where: { sessionToken } });
+        if (spaceId) await prisma.space.delete({ where: { id: spaceId } });
+        if (floorPlanId) await prisma.floorPlan.delete({ where: { id: floorPlanId } });
+        if (userId) await prisma.user.delete({ where: { id: userId } });
         await prisma.$disconnect();
     });
 
@@ -148,7 +160,6 @@ describe('POST /api/qrcode/verify', () => {
 
     describe('QR verification', () => {
         it('should return 400 when spaceId is missing', async () => {
-
             const qrWindow = currentWindow();
 
             const { status, data } = await client.post(ENDPOINT, {
@@ -243,7 +254,7 @@ describe('POST /api/qrcode/verify', () => {
             expect(data.error).toBeDefined();
         });
 
-        it('should default expectedEndTime to approximately 1 hour from now', async () => {
+        it('should default expectedEndTime to approximately 15 minutes from now', async () => {
             const now = Date.now();
 
             const { data } = await client.post(ENDPOINT, {
@@ -253,9 +264,9 @@ describe('POST /api/qrcode/verify', () => {
             });
 
             const diff = new Date(data.expectedEndTime).getTime() - now;
-            const oneHour = 3600000;
-            expect(diff).toBeGreaterThanOrEqual(oneHour - 5000);
-            expect(diff).toBeLessThanOrEqual(oneHour + 5000);
+            const fifteenMin = 15 * 60 * 1000;
+            expect(diff).toBeGreaterThanOrEqual(fifteenMin - 5000);
+            expect(diff).toBeLessThanOrEqual(fifteenMin + 5000);
         });
 
         it('should respect a custom expectedEndTime', async () => {

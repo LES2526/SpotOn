@@ -9,6 +9,7 @@ const transporter = nodemailer.createTransport({
     },
 });
 
+/** Sends an email to the session host warning that their presence was questioned. */
 export async function sendProofOfPresenceEmail(to: string) {
     await transporter.sendMail({
         from: process.env.EMAIL_FROM,
@@ -25,6 +26,7 @@ export async function sendProofOfPresenceEmail(to: string) {
     });
 }
 
+/** Sends a join request notification email to the session host. */
 export async function sendJoinRequestEmail(to: string,
     requesterEmail: string) {
     await transporter.sendMail({
@@ -39,6 +41,7 @@ export async function sendJoinRequestEmail(to: string,
     });
 }
 
+/** Sends an email to a user whose join request was rejected. */
 export async function sendNotAcceptedJoinRequestEmail(to: string) {
     await transporter.sendMail({
         from: process.env.EMAIL_FROM,
@@ -52,6 +55,7 @@ export async function sendNotAcceptedJoinRequestEmail(to: string) {
     });
 }
 
+/** Sends an email to a user whose join request was approved. */
 export async function sendApprovedJoinRequestEmail(to: string) {
     await transporter.sendMail({
         from: process.env.EMAIL_FROM,
@@ -60,6 +64,20 @@ export async function sendApprovedJoinRequestEmail(to: string) {
         html: `
             <p>
             O teu pedido para juntar-se à sessão foi aprovado! Vemo-nos lá.
+            </p>
+        `,
+    });
+}
+
+/** Sends an email warning the session host that their session expires in 10 minutes. */
+export async function sendSessionExpiringSoonEmail(to: string) {
+    await transporter.sendMail({
+        from: process.env.EMAIL_FROM,
+        to,
+        subject: 'O teu tempo está quase a acabar!',
+        html: `
+            <p>
+            A tua sessão termina em <strong>10 minutos</strong>.
             </p>
         `,
     });

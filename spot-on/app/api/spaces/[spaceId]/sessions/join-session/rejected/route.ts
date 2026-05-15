@@ -1,8 +1,8 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { resolveNotificationById } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
+import { requireAuth } from "@/lib/require-auth";
 import { sendNotAcceptedJoinRequestEmail } from "@/lib/send-notification-email";
-import { getServerSession } from "next-auth";
+import { findActiveSession, findSpace } from "@/lib/space-utils";
 import { NextResponse } from "next/server";
 
 type Params = { params: Promise<{ spaceId: string }> };
@@ -63,22 +63,18 @@ type Params = { params: Promise<{ spaceId: string }> };
 
 export async function PATCH(_request: Request, { params }: Params) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) {
+        const session = await requireAuth();
+        if (!session) {
             return NextResponse.json(
                 { error: 'Unauthorized' }, { status: 401 });
         }
         const { spaceId } = await Promise.resolve(params);
-        const space = await prisma.space.findUnique({
-            where: { id: spaceId }
-        });
+        const space = await findSpace(spaceId);
         if (!space) {
             return NextResponse.json({ error: 'Space not found' },
                 { status: 404 });
         }
-        const studySession = await prisma.studySession.findFirst({
-            where: { spaceId, status: 'ACTIVE' }
-        });
+        const studySession = await findActiveSession(spaceId);
         if (!studySession) {
             return NextResponse.json({ error: 'Study session not found' },
                 { status: 404 });
@@ -90,7 +86,6 @@ export async function PATCH(_request: Request, { params }: Params) {
         }
         const body = await _request.json();
         const { userId, notificationId } = body;
-
         const pending = await prisma.joinRequest.findFirst({
             where: {
                 userId,
@@ -99,23 +94,23 @@ export async function PATCH(_request: Request, { params }: Params) {
             }
         });
         if (!pending) {
-            return NextResponse.json({
-                error: 'No pending join request found for this user.'
-            }, { status: 404 });
+            return NextResponse.json({ error: 'No pending request found.' }, { status: 404 });
         }
-        const updateJoinSession = await prisma.joinRequest.update({
-                where: { id: pending.id },
-                data: { status: 'REJECTED' }
+        const rejectJoinRequest = await prisma.joinRequest.update({
+            where: { id: pending.id },
+            data: { status: 'REJECTED' }
         });
+        if (notificationId) {
+            await resolveNotificationById(notificationId);
+        }
         const requester = await prisma.user.findUnique({
             where: { id: userId },
             select: { email: true },
         });
         if (requester?.email) {
-            await resolveNotificationById(notificationId);
             await sendNotAcceptedJoinRequestEmail(requester.email);
         }
-        return NextResponse.json(updateJoinSession, { status: 200 });
+        return NextResponse.json(rejectJoinRequest, { status: 200 });
     } catch (error) {
         console.error('Error rejecting session:', error);
         return NextResponse.json({ error: 'Failed to reject session' },
