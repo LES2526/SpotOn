@@ -7,7 +7,7 @@
  *
  * Tests space filtering by floor, type, capacity, hasPowerOutlet,
  * hasComputer, hasInteractiveBoard, and isOccupied via HTTP using
- * axios against a running Next.js dev server.
+ * fetch against a running Next.js dev server.
  *
  * Requires the app and database to be running before executing:
  * `docker compose up` then `npm test`
@@ -19,7 +19,6 @@
  */
 
 import { prisma } from '@/lib/prisma';
-import axios, { AxiosInstance } from 'axios';
 
 // ---------------------------------------------------------------------------
 // Setup
@@ -30,7 +29,30 @@ const ENDPOINT = '/api/spaces';
 
 jest.setTimeout(15000);
 
-async function createAuthenticatedClient(userId: string): Promise<{ client: AxiosInstance; sessionToken: string }> {
+interface Client {
+    get: (path: string, options?: { params?: Record<string, any> }) => Promise<{ status: number; data: any }>;
+}
+
+function createClient(headers: Record<string, string> = {}): Client {
+    return {
+        get: async (path, options) => {
+            const url = new URL(`${BASE_URL}${path}`);
+            if (options?.params) {
+                Object.entries(options.params).forEach(([key, value]) => {
+                    url.searchParams.set(key, String(value));
+                });
+            }
+            const res = await fetch(url.toString(), {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json', ...headers },
+            });
+            const data = await res.json().catch(() => null);
+            return { status: res.status, data };
+        },
+    };
+}
+
+async function createAuthenticatedClient(userId: string): Promise<{ client: Client; sessionToken: string }> {
     const sessionToken = `test-session-${userId}-${Date.now()}`;
 
     await prisma.session.create({
@@ -41,11 +63,7 @@ async function createAuthenticatedClient(userId: string): Promise<{ client: Axio
         },
     });
 
-    const client = axios.create({
-        baseURL: BASE_URL,
-        headers: { Cookie: `next-auth.session-token=${sessionToken}` },
-        validateStatus: () => true,
-    });
+    const client = createClient({ Cookie: `next-auth.session-token=${sessionToken}` });
 
     return { client, sessionToken };
 }
@@ -58,14 +76,11 @@ describe('GET /api/spaces', () => {
     let userId: string;
     let floorPlanId: string;
     let sessionToken: string;
-    let client: AxiosInstance;
-    let unauthClient: AxiosInstance;
+    let client: Client;
+    let unauthClient: Client;
 
-    let individualDeskId: string;
-    let groupRoomId: string;
     let computerDeskId: string;
     let interactiveBoardRoomId: string;
-    let powerOutletDeskId: string;
     let occupiedSpaceId: string;
 
     const timestamp = Date.now();
@@ -74,10 +89,7 @@ describe('GET /api/spaces', () => {
     const testPoints = '10,10 20,10 20,20 10,20';
 
     beforeAll(async () => {
-        unauthClient = axios.create({
-            baseURL: BASE_URL,
-            validateStatus: () => true,
-        });
+        unauthClient = createClient();
 
         const user = await prisma.user.create({
             data: { email: `spaces-test-${timestamp}@ualg.pt` },
@@ -96,7 +108,7 @@ describe('GET /api/spaces', () => {
         floorPlanId = floorPlan.id;
 
         // Individual desk — no extras
-        const individualDesk = await prisma.space.create({
+        await prisma.space.create({
             data: {
                 floorPlanId,
                 name: 'Individual Desk',
@@ -109,10 +121,8 @@ describe('GET /api/spaces', () => {
                 hasInteractiveBoard: false,
             },
         });
-        individualDeskId = individualDesk.id;
-
         // Group room — capacity 6
-        const groupRoom = await prisma.space.create({
+        await prisma.space.create({
             data: {
                 floorPlanId,
                 name: 'Group Room',
@@ -125,8 +135,6 @@ describe('GET /api/spaces', () => {
                 hasInteractiveBoard: false,
             },
         });
-        groupRoomId = groupRoom.id;
-
         // Desk with computer
         const computerDesk = await prisma.space.create({
             data: {
@@ -160,7 +168,7 @@ describe('GET /api/spaces', () => {
         interactiveBoardRoomId = interactiveBoardRoom.id;
 
         // Desk with power outlet only
-        const powerOutletDesk = await prisma.space.create({
+        await prisma.space.create({
             data: {
                 floorPlanId,
                 name: 'Power Outlet Desk',
@@ -173,8 +181,6 @@ describe('GET /api/spaces', () => {
                 hasInteractiveBoard: false,
             },
         });
-        powerOutletDeskId = powerOutletDesk.id;
-
         // Occupied space
         const occupiedSpace = await prisma.space.create({
             data: {

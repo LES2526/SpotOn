@@ -1,11 +1,73 @@
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { NextResponse } from 'next/server';
 import { SpaceType } from '@/app/generated/prisma';
+import { prisma } from '@/lib/prisma';
+import { requireAuth } from '@/lib/require-auth';
+import { NextResponse } from 'next/server';
 
+
+/**
+ * @swagger
+ * /api/spaces/{spaceId}:
+ *   get:
+ *     summary: List spaces with optional filters
+ *     description: Returns spaces filtered by the given query parameters.
+ *     tags:
+ *       - Spaces
+ *     parameters:
+ *       - in: path
+ *         name: spaceId
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *           enum: [INDIVIDUAL_DESK, GROUP_ROOM]
+ *       - in: query
+ *         name: capacity
+ *         schema:
+ *           type: integer
+ *         description: Minimum number of seats required
+ *       - in: query
+ *         name: hasPowerOutlet
+ *         schema:
+ *           type: boolean
+ *       - in: query
+ *         name: hasComputer
+ *         schema:
+ *           type: boolean
+ *       - in: query
+ *         name: hasInteractiveBoard
+ *         schema:
+ *           type: boolean
+ *       - in: query
+ *         name: isOccupied
+ *         schema:
+ *           type: boolean
+ *       - in: query
+ *         name: floor
+ *         schema:
+ *           type: string
+ *         description: Floor plan name
+ *     responses:
+ *       200:
+ *         description: Filtered list of spaces
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 spaces:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
 export async function GET(request: Request) {
-    const session = await getServerSession(authOptions);
+    const session = await requireAuth();
 
     if (!session) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -18,8 +80,8 @@ export async function GET(request: Request) {
 
     const typeParam = searchParams.get('type');
 
-    const type = typeParam && Object.values(SpaceType).includes(typeParam as SpaceType)        ? (typeParam as SpaceType)
-    : undefined;
+    const type = typeParam && Object.values(SpaceType).includes(typeParam as SpaceType) ? (typeParam as SpaceType)
+        : undefined;
 
     const capacity = searchParams.get('capacity');
     const hasPowerOutlet = parseBool(searchParams.get('hasPowerOutlet'));
@@ -44,17 +106,17 @@ export async function GET(request: Request) {
                 sessions: isOccupied
                     ? isOccupied === 'true'
                         ? {
-                              some: {
-                                  status: 'ACTIVE',
-                                  expectedEndTime: { gt: new Date() },
-                              },
-                          }
+                            some: {
+                                status: 'ACTIVE',
+                                expectedEndTime: { gt: new Date() },
+                            },
+                        }
                         : {
-                              none: {
-                                  status: 'ACTIVE',
-                                  expectedEndTime: { gt: new Date() },
-                              },
-                          }
+                            none: {
+                                status: 'ACTIVE',
+                                expectedEndTime: { gt: new Date() },
+                            },
+                        }
                     : undefined,
             },
 
@@ -74,7 +136,7 @@ export async function GET(request: Request) {
         });
 
         return NextResponse.json({ spaces });
-    } catch (error) {
+    } catch {
         return NextResponse.json({ error: 'Server error' }, { status: 500 });
     }
 }
