@@ -87,7 +87,6 @@ describe('Reports API', () => {
             data: {
                 userId: acceptedParticipant.id,
                 sessionId: activeSession.id,
-                status: 'ACCEPTED',
             },
         });
     });

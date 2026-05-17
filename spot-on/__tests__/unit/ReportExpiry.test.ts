@@ -69,8 +69,8 @@ describe('ReportExpiry', () => {
 
         await prisma.userOnStudySession.createMany({
             data: [
-                { userId: participant1.id, sessionId: activeSession.id, status: 'ACCEPTED' },
-                { userId: participant2.id, sessionId: activeSession.id, status: 'ACCEPTED' },
+                { userId: participant1.id, sessionId: activeSession.id },
+                { userId: participant2.id, sessionId: activeSession.id },
             ],
         });
     });
