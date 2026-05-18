@@ -20,7 +20,7 @@ export async function findUserSession(spaceId: string, userId: string) {
             expectedEndTime: { gt: new Date() },
             OR: [
                 { hostId: userId },
-                { participants: { some: { userId, status: 'ACCEPTED' } } },
+                { participants: { some: { userId } } },
             ],
         },
         include: { space: true },
@@ -35,7 +35,7 @@ export async function findCheckedOutSession(spaceId: string, userId: string) {
             status: { in: ['COMPLETED', 'EXPIRED'] },
             OR: [
                 { hostId: userId },
-                { participants: { some: { userId, status: 'ACCEPTED' } } },
+                { participants: { some: { userId } } },
             ],
         },
         orderBy: { actualEndTime: 'desc' },

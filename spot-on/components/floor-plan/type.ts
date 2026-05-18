@@ -11,6 +11,9 @@ export type SpaceMarker = {
     points: string;
     isOccupied: boolean;
     expectedEndTime: Date | null;
+    currentUserIsInSession: boolean;
+    currentOcuppants: number;
+    participantsList: {id:string; name:string | null; email: string; isHost: boolean}[];
 };
 
 export type FloorPlanData = {
