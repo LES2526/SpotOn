@@ -1,0 +1,3 @@
+[deploy]
+preDeployCommand = "npx prisma db push && npx prisma db seed"
+startCommand = "npm start"
