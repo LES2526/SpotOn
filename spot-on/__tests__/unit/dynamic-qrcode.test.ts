@@ -5,7 +5,7 @@
 /**
  * @fileoverview Integration tests for QR code and session management endpoints.
  *
- * Tests the following endpoints via HTTP using axios against a running Next.js dev server:
+ * Tests the following endpoints via HTTP using fetch against a running Next.js dev server:
  * - GET  /api/qrcode/display/[spaceId]
  * - POST /api/qrcode/verify
  * - GET  /api/qrcode/[token]
@@ -23,7 +23,6 @@
 
 import { prisma } from '@/lib/prisma';
 import { currentWindow, generateSignature, previousWindow } from '@/lib/qr-utils';
-import axios, { AxiosInstance } from 'axios';
 
 // ---------------------------------------------------------------------------
 // Setup
@@ -34,7 +33,33 @@ const QR_TOKEN = `qr-sprint3-${Date.now()}`;
 
 jest.setTimeout(30000);
 
-async function createAuthenticatedClient(userId: string): Promise<{ client: AxiosInstance; sessionToken: string }> {
+interface Client {
+    get: (path: string) => Promise<{ status: number; data: any }>;
+    post: (path: string, body?: object) => Promise<{ status: number; data: any }>;
+    patch: (path: string, body?: object) => Promise<{ status: number; data: any }>;
+}
+
+function createClient(headers: Record<string, string> = {}): Client {
+    const baseHeaders = { 'Content-Type': 'application/json', ...headers };
+
+    const request = async (method: string, path: string, body?: object) => {
+        const res = await fetch(`${BASE_URL}${path}`, {
+            method,
+            headers: baseHeaders,
+            body: body !== undefined ? JSON.stringify(body) : undefined,
+        });
+        const data = await res.json().catch(() => null);
+        return { status: res.status, data };
+    };
+
+    return {
+        get: (path) => request('GET', path),
+        post: (path, body = {}) => request('POST', path, body),
+        patch: (path, body = {}) => request('PATCH', path, body),
+    };
+}
+
+async function createAuthenticatedClient(userId: string): Promise<{ client: Client; sessionToken: string }> {
     const sessionToken = `test-session-${userId}-${Date.now()}`;
 
     await prisma.session.create({
@@ -45,11 +70,7 @@ async function createAuthenticatedClient(userId: string): Promise<{ client: Axio
         },
     });
 
-    const client = axios.create({
-        baseURL: BASE_URL,
-        headers: { Cookie: `next-auth.session-token=${sessionToken}` },
-        validateStatus: () => true,
-    });
+    const client = createClient({ Cookie: `next-auth.session-token=${sessionToken}` });
 
     return { client, sessionToken };
 }
@@ -63,14 +84,11 @@ describe('Sprint 3 — QR Code & Session API', () => {
     let floorPlanId: string;
     let spaceId: string;
     let sessionToken: string;
-    let client: AxiosInstance;
-    let unauthClient: AxiosInstance;
+    let client: Client;
+    let unauthClient: Client;
 
     beforeAll(async () => {
-        unauthClient = axios.create({
-            baseURL: BASE_URL,
-            validateStatus: () => true,
-        });
+        unauthClient = createClient();
 
         // Clean up any leftovers from a previous interrupted run
         const leftoverFloor = await prisma.floorPlan.findFirst({
