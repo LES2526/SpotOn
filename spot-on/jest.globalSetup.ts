@@ -65,6 +65,7 @@ async function startNextServer(): Promise<void> {
         {
             stdio: 'pipe',
             detached: false,
+            shell: true,
             env: { ...process.env },
         }
     );
