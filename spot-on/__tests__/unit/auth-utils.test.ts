@@ -27,6 +27,10 @@ import { extractStudentId, isEmailAllowed } from "@/lib/auth-utils";
  */
 describe("Email Domain Validation", () => {
 
+    beforeAll(() => {
+        process.env.ALLOW_ANY_EMAIL_IN_DEV = 'false';
+    });
+
     /**
      * Test cases for valid @ualg.pt email addresses.
      *
