@@ -1,5 +1,4 @@
 import {
-    InvitationStatus,
     PrismaClient,
     ReportStatus,
     SessionStatus,
@@ -260,22 +259,27 @@ async function main() {
             {
                 userId: userByEmail['diogo.participant@ualg.pt'].id,
                 sessionId: activeGroup.id,
-                status: InvitationStatus.ACCEPTED,
-            },
-            {
-                userId: userByEmail['eva.pending@ualg.pt'].id,
-                sessionId: activeGroup.id,
-                status: InvitationStatus.PENDING,
-            },
-            {
-                userId: userByEmail['filipe.rejected@ualg.pt'].id,
-                sessionId: activeGroup.id,
-                status: InvitationStatus.REJECTED,
             },
             {
                 userId: userByEmail['carla.reporter@ualg.pt'].id,
                 sessionId: activeA1.id,
-                status: InvitationStatus.ACCEPTED,
+            },
+        ],
+    });
+
+    await prisma.joinRequest.createMany({
+        data: [
+            {
+                userId: userByEmail['eva.pending@ualg.pt'].id,
+                studySessionId: activeGroup.id,
+                spaceId: spaceByName['Sala de Grupo 1'].id,
+                status: 'PENDING',
+            },
+            {
+                userId: userByEmail['filipe.rejected@ualg.pt'].id,
+                studySessionId: activeGroup.id,
+                spaceId: spaceByName['Sala de Grupo 1'].id,
+                status: 'REJECTED',
             },
         ],
     });
@@ -339,6 +343,26 @@ async function main() {
         prisma.report.count(),
     ]);
 
+    await prisma.badge.createMany({
+        data: [
+            {
+                name: 'First Session',
+                description: 'Completed your first study session',
+                iconUrl: '/badges/first-session.png',
+                month: 0,
+                year: 0,
+            },
+            {
+                name: 'Study Streak',
+                description: 'Studied 5 days in a row',
+                iconUrl: '/badges/study-streak.png',
+                month: 0,
+                year: 0,
+            },
+        ],
+        skipDuplicates: true,
+    });
+
     console.log('Seed completed successfully!');
     console.log(`Users: ${counts[0]}`);
     console.log(`Accounts: ${counts[1]}`);
@@ -350,8 +374,6 @@ async function main() {
     console.log(`Participations: ${counts[7]}`);
     console.log(`Reports: ${counts[8]}`);
 }
-
- 
 
 async function runSeed() {
     try {
