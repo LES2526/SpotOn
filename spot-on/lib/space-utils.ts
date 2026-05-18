@@ -19,7 +19,7 @@ export async function findActiveSessionByHost(spaceId: string, hostId: string) {
     });
 }
 
-/** Returns the accepted participant record for a user in a session, or null if not a participant. */
+/** Returns the participant record for a user in a session, or null if not a participant. */
 export async function isAcceptedParticipant(userId: string, sessionId: string) {
-    return prisma.userOnStudySession.findFirst({ where: { userId, sessionId, status: 'ACCEPTED' } });
+    return prisma.userOnStudySession.findFirst({ where: { userId, sessionId } });
 }
