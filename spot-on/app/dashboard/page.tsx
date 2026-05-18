@@ -48,7 +48,6 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
                         hostId: true,
                         host: { select: { id: true, email: true } },
                         participants: {
-                            where: { status: 'ACCEPTED' },
                             select: { user: { select: { id: true, email: true } } },
                         },
                     },
@@ -83,7 +82,7 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
                 expectedEndTime: { gt: new Date() },
                 OR: [
                     { hostId: userId },
-                    { participants: { some: { userId, status: 'ACCEPTED' } } },
+                    { participants: { some: { userId } } },
                 ],
             },
             select: { spaceId: true, hostId: true, expectedEndTime: true },

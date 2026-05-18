@@ -12,7 +12,7 @@ jest.mock('@/app/api/auth/[...nextauth]/route', () => ({
 
 import { PATCH } from '@/app/api/spaces/[spaceId]/sessions/extend/route';
 import { prisma } from '@/lib/prisma';
-import type { FloorPlan, Space, User } from '@prisma/client';
+import type { FloorPlan, Space, User } from '@/app/generated/prisma';
 import { getServerSession } from 'next-auth';
 
 describe('PATCH /api/spaces/[spaceId]/sessions/extend', () => {
@@ -122,26 +122,29 @@ describe('PATCH /api/spaces/[spaceId]/sessions/extend', () => {
     });
 
     it('should not allow extending past 19:30', async () => {
-        (getServerSession as jest.Mock).mockResolvedValue({
-            user: { id: testUser.id },
-        });
+        const originalClosingTime = process.env.LIBRARY_CLOSING_TIME;
+        process.env.LIBRARY_CLOSING_TIME = '14:00';
+        try {
+            (getServerSession as jest.Mock).mockResolvedValue({
+                user: { id: testUser.id },
+            });
 
-        const closingTime = process.env.LIBRARY_CLOSING_TIME ?? '19:30';
-        const [hours, minutes] = closingTime.split(':').map(Number);
+            const newEndTimeInvalid = new Date();
+            newEndTimeInvalid.setUTCHours(14, 1, 0, 0); // 1 min after 14:00 closing
 
-        const newEndTimeInvalid = new Date();
-        newEndTimeInvalid.setUTCHours(hours, minutes + 1, 0, 0); // 1 min after closing (UTC)
+            const request = new Request('http://localhost', {
+                method: 'PATCH',
+                body: JSON.stringify({ expectedEndTime: newEndTimeInvalid.toISOString() }),
+            });
 
-        const request = new Request('http://localhost', {
-            method: 'PATCH',
-            body: JSON.stringify({ expectedEndTime: newEndTimeInvalid.toISOString() }),
-        });
+            const response = await PATCH(request, { params: Promise.resolve({ spaceId: testSpace.id }) });
+            expect(response.status).toBe(400);
 
-        const response = await PATCH(request, { params: Promise.resolve({ spaceId: testSpace.id }) });
-        expect(response.status).toBe(400);
-
-        const body = await response.json();
-        expect(body.error).toBe('Is not allowed to extend session beyond 19:30');
+            const body = await response.json();
+            expect(body.error).toBe('Is not allowed to extend session beyond 19:30');
+        } finally {
+            process.env.LIBRARY_CLOSING_TIME = originalClosingTime;
+        }
     });
 
     it('should return 404 if there is no active session for the user', async () => {
