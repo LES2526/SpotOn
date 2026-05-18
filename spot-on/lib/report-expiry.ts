@@ -76,7 +76,7 @@ export async function handleExpiredReport(tx: Tx, reportId: string,
         });
 
         const participants = await tx.userOnStudySession.findMany({
-            where: { sessionId, status: 'ACCEPTED' }
+            where: { sessionId }
         });
 
         const allAbsent = [hostId, ...participants.map(p => p.userId)];
@@ -90,15 +90,14 @@ export async function handleExpiredReport(tx: Tx, reportId: string,
     }
     const confirmedUserIds = new Set(confirmations.map(c => c.userId));
     const participants = await tx.userOnStudySession.findMany({
-        where: { sessionId, status: 'ACCEPTED' }
+        where: { sessionId }
     });
     const notConfirmed = participants
         .filter(p => !confirmedUserIds.has(p.userId))
         .map(p => p.userId);
     if (notConfirmed.length > 0) {
-        await tx.userOnStudySession.updateMany({
+        await tx.userOnStudySession.deleteMany({
             where: { sessionId, userId: { in: notConfirmed } },
-            data: { status: 'REJECTED' }
         });
     }
     if (!confirmedUserIds.has(hostId)) {
