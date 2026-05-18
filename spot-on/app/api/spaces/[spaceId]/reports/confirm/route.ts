@@ -32,7 +32,7 @@ async function handleActiveReport(tx: Tx, reportId: string,
         data: { reportId, userId }
     });
     const participants = await tx.userOnStudySession.findMany({
-        where: { sessionId, status: 'ACCEPTED' }
+        where: { sessionId }
     });
     const whoNeedsToConfirm =
         [hostId, ...participants.map(p => p.userId)];
