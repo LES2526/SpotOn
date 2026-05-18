@@ -1,15 +1,17 @@
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { SpaceType } from "@/app/generated/prisma";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import FloorPlanSection from "@/components/floor-plan/FloorPlanSection";
 import { FloorPlanData } from "@/components/floor-plan/type";
 import FloorFilter from "@/components/floor/FloorFilter";
 import OccupanceCard from "@/components/occupance/SpacesOccupance";
 import { prisma } from "@/lib/prisma";
-import { SpaceType } from "@/app/generated/prisma";
+import { getServerSession } from "next-auth";
 import fs from "node:fs";
 import path from "node:path";
 
 // Disable caching so occupancy status is always up to date
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 type SearchParams = {
     floor?: string;
@@ -28,20 +30,27 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
 
     const selectedFloor = floor === undefined ? null : Number(floor);
 
-    // Validate type against SpaceType enum
     const spaceType = type && Object.values(SpaceType).includes(type as SpaceType)
         ? (type as SpaceType)
         : undefined;
 
-    // Fetch all data in parallel to avoid waterfall requests
-    const [spaces, floorPlans, floorPlan] = await Promise.all([
-        // Spaces filtered by floor and panel filters, with their active sessions
+    const userSession = await getServerSession(authOptions);
+    const userId = userSession?.user?.id;
+
+    const [spaces, floorPlans, floorPlan, userActiveSession] = await Promise.all([
         prisma.space.findMany({
             include: {
-                // Only fetch active, non-expired sessions — used to determine occupancy
                 sessions: {
                     where: { status: 'ACTIVE', expectedEndTime: { gt: new Date() } },
-                    select: { id: true, expectedEndTime: true },
+                    select: {
+                        id: true,
+                        expectedEndTime: true,
+                        hostId: true,
+                        host: { select: { id: true, email: true } },
+                        participants: {
+                            select: { user: { select: { id: true, email: true } } },
+                        },
+                    },
                     take: 1,
                 },
             },
@@ -59,19 +68,27 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
             },
             orderBy: { createdAt: 'desc' },
         }),
-        // All floors — used to populate the floor selector
         prisma.floorPlan.findMany({
             select: { floor: true },
             orderBy: { floor: 'asc' },
         }),
-        // SVG image info for the selected floor — used to render the floor plan
         prisma.floorPlan.findFirst({
             where: selectedFloor !== null ? { floor: selectedFloor } : undefined,
             select: { imageUrl: true, imageWidth: true, imageHeight: true },
-        })
+        }),
+        userId ? prisma.studySession.findFirst({
+            where: {
+                status: 'ACTIVE',
+                expectedEndTime: { gt: new Date() },
+                OR: [
+                    { hostId: userId },
+                    { participants: { some: { userId } } },
+                ],
+            },
+            select: { spaceId: true, hostId: true, expectedEndTime: true },
+        }) : null,
     ]);
 
-    // No floor plan found means there's nothing to render
     if (!floorPlan) {
         return (
             <main className="min-h-screen bg-gray-950 p-8 text-white">
@@ -84,9 +101,8 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
     const svgRaw = fs.readFileSync(svgPath, "utf-8");
     const viewBoxMatch = svgRaw.match(/viewBox="([^"]+)"/);
     const viewBox = viewBoxMatch?.[1] ?? `0 0 ${floorPlan.imageWidth} ${floorPlan.imageHeight}`;
-    const svgContent = svgRaw.replace(/<svg[^>]*>/, '').replace(/<\/svg>\s*$/, ''); // strip outer svg tag
+    const svgContent = svgRaw.replace(/<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '');
 
-    // Map Prisma result to the FloorPlanData DTO used by the floor plan components
     const floorPlanData: FloorPlanData = {
         imageUrl: floorPlan.imageUrl,
         imageWidth: floorPlan.imageWidth,
@@ -106,6 +122,27 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
             isOccupied: space.sessions.length > 0,
             expectedEndTime: space.sessions[0]?.expectedEndTime ?? null,
             shape: space.shape,
+            currentUserIsInSession: space.id === userActiveSession?.spaceId,
+            currentUserIsHost: space.id === userActiveSession?.spaceId && userActiveSession?.hostId === userId,
+            currentOcuppants: space.sessions[0]
+                ? 1 + (space.sessions[0].participants?.length ?? 0)
+                : 0,
+            participantsList: space.sessions[0]
+                ? [
+                    {
+                        id: space.sessions[0].host.id,
+                        name: null,
+                        email: space.sessions[0].host.email,
+                        isHost: true,
+                    },
+                    ...(space.sessions[0].participants ?? []).map(p => ({
+                        id: p.user.id,
+                        name: null,
+                        email: p.user.email,
+                        isHost: false,
+                    })),
+                ]
+                : [],
         })),
     };
 
@@ -119,7 +156,14 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
             <section className="mx-auto max-w-6xl">
                 <DashboardHeader />
                 <FloorFilter floorPlans={floorPlans} selectedFloor={selectedFloor} />
-                <FloorPlanSection floorPlan={floorPlanData} />
+                <FloorPlanSection
+                    floorPlan={floorPlanData}
+                    userSession={userActiveSession ? {
+                        spaceId: userActiveSession.spaceId,
+                        expectedEndTime: userActiveSession.expectedEndTime,
+                        isHost: userActiveSession.hostId === userId,
+                    } : null}
+                />
                 <OccupanceCard
                     totalDesks={totalDesks}
                     occupiedDesks={occupiedDesks}
