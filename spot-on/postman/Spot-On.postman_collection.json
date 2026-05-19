@@ -1,0 +1,505 @@
+{
+    "info": {
+        "_postman_id": "spoton-api-tests-001",
+        "name": "Spot-On API",
+        "description": "End-to-end API tests for Spot-On. Requires the dev server running with `ENABLE_TEST_AUTH=true` and the test seed applied (see postman/README.md). Uses the `X-Test-User-Id` header to impersonate seeded users.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [],
+    "auth": {
+        "type": "noauth"
+    },
+    "event": [
+        {
+            "listen": "prerequest",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    "// Default impersonated user = host. Individual requests can override via X-Test-User-Id.",
+                    "if (!pm.request.headers.has('X-Test-User-Id')) {",
+                    "    pm.request.headers.add({ key: 'X-Test-User-Id', value: pm.environment.get('hostUserId') });",
+                    "}"
+                ]
+            }
+        }
+    ],
+    "item": [
+        {
+            "name": "Auth",
+            "item": [
+                {
+                    "name": "Unauthorized (no test user header)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Test-User-Id",
+                                "value": "",
+                                "description": "Force-empty to verify auth gate"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/spaces",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "spaces"
+                            ]
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('returns 401 without X-Test-User-Id', () => {",
+                                    "    pm.expect(pm.response.code).to.eql(401);",
+                                    "});",
+                                    "pm.test('body has error field', () => {",
+                                    "    pm.expect(pm.response.json()).to.have.property('error');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Spaces",
+            "item": [
+                {
+                    "name": "List all spaces",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/spaces",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "spaces"
+                            ]
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                                    "const body = pm.response.json();",
+                                    "pm.test('returns spaces array', () => {",
+                                    "    pm.expect(body).to.have.property('spaces');",
+                                    "    pm.expect(body.spaces).to.be.an('array');",
+                                    "});",
+                                    "pm.test('contains seeded test space', () => {",
+                                    "    const ids = body.spaces.map(s => s.id);",
+                                    "    pm.expect(ids).to.include(pm.environment.get('spaceId'));",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Filter spaces by type=GROUP_ROOM",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/spaces?type=GROUP_ROOM",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "spaces"
+                            ],
+                            "query": [
+                                {
+                                    "key": "type",
+                                    "value": "GROUP_ROOM"
+                                }
+                            ]
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                                    "const spaces = pm.response.json().spaces;",
+                                    "pm.test('all returned spaces are GROUP_ROOM', () => {",
+                                    "    spaces.forEach(s => pm.expect(s.type).to.eql('GROUP_ROOM'));",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Filter spaces by hasPowerOutlet=true",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/spaces?hasPowerOutlet=true",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "spaces"
+                            ],
+                            "query": [
+                                {
+                                    "key": "hasPowerOutlet",
+                                    "value": "true"
+                                }
+                            ]
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                                    "const spaces = pm.response.json().spaces;",
+                                    "pm.test('all have power outlet', () => {",
+                                    "    spaces.forEach(s => pm.expect(s.hasPowerOutlet).to.be.true);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Get test space by id",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/spaces/{{spaceId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "spaces",
+                                "{{spaceId}}"
+                            ]
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                                    "const body = pm.response.json();",
+                                    "pm.test('returns spaces array containing target id', () => {",
+                                    "    pm.expect(body).to.have.property('spaces');",
+                                    "    const ids = body.spaces.map(s => s.id);",
+                                    "    pm.expect(ids).to.include(pm.environment.get('spaceId'));",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Sessions",
+            "item": [
+                {
+                    "name": "Get current session for test space",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/spaces/{{spaceId}}/sessions/current",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "spaces",
+                                "{{spaceId}}",
+                                "sessions",
+                                "current"
+                            ]
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                                    "const body = pm.response.json();",
+                                    "pm.test('returns expectedEndTime in the future', () => {",
+                                    "    pm.expect(body).to.have.property('expectedEndTime');",
+                                    "    pm.expect(new Date(body.expectedEndTime).getTime()).to.be.greaterThan(Date.now());",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "GET sessions list is not allowed (405)",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/spaces/{{spaceId}}/sessions",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "spaces",
+                                "{{spaceId}}",
+                                "sessions"
+                            ]
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('returns 405 (only POST/PATCH/DELETE supported)', () => pm.expect(pm.response.code).to.eql(405));"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Join requests",
+            "item": [
+                {
+                    "name": "Join with invalid QR signature (403)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-Test-User-Id",
+                                "value": "{{guestUserId}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"qrWindow\": 0,\n  \"sig\": \"0000000000000000000000000000000000000000000000000000000000000000\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/spaces/{{spaceId}}/sessions/join-session",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "spaces",
+                                "{{spaceId}}",
+                                "sessions",
+                                "join-session"
+                            ]
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('rejects invalid QR with 403', () => pm.expect(pm.response.code).to.eql(403));"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Leaderboard",
+            "item": [
+                {
+                    "name": "Get leaderboard",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/leaderboard",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "leaderboard"
+                            ]
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                                    "const body = pm.response.json();",
+                                    "pm.test('is array', () => pm.expect(body).to.be.an('array'));",
+                                    "pm.test('entries are sorted by points desc', () => {",
+                                    "    for (let i = 1; i < body.length; i++) {",
+                                    "        pm.expect(body[i - 1].points).to.be.at.least(body[i].points);",
+                                    "    }",
+                                    "});",
+                                    "pm.test('each entry has rank, id, points', () => {",
+                                    "    body.forEach(e => {",
+                                    "        pm.expect(e).to.have.property('rank');",
+                                    "        pm.expect(e).to.have.property('id');",
+                                    "        pm.expect(e).to.have.property('points');",
+                                    "    });",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Notifications",
+            "item": [
+                {
+                    "name": "List pending notifications",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/notifications",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "notifications"
+                            ]
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                                    "pm.test('is array', () => pm.expect(pm.response.json()).to.be.an('array'));",
+                                    "pm.test('all returned notifications are PENDING', () => {",
+                                    "    pm.response.json().forEach(n => pm.expect(n.status).to.eql('PENDING'));",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Resolve non-existent notification (404)",
+                    "request": {
+                        "method": "PATCH",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/notifications/does-not-exist/resolve",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "notifications",
+                                "does-not-exist",
+                                "resolve"
+                            ]
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('returns 404 for missing notification', () => pm.expect([404, 400]).to.include(pm.response.code));"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "QR code",
+            "item": [
+                {
+                    "name": "Display QR for space (HTML/JSON)",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/qrcode/display/{{spaceId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "qrcode",
+                                "display",
+                                "{{spaceId}}"
+                            ]
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('responds OK', () => pm.expect([200, 302]).to.include(pm.response.code));"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Badges",
+            "item": [
+                {
+                    "name": "GET badges is not allowed (405)",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/user/{{hostUserId}}/badge",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "{{hostUserId}}",
+                                "badge"
+                            ]
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('returns 405 (only POST supported)', () => pm.expect(pm.response.code).to.eql(405));"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
