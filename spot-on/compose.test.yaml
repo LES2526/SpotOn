@@ -19,5 +19,13 @@ services:
     volumes:
       - postgres_test_data:/var/lib/postgresql/data
 
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: spot_on_mailhog_test
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
 volumes:
   postgres_test_data:
