@@ -6,16 +6,13 @@
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "variable": [],
-    "auth": {
-        "type": "noauth"
-    },
+    "auth": { "type": "noauth" },
     "event": [
         {
             "listen": "prerequest",
             "script": {
                 "type": "text/javascript",
                 "exec": [
-                    "// Default impersonated user = host. Individual requests can override via X-Test-User-Id.",
                     "if (!pm.request.headers.has('X-Test-User-Id')) {",
                     "    pm.request.headers.add({ key: 'X-Test-User-Id', value: pm.environment.get('hostUserId') });",
                     "}"
@@ -31,39 +28,24 @@
                     "name": "Unauthorized (no test user header)",
                     "request": {
                         "method": "GET",
-                        "header": [
-                            {
-                                "key": "X-Test-User-Id",
-                                "value": "",
-                                "description": "Force-empty to verify auth gate"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{baseUrl}}/api/spaces",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "spaces"
-                            ]
-                        }
+                        "header": [{ "key": "X-Test-User-Id", "value": "", "description": "force-empty" }],
+                        "url": { "raw": "{{baseUrl}}/api/spaces", "host": ["{{baseUrl}}"], "path": ["api", "spaces"] }
                     },
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('returns 401 without X-Test-User-Id', () => {",
-                                    "    pm.expect(pm.response.code).to.eql(401);",
-                                    "});",
-                                    "pm.test('body has error field', () => {",
-                                    "    pm.expect(pm.response.json()).to.have.property('error');",
-                                    "});"
-                                ]
-                            }
-                        }
-                    ]
+                    "event": [{ "listen": "test", "script": { "exec": [
+                        "pm.test('401 without X-Test-User-Id', () => pm.expect(pm.response.code).to.eql(401));",
+                        "pm.test('body has error field', () => pm.expect(pm.response.json()).to.have.property('error'));"
+                    ]}}]
+                },
+                {
+                    "name": "Unauthorized with non-existent user",
+                    "request": {
+                        "method": "GET",
+                        "header": [{ "key": "X-Test-User-Id", "value": "non-existent-user-id" }],
+                        "url": { "raw": "{{baseUrl}}/api/spaces", "host": ["{{baseUrl}}"], "path": ["api", "spaces"] }
+                    },
+                    "event": [{ "listen": "test", "script": { "exec": [
+                        "pm.test('401 for unknown user', () => pm.expect(pm.response.code).to.eql(401));"
+                    ]}}]
                 }
             ]
         },
@@ -72,258 +54,436 @@
             "item": [
                 {
                     "name": "List all spaces",
-                    "request": {
-                        "method": "GET",
-                        "url": {
-                            "raw": "{{baseUrl}}/api/spaces",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "spaces"
-                            ]
-                        }
-                    },
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('200 OK', () => pm.response.to.have.status(200));",
-                                    "const body = pm.response.json();",
-                                    "pm.test('returns spaces array', () => {",
-                                    "    pm.expect(body).to.have.property('spaces');",
-                                    "    pm.expect(body.spaces).to.be.an('array');",
-                                    "});",
-                                    "pm.test('contains seeded test space', () => {",
-                                    "    const ids = body.spaces.map(s => s.id);",
-                                    "    pm.expect(ids).to.include(pm.environment.get('spaceId'));",
-                                    "});"
-                                ]
-                            }
-                        }
-                    ]
+                    "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/spaces", "host": ["{{baseUrl}}"], "path": ["api", "spaces"] }},
+                    "event": [{ "listen": "test", "script": { "exec": [
+                        "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                        "const body = pm.response.json();",
+                        "pm.test('returns spaces array', () => { pm.expect(body).to.have.property('spaces'); pm.expect(body.spaces).to.be.an('array'); });",
+                        "pm.test('contains seeded test space', () => pm.expect(body.spaces.map(s => s.id)).to.include(pm.environment.get('spaceId')));"
+                    ]}}]
                 },
                 {
-                    "name": "Filter spaces by type=GROUP_ROOM",
-                    "request": {
-                        "method": "GET",
-                        "url": {
-                            "raw": "{{baseUrl}}/api/spaces?type=GROUP_ROOM",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "spaces"
-                            ],
-                            "query": [
-                                {
-                                    "key": "type",
-                                    "value": "GROUP_ROOM"
-                                }
-                            ]
-                        }
-                    },
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('200 OK', () => pm.response.to.have.status(200));",
-                                    "const spaces = pm.response.json().spaces;",
-                                    "pm.test('all returned spaces are GROUP_ROOM', () => {",
-                                    "    spaces.forEach(s => pm.expect(s.type).to.eql('GROUP_ROOM'));",
-                                    "});"
-                                ]
-                            }
-                        }
-                    ]
+                    "name": "Filter by type=GROUP_ROOM",
+                    "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/spaces?type=GROUP_ROOM", "host": ["{{baseUrl}}"], "path": ["api", "spaces"], "query": [{ "key": "type", "value": "GROUP_ROOM" }] }},
+                    "event": [{ "listen": "test", "script": { "exec": [
+                        "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                        "pm.response.json().spaces.forEach(s => pm.test(`${s.name} is GROUP_ROOM`, () => pm.expect(s.type).to.eql('GROUP_ROOM')));"
+                    ]}}]
                 },
                 {
-                    "name": "Filter spaces by hasPowerOutlet=true",
-                    "request": {
-                        "method": "GET",
-                        "url": {
-                            "raw": "{{baseUrl}}/api/spaces?hasPowerOutlet=true",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "spaces"
-                            ],
-                            "query": [
-                                {
-                                    "key": "hasPowerOutlet",
-                                    "value": "true"
-                                }
-                            ]
-                        }
-                    },
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('200 OK', () => pm.response.to.have.status(200));",
-                                    "const spaces = pm.response.json().spaces;",
-                                    "pm.test('all have power outlet', () => {",
-                                    "    spaces.forEach(s => pm.expect(s.hasPowerOutlet).to.be.true);",
-                                    "});"
-                                ]
-                            }
-                        }
-                    ]
+                    "name": "Filter by type=INDIVIDUAL_DESK",
+                    "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/spaces?type=INDIVIDUAL_DESK", "host": ["{{baseUrl}}"], "path": ["api", "spaces"], "query": [{ "key": "type", "value": "INDIVIDUAL_DESK" }] }},
+                    "event": [{ "listen": "test", "script": { "exec": [
+                        "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                        "const spaces = pm.response.json().spaces;",
+                        "pm.test('all are INDIVIDUAL_DESK', () => spaces.forEach(s => pm.expect(s.type).to.eql('INDIVIDUAL_DESK')));",
+                        "pm.test('includes seeded desk', () => pm.expect(spaces.map(s => s.id)).to.include(pm.environment.get('deskSpaceId')));"
+                    ]}}]
                 },
                 {
-                    "name": "Get test space by id",
-                    "request": {
-                        "method": "GET",
-                        "url": {
-                            "raw": "{{baseUrl}}/api/spaces/{{spaceId}}",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "spaces",
-                                "{{spaceId}}"
-                            ]
-                        }
-                    },
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('200 OK', () => pm.response.to.have.status(200));",
-                                    "const body = pm.response.json();",
-                                    "pm.test('returns spaces array containing target id', () => {",
-                                    "    pm.expect(body).to.have.property('spaces');",
-                                    "    const ids = body.spaces.map(s => s.id);",
-                                    "    pm.expect(ids).to.include(pm.environment.get('spaceId'));",
-                                    "});"
-                                ]
-                            }
-                        }
-                    ]
+                    "name": "Filter by hasPowerOutlet=true",
+                    "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/spaces?hasPowerOutlet=true", "host": ["{{baseUrl}}"], "path": ["api", "spaces"], "query": [{ "key": "hasPowerOutlet", "value": "true" }] }},
+                    "event": [{ "listen": "test", "script": { "exec": [
+                        "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                        "pm.test('all have power outlet', () => pm.response.json().spaces.forEach(s => pm.expect(s.hasPowerOutlet).to.be.true));"
+                    ]}}]
+                },
+                {
+                    "name": "Filter by capacity>=4",
+                    "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/spaces?capacity=4", "host": ["{{baseUrl}}"], "path": ["api", "spaces"], "query": [{ "key": "capacity", "value": "4" }] }},
+                    "event": [{ "listen": "test", "script": { "exec": [
+                        "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                        "pm.test('all have capacity >= 4', () => pm.response.json().spaces.forEach(s => pm.expect(s.capacity).to.be.at.least(4)));"
+                    ]}}]
+                },
+                {
+                    "name": "Filter by invalid type ignored",
+                    "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/spaces?type=NOT_A_TYPE", "host": ["{{baseUrl}}"], "path": ["api", "spaces"], "query": [{ "key": "type", "value": "NOT_A_TYPE" }] }},
+                    "event": [{ "listen": "test", "script": { "exec": [
+                        "pm.test('200 OK (invalid type silently ignored)', () => pm.response.to.have.status(200));",
+                        "pm.test('still returns spaces', () => pm.expect(pm.response.json().spaces.length).to.be.greaterThan(0));"
+                    ]}}]
                 }
             ]
         },
         {
-            "name": "Sessions",
+            "name": "Sessions — read",
             "item": [
                 {
-                    "name": "Get current session for test space",
-                    "request": {
-                        "method": "GET",
-                        "url": {
-                            "raw": "{{baseUrl}}/api/spaces/{{spaceId}}/sessions/current",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "spaces",
-                                "{{spaceId}}",
-                                "sessions",
-                                "current"
-                            ]
-                        }
-                    },
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('200 OK', () => pm.response.to.have.status(200));",
-                                    "const body = pm.response.json();",
-                                    "pm.test('returns expectedEndTime in the future', () => {",
-                                    "    pm.expect(body).to.have.property('expectedEndTime');",
-                                    "    pm.expect(new Date(body.expectedEndTime).getTime()).to.be.greaterThan(Date.now());",
-                                    "});"
-                                ]
-                            }
-                        }
-                    ]
+                    "name": "Get current session for active space",
+                    "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/spaces/{{spaceId}}/sessions/current", "host": ["{{baseUrl}}"], "path": ["api", "spaces", "{{spaceId}}", "sessions", "current"] }},
+                    "event": [{ "listen": "test", "script": { "exec": [
+                        "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                        "const body = pm.response.json();",
+                        "pm.test('expectedEndTime is in the future', () => { pm.expect(body).to.have.property('expectedEndTime'); pm.expect(new Date(body.expectedEndTime).getTime()).to.be.greaterThan(Date.now()); });"
+                    ]}}]
+                },
+                {
+                    "name": "Get current session for empty space (404)",
+                    "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/spaces/{{deskSpaceId}}/sessions/current", "host": ["{{baseUrl}}"], "path": ["api", "spaces", "{{deskSpaceId}}", "sessions", "current"] }},
+                    "event": [{ "listen": "test", "script": { "exec": [
+                        "pm.test('404 when no active session', () => pm.expect(pm.response.code).to.eql(404));"
+                    ]}}]
                 },
                 {
                     "name": "GET sessions list is not allowed (405)",
-                    "request": {
-                        "method": "GET",
-                        "url": {
-                            "raw": "{{baseUrl}}/api/spaces/{{spaceId}}/sessions",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "spaces",
-                                "{{spaceId}}",
-                                "sessions"
-                            ]
-                        }
-                    },
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('returns 405 (only POST/PATCH/DELETE supported)', () => pm.expect(pm.response.code).to.eql(405));"
-                                ]
-                            }
-                        }
-                    ]
+                    "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/spaces/{{spaceId}}/sessions", "host": ["{{baseUrl}}"], "path": ["api", "spaces", "{{spaceId}}", "sessions"] }},
+                    "event": [{ "listen": "test", "script": { "exec": [
+                        "pm.test('405 (only POST/PATCH/DELETE)', () => pm.expect(pm.response.code).to.eql(405));"
+                    ]}}]
                 }
             ]
         },
         {
-            "name": "Join requests",
+            "name": "Sessions — mutations",
             "item": [
                 {
-                    "name": "Join with invalid QR signature (403)",
+                    "name": "Extend session — missing expectedEndTime (400)",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": { "mode": "raw", "raw": "{}" },
+                        "url": { "raw": "{{baseUrl}}/api/spaces/{{spaceId}}/sessions/extend", "host": ["{{baseUrl}}"], "path": ["api", "spaces", "{{spaceId}}", "sessions", "extend"] }
+                    },
+                    "event": [{ "listen": "test", "script": { "exec": [
+                        "pm.test('400 when expectedEndTime is missing', () => pm.expect(pm.response.code).to.eql(400));"
+                    ]}}]
+                },
+                {
+                    "name": "Extend session — happy path (200)",
+                    "event": [
+                        { "listen": "prerequest", "script": { "exec": [
+                            "const t = new Date(Date.now() + 90 * 60 * 1000).toISOString();",
+                            "pm.variables.set('extendTime', t);"
+                        ]}},
+                        { "listen": "test", "script": { "exec": [
+                            "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                            "const body = pm.response.json();",
+                            "pm.test('updated expectedEndTime returned', () => pm.expect(body).to.have.property('expectedEndTime'));"
+                        ]}}
+                    ],
+                    "request": {
+                        "method": "PATCH",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": { "mode": "raw", "raw": "{\n  \"expectedEndTime\": \"{{extendTime}}\"\n}" },
+                        "url": { "raw": "{{baseUrl}}/api/spaces/{{spaceId}}/sessions/extend", "host": ["{{baseUrl}}"], "path": ["api", "spaces", "{{spaceId}}", "sessions", "extend"] }
+                    }
+                },
+                {
+                    "name": "Create session on empty desk (201)",
+                    "event": [
+                        { "listen": "test", "script": { "exec": [
+                            "pm.test('201 Created', () => pm.expect(pm.response.code).to.eql(201));",
+                            "const body = pm.response.json();",
+                            "pm.test('returned session has id and hostId', () => { pm.expect(body).to.have.property('id'); pm.expect(body.hostId).to.eql(pm.environment.get('guestUserId')); });",
+                            "pm.environment.set('deskSessionId', body.id);"
+                        ]}}
+                    ],
                     "request": {
                         "method": "POST",
                         "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "X-Test-User-Id",
-                                "value": "{{guestUserId}}"
-                            }
+                            { "key": "Content-Type", "value": "application/json" },
+                            { "key": "X-Test-User-Id", "value": "{{guestUserId}}" }
                         ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n  \"qrWindow\": 0,\n  \"sig\": \"0000000000000000000000000000000000000000000000000000000000000000\"\n}"
-                        },
-                        "url": {
-                            "raw": "{{baseUrl}}/api/spaces/{{spaceId}}/sessions/join-session",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "spaces",
-                                "{{spaceId}}",
-                                "sessions",
-                                "join-session"
-                            ]
-                        }
+                        "url": { "raw": "{{baseUrl}}/api/spaces/{{deskSpaceId}}/sessions", "host": ["{{baseUrl}}"], "path": ["api", "spaces", "{{deskSpaceId}}", "sessions"] }
+                    }
+                },
+                {
+                    "name": "Create session on occupied space (409)",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "url": { "raw": "{{baseUrl}}/api/spaces/{{deskSpaceId}}/sessions", "host": ["{{baseUrl}}"], "path": ["api", "spaces", "{{deskSpaceId}}", "sessions"] }
                     },
+                    "event": [{ "listen": "test", "script": { "exec": [
+                        "pm.test('409 when space is occupied', () => pm.expect(pm.response.code).to.eql(409));"
+                    ]}}]
+                },
+                {
+                    "name": "Release desk session (DELETE 200)",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [{ "key": "X-Test-User-Id", "value": "{{guestUserId}}" }],
+                        "url": { "raw": "{{baseUrl}}/api/spaces/{{deskSpaceId}}/sessions", "host": ["{{baseUrl}}"], "path": ["api", "spaces", "{{deskSpaceId}}", "sessions"] }
+                    },
+                    "event": [{ "listen": "test", "script": { "exec": [
+                        "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                        "pm.test('body indicates success', () => pm.expect(pm.response.json()).to.have.property('success', true));"
+                    ]}}]
+                }
+            ]
+        },
+        {
+            "name": "Join request flow",
+            "item": [
+                {
+                    "name": "Join with invalid QR (403)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Content-Type", "value": "application/json" },
+                            { "key": "X-Test-User-Id", "value": "{{guestUserId}}" }
+                        ],
+                        "body": { "mode": "raw", "raw": "{\n  \"qrWindow\": 0,\n  \"sig\": \"0000000000000000000000000000000000000000000000000000000000000000\"\n}" },
+                        "url": { "raw": "{{baseUrl}}/api/spaces/{{spaceId}}/sessions/join-session", "host": ["{{baseUrl}}"], "path": ["api", "spaces", "{{spaceId}}", "sessions", "join-session"] }
+                    },
+                    "event": [{ "listen": "test", "script": { "exec": [
+                        "pm.test('403 for bad signature', () => pm.expect(pm.response.code).to.eql(403));"
+                    ]}}]
+                },
+                {
+                    "name": "Join with valid QR (201)",
                     "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('rejects invalid QR with 403', () => pm.expect(pm.response.code).to.eql(403));"
-                                ]
-                            }
-                        }
-                    ]
+                        { "listen": "prerequest", "script": { "exec": [
+                            "const secret = pm.environment.get('qrSecret');",
+                            "const spaceId = pm.environment.get('spaceId');",
+                            "const qrWindow = Math.floor(Date.now() / 30000);",
+                            "const sig = require('crypto-js').HmacSHA256(spaceId + ':' + qrWindow, secret).toString();",
+                            "pm.variables.set('qrWindow', qrWindow);",
+                            "pm.variables.set('qrSig', sig);"
+                        ]}},
+                        { "listen": "test", "script": { "exec": [
+                            "pm.test('201 Created', () => pm.expect(pm.response.code).to.eql(201));"
+                        ]}}
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Content-Type", "value": "application/json" },
+                            { "key": "X-Test-User-Id", "value": "{{guestUserId}}" }
+                        ],
+                        "body": { "mode": "raw", "raw": "{\n  \"qrWindow\": {{qrWindow}},\n  \"sig\": \"{{qrSig}}\"\n}" },
+                        "url": { "raw": "{{baseUrl}}/api/spaces/{{spaceId}}/sessions/join-session", "host": ["{{baseUrl}}"], "path": ["api", "spaces", "{{spaceId}}", "sessions", "join-session"] }
+                    }
+                },
+                {
+                    "name": "Join twice produces 409 (already requested)",
+                    "event": [
+                        { "listen": "prerequest", "script": { "exec": [
+                            "const secret = pm.environment.get('qrSecret');",
+                            "const spaceId = pm.environment.get('spaceId');",
+                            "const qrWindow = Math.floor(Date.now() / 30000);",
+                            "const sig = require('crypto-js').HmacSHA256(spaceId + ':' + qrWindow, secret).toString();",
+                            "pm.variables.set('qrWindow', qrWindow);",
+                            "pm.variables.set('qrSig', sig);"
+                        ]}},
+                        { "listen": "test", "script": { "exec": [
+                            "pm.test('429 (anti-spam) or 409 (already requested)', () => pm.expect([409, 429]).to.include(pm.response.code));"
+                        ]}}
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Content-Type", "value": "application/json" },
+                            { "key": "X-Test-User-Id", "value": "{{guestUserId}}" }
+                        ],
+                        "body": { "mode": "raw", "raw": "{\n  \"qrWindow\": {{qrWindow}},\n  \"sig\": \"{{qrSig}}\"\n}" },
+                        "url": { "raw": "{{baseUrl}}/api/spaces/{{spaceId}}/sessions/join-session", "host": ["{{baseUrl}}"], "path": ["api", "spaces", "{{spaceId}}", "sessions", "join-session"] }
+                    }
+                },
+                {
+                    "name": "Reject as non-host (403)",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            { "key": "Content-Type", "value": "application/json" },
+                            { "key": "X-Test-User-Id", "value": "{{guestUserId}}" }
+                        ],
+                        "body": { "mode": "raw", "raw": "{\n  \"userId\": \"{{guestUserId}}\"\n}" },
+                        "url": { "raw": "{{baseUrl}}/api/spaces/{{spaceId}}/sessions/join-session/rejected", "host": ["{{baseUrl}}"], "path": ["api", "spaces", "{{spaceId}}", "sessions", "join-session", "rejected"] }
+                    },
+                    "event": [{ "listen": "test", "script": { "exec": [
+                        "pm.test('403 when caller is not the host', () => pm.expect(pm.response.code).to.eql(403));"
+                    ]}}]
+                },
+                {
+                    "name": "Reject join request as host (200)",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": { "mode": "raw", "raw": "{\n  \"userId\": \"{{guestUserId}}\"\n}" },
+                        "url": { "raw": "{{baseUrl}}/api/spaces/{{spaceId}}/sessions/join-session/rejected", "host": ["{{baseUrl}}"], "path": ["api", "spaces", "{{spaceId}}", "sessions", "join-session", "rejected"] }
+                    },
+                    "event": [{ "listen": "test", "script": { "exec": [
+                        "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                        "pm.test('status is REJECTED', () => pm.expect(pm.response.json().status).to.eql('REJECTED'));"
+                    ]}}]
+                },
+                {
+                    "name": "Reject again — no pending (404)",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": { "mode": "raw", "raw": "{\n  \"userId\": \"{{guestUserId}}\"\n}" },
+                        "url": { "raw": "{{baseUrl}}/api/spaces/{{spaceId}}/sessions/join-session/rejected", "host": ["{{baseUrl}}"], "path": ["api", "spaces", "{{spaceId}}", "sessions", "join-session", "rejected"] }
+                    },
+                    "event": [{ "listen": "test", "script": { "exec": [
+                        "pm.test('404 when there is no pending request', () => pm.expect(pm.response.code).to.eql(404));"
+                    ]}}]
+                },
+                {
+                    "name": "Join again after rejection (201)",
+                    "event": [
+                        { "listen": "prerequest", "script": { "exec": [
+                            "const secret = pm.environment.get('qrSecret');",
+                            "const spaceId = pm.environment.get('spaceId');",
+                            "const qrWindow = Math.floor(Date.now() / 30000);",
+                            "const sig = require('crypto-js').HmacSHA256(spaceId + ':' + qrWindow, secret).toString();",
+                            "pm.variables.set('qrWindow', qrWindow);",
+                            "pm.variables.set('qrSig', sig);"
+                        ]}},
+                        { "listen": "test", "script": { "exec": [
+                            "pm.test('201 Created (rejected user can re-request)', () => pm.expect(pm.response.code).to.eql(201));"
+                        ]}}
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Content-Type", "value": "application/json" },
+                            { "key": "X-Test-User-Id", "value": "{{guestUserId}}" }
+                        ],
+                        "body": { "mode": "raw", "raw": "{\n  \"qrWindow\": {{qrWindow}},\n  \"sig\": \"{{qrSig}}\"\n}" },
+                        "url": { "raw": "{{baseUrl}}/api/spaces/{{spaceId}}/sessions/join-session", "host": ["{{baseUrl}}"], "path": ["api", "spaces", "{{spaceId}}", "sessions", "join-session"] }
+                    }
+                },
+                {
+                    "name": "Approve as non-host (403)",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            { "key": "Content-Type", "value": "application/json" },
+                            { "key": "X-Test-User-Id", "value": "{{guestUserId}}" }
+                        ],
+                        "body": { "mode": "raw", "raw": "{\n  \"userId\": \"{{guestUserId}}\"\n}" },
+                        "url": { "raw": "{{baseUrl}}/api/spaces/{{spaceId}}/sessions/join-session/approved", "host": ["{{baseUrl}}"], "path": ["api", "spaces", "{{spaceId}}", "sessions", "join-session", "approved"] }
+                    },
+                    "event": [{ "listen": "test", "script": { "exec": [
+                        "pm.test('403 when caller is not the host', () => pm.expect(pm.response.code).to.eql(403));"
+                    ]}}]
+                },
+                {
+                    "name": "Approve join request as host (200)",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": { "mode": "raw", "raw": "{\n  \"userId\": \"{{guestUserId}}\"\n}" },
+                        "url": { "raw": "{{baseUrl}}/api/spaces/{{spaceId}}/sessions/join-session/approved", "host": ["{{baseUrl}}"], "path": ["api", "spaces", "{{spaceId}}", "sessions", "join-session", "approved"] }
+                    },
+                    "event": [{ "listen": "test", "script": { "exec": [
+                        "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                        "pm.test('status is ACCEPTED', () => pm.expect(pm.response.json().status).to.eql('ACCEPTED'));"
+                    ]}}]
+                },
+                {
+                    "name": "Approve again — no pending (404)",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": { "mode": "raw", "raw": "{\n  \"userId\": \"{{guestUserId}}\"\n}" },
+                        "url": { "raw": "{{baseUrl}}/api/spaces/{{spaceId}}/sessions/join-session/approved", "host": ["{{baseUrl}}"], "path": ["api", "spaces", "{{spaceId}}", "sessions", "join-session", "approved"] }
+                    },
+                    "event": [{ "listen": "test", "script": { "exec": [
+                        "pm.test('404 when there is no pending request', () => pm.expect(pm.response.code).to.eql(404));"
+                    ]}}]
+                }
+            ]
+        },
+        {
+            "name": "Reports",
+            "item": [
+                {
+                    "name": "Get active report for space (none yet)",
+                    "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/spaces/{{spaceId}}/reports/active", "host": ["{{baseUrl}}"], "path": ["api", "spaces", "{{spaceId}}", "reports", "active"] }},
+                    "event": [{ "listen": "test", "script": { "exec": [
+                        "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                        "pm.test('report is null when none open', () => pm.expect(pm.response.json().report).to.be.null);"
+                    ]}}]
+                },
+                {
+                    "name": "Create report — missing reason (400)",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": { "mode": "raw", "raw": "{\n  \"qrToken\": \"qr-test-space-group\"\n}" },
+                        "url": { "raw": "{{baseUrl}}/api/spaces/{{spaceId}}/reports", "host": ["{{baseUrl}}"], "path": ["api", "spaces", "{{spaceId}}", "reports"] }
+                    },
+                    "event": [{ "listen": "test", "script": { "exec": [
+                        "pm.test('400 when reason missing', () => pm.expect(pm.response.code).to.eql(400));"
+                    ]}}]
+                },
+                {
+                    "name": "Create report — invalid QR token (400)",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": { "mode": "raw", "raw": "{\n  \"qrToken\": \"WRONG\",\n  \"reason\": \"Noise\"\n}" },
+                        "url": { "raw": "{{baseUrl}}/api/spaces/{{spaceId}}/reports", "host": ["{{baseUrl}}"], "path": ["api", "spaces", "{{spaceId}}", "reports"] }
+                    },
+                    "event": [{ "listen": "test", "script": { "exec": [
+                        "pm.test('400 when QR token does not match', () => pm.expect(pm.response.code).to.eql(400));"
+                    ]}}]
+                }
+            ]
+        },
+        {
+            "name": "QR code",
+            "item": [
+                {
+                    "name": "Display QR for space",
+                    "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/qrcode/display/{{spaceId}}", "host": ["{{baseUrl}}"], "path": ["api", "qrcode", "display", "{{spaceId}}"] }},
+                    "event": [{ "listen": "test", "script": { "exec": [
+                        "pm.test('responds OK', () => pm.expect([200, 302]).to.include(pm.response.code));"
+                    ]}}]
+                },
+                {
+                    "name": "Lookup unknown QR token (404)",
+                    "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/qrcode/unknown-token-xyz", "host": ["{{baseUrl}}"], "path": ["api", "qrcode", "unknown-token-xyz"] }},
+                    "event": [{ "listen": "test", "script": { "exec": [
+                        "pm.test('404 for unknown QR token', () => pm.expect(pm.response.code).to.eql(404));"
+                    ]}}]
+                },
+                {
+                    "name": "Verify QR with valid signature (201)",
+                    "event": [
+                        { "listen": "prerequest", "script": { "exec": [
+                            "const secret = pm.environment.get('qrSecret');",
+                            "const spaceId = pm.environment.get('deskSpaceId');",
+                            "const qrWindow = Math.floor(Date.now() / 30000);",
+                            "const sig = require('crypto-js').HmacSHA256(spaceId + ':' + qrWindow, secret).toString();",
+                            "const expectedEndTime = new Date(Date.now() + 60 * 60 * 1000).toISOString();",
+                            "pm.variables.set('qrSpaceId', spaceId);",
+                            "pm.variables.set('qrWindow', qrWindow);",
+                            "pm.variables.set('qrSig', sig);",
+                            "pm.variables.set('qrEndTime', expectedEndTime);"
+                        ]}},
+                        { "listen": "test", "script": { "exec": [
+                            "pm.test('201 Created', () => pm.expect(pm.response.code).to.eql(201));",
+                            "const body = pm.response.json();",
+                            "pm.test('returned session has hostId=otherUser', () => pm.expect(body.hostId).to.eql(pm.environment.get('otherUserId')));",
+                            "pm.test('status is ACTIVE', () => pm.expect(body.status).to.eql('ACTIVE'));"
+                        ]}}
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            { "key": "Content-Type", "value": "application/json" },
+                            { "key": "X-Test-User-Id", "value": "{{otherUserId}}" }
+                        ],
+                        "body": { "mode": "raw", "raw": "{\n  \"spaceId\": \"{{qrSpaceId}}\",\n  \"qrWindow\": {{qrWindow}},\n  \"sig\": \"{{qrSig}}\",\n  \"expectedEndTime\": \"{{qrEndTime}}\"\n}" },
+                        "url": { "raw": "{{baseUrl}}/api/qrcode/verify", "host": ["{{baseUrl}}"], "path": ["api", "qrcode", "verify"] }
+                    }
+                },
+                {
+                    "name": "Verify QR with invalid signature (400)",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": { "mode": "raw", "raw": "{\n  \"spaceId\": \"{{spaceId}}\",\n  \"qrWindow\": 0,\n  \"sig\": \"0000000000000000000000000000000000000000000000000000000000000000\",\n  \"expectedEndTime\": null\n}" },
+                        "url": { "raw": "{{baseUrl}}/api/qrcode/verify", "host": ["{{baseUrl}}"], "path": ["api", "qrcode", "verify"] }
+                    },
+                    "event": [{ "listen": "test", "script": { "exec": [
+                        "pm.test('400 for bad signature', () => pm.expect(pm.response.code).to.eql(400));"
+                    ]}}]
                 }
             ]
         },
@@ -332,43 +492,15 @@
             "item": [
                 {
                     "name": "Get leaderboard",
-                    "request": {
-                        "method": "GET",
-                        "url": {
-                            "raw": "{{baseUrl}}/api/leaderboard",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "leaderboard"
-                            ]
-                        }
-                    },
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('200 OK', () => pm.response.to.have.status(200));",
-                                    "const body = pm.response.json();",
-                                    "pm.test('is array', () => pm.expect(body).to.be.an('array'));",
-                                    "pm.test('entries are sorted by points desc', () => {",
-                                    "    for (let i = 1; i < body.length; i++) {",
-                                    "        pm.expect(body[i - 1].points).to.be.at.least(body[i].points);",
-                                    "    }",
-                                    "});",
-                                    "pm.test('each entry has rank, id, points', () => {",
-                                    "    body.forEach(e => {",
-                                    "        pm.expect(e).to.have.property('rank');",
-                                    "        pm.expect(e).to.have.property('id');",
-                                    "        pm.expect(e).to.have.property('points');",
-                                    "    });",
-                                    "});"
-                                ]
-                            }
-                        }
-                    ]
+                    "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/leaderboard", "host": ["{{baseUrl}}"], "path": ["api", "leaderboard"] }},
+                    "event": [{ "listen": "test", "script": { "exec": [
+                        "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                        "const body = pm.response.json();",
+                        "pm.test('is array', () => pm.expect(body).to.be.an('array'));",
+                        "pm.test('sorted by points desc', () => { for (let i = 1; i < body.length; i++) pm.expect(body[i - 1].points).to.be.at.least(body[i].points); });",
+                        "pm.test('every entry has rank,id,points', () => body.forEach(e => { pm.expect(e).to.have.property('rank'); pm.expect(e).to.have.property('id'); pm.expect(e).to.have.property('points'); }));",
+                        "pm.test('host comes before guest (more points)', () => { const ids = body.map(e => e.id); pm.expect(ids.indexOf(pm.environment.get('hostUserId'))).to.be.lessThan(ids.indexOf(pm.environment.get('guestUserId'))); });"
+                    ]}}]
                 }
             ]
         },
@@ -377,94 +509,18 @@
             "item": [
                 {
                     "name": "List pending notifications",
-                    "request": {
-                        "method": "GET",
-                        "url": {
-                            "raw": "{{baseUrl}}/api/notifications",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "notifications"
-                            ]
-                        }
-                    },
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('200 OK', () => pm.response.to.have.status(200));",
-                                    "pm.test('is array', () => pm.expect(pm.response.json()).to.be.an('array'));",
-                                    "pm.test('all returned notifications are PENDING', () => {",
-                                    "    pm.response.json().forEach(n => pm.expect(n.status).to.eql('PENDING'));",
-                                    "});"
-                                ]
-                            }
-                        }
-                    ]
+                    "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/notifications", "host": ["{{baseUrl}}"], "path": ["api", "notifications"] }},
+                    "event": [{ "listen": "test", "script": { "exec": [
+                        "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                        "pm.test('all returned are PENDING', () => pm.response.json().forEach(n => pm.expect(n.status).to.eql('PENDING')));"
+                    ]}}]
                 },
                 {
                     "name": "Resolve non-existent notification (404)",
-                    "request": {
-                        "method": "PATCH",
-                        "url": {
-                            "raw": "{{baseUrl}}/api/notifications/does-not-exist/resolve",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "notifications",
-                                "does-not-exist",
-                                "resolve"
-                            ]
-                        }
-                    },
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('returns 404 for missing notification', () => pm.expect([404, 400]).to.include(pm.response.code));"
-                                ]
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "name": "QR code",
-            "item": [
-                {
-                    "name": "Display QR for space (HTML/JSON)",
-                    "request": {
-                        "method": "GET",
-                        "url": {
-                            "raw": "{{baseUrl}}/api/qrcode/display/{{spaceId}}",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "qrcode",
-                                "display",
-                                "{{spaceId}}"
-                            ]
-                        }
-                    },
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('responds OK', () => pm.expect([200, 302]).to.include(pm.response.code));"
-                                ]
-                            }
-                        }
-                    ]
+                    "request": { "method": "PATCH", "url": { "raw": "{{baseUrl}}/api/notifications/does-not-exist/resolve", "host": ["{{baseUrl}}"], "path": ["api", "notifications", "does-not-exist", "resolve"] }},
+                    "event": [{ "listen": "test", "script": { "exec": [
+                        "pm.test('404 or 400 for missing notification', () => pm.expect([404, 400]).to.include(pm.response.code));"
+                    ]}}]
                 }
             ]
         },
@@ -473,31 +529,34 @@
             "item": [
                 {
                     "name": "GET badges is not allowed (405)",
+                    "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/user/{{hostUserId}}/badge", "host": ["{{baseUrl}}"], "path": ["api", "user", "{{hostUserId}}", "badge"] }},
+                    "event": [{ "listen": "test", "script": { "exec": [
+                        "pm.test('405 (only POST)', () => pm.expect(pm.response.code).to.eql(405));"
+                    ]}}]
+                },
+                {
+                    "name": "POST badge — missing badgeId (400)",
                     "request": {
-                        "method": "GET",
-                        "url": {
-                            "raw": "{{baseUrl}}/api/user/{{hostUserId}}/badge",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "user",
-                                "{{hostUserId}}",
-                                "badge"
-                            ]
-                        }
+                        "method": "POST",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": { "mode": "raw", "raw": "{}" },
+                        "url": { "raw": "{{baseUrl}}/api/user/{{hostUserId}}/badge", "host": ["{{baseUrl}}"], "path": ["api", "user", "{{hostUserId}}", "badge"] }
                     },
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test('returns 405 (only POST supported)', () => pm.expect(pm.response.code).to.eql(405));"
-                                ]
-                            }
-                        }
-                    ]
+                    "event": [{ "listen": "test", "script": { "exec": [
+                        "pm.test('400 when badgeId missing', () => pm.expect(pm.response.code).to.eql(400));"
+                    ]}}]
+                },
+                {
+                    "name": "POST badge — unknown badge (404)",
+                    "request": {
+                        "method": "POST",
+                        "header": [{ "key": "Content-Type", "value": "application/json" }],
+                        "body": { "mode": "raw", "raw": "{\n  \"badgeId\": \"does-not-exist\"\n}" },
+                        "url": { "raw": "{{baseUrl}}/api/user/{{hostUserId}}/badge", "host": ["{{baseUrl}}"], "path": ["api", "user", "{{hostUserId}}", "badge"] }
+                    },
+                    "event": [{ "listen": "test", "script": { "exec": [
+                        "pm.test('404 for unknown badge', () => pm.expect(pm.response.code).to.eql(404));"
+                    ]}}]
                 }
             ]
         }
