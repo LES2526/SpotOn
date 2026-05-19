@@ -152,8 +152,8 @@ postman-run: ## Run the Postman collection via Newman and generate HTML report
 		--color on; \
 	echo; echo "HTML report: $(NEWMAN_REPORT_DIR)/report-$$stamp.html"
 
-postman-db-up: ## Start the test Postgres container (port 5434)
-	$(COMPOSE) -f compose.test.yaml up -d db_test
+postman-db-up: ## Start the test Postgres + MailHog containers
+	$(COMPOSE) -f compose.test.yaml up -d db_test mailhog
 	@echo "Waiting for test DB to be healthy..."
 	@deadline=$$(( $$(date +%s) + 60 )); \
 	while ! docker exec spot_on_db_test pg_isready -h 127.0.0.1 -p 5432 -U admin -d spot_on_test_db >/dev/null 2>&1; do \

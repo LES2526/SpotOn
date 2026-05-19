@@ -22,6 +22,7 @@ const prisma = new PrismaClient();
 
 const HOST_ID = 'test-host-user';
 const GUEST_ID = 'test-guest-user';
+const OTHER_ID = 'test-other-user';
 const SPACE_ID = 'test-space-group';
 const DESK_ID = 'test-space-desk';
 const FLOOR_ID = 'test-floor-plan';
@@ -43,11 +44,11 @@ async function main() {
         where: { spaceId: { in: [SPACE_ID, DESK_ID] } },
     });
     await prisma.notification.deleteMany({
-        where: { userId: { in: [HOST_ID, GUEST_ID] } },
+        where: { userId: { in: [HOST_ID, GUEST_ID, OTHER_ID] } },
     });
     await prisma.space.deleteMany({ where: { id: { in: [SPACE_ID, DESK_ID] } } });
     await prisma.floorPlan.deleteMany({ where: { id: FLOOR_ID } });
-    await prisma.user.deleteMany({ where: { id: { in: [HOST_ID, GUEST_ID] } } });
+    await prisma.user.deleteMany({ where: { id: { in: [HOST_ID, GUEST_ID, OTHER_ID] } } });
 
     await prisma.user.create({
         data: {
@@ -64,6 +65,15 @@ async function main() {
             email: 'guest.test@ualg.pt',
             studentId: '999002',
             points: 50,
+        },
+    });
+
+    await prisma.user.create({
+        data: {
+            id: OTHER_ID,
+            email: 'other.test@ualg.pt',
+            studentId: '999003',
+            points: 25,
         },
     });
 
@@ -117,7 +127,7 @@ async function main() {
     });
 
     console.log('Test seed OK.');
-    console.log({ HOST_ID, GUEST_ID, SPACE_ID, DESK_ID, FLOOR_ID });
+    console.log({ HOST_ID, GUEST_ID, OTHER_ID, SPACE_ID, DESK_ID, FLOOR_ID });
 }
 
 main()
