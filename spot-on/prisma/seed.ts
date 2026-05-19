@@ -12,10 +12,12 @@ async function main() {
     console.log('Seeding database...');
     await prisma.report.deleteMany({});
     await prisma.userOnStudySession.deleteMany({});
+    await prisma.joinRequest.deleteMany({});
     await prisma.studySession.deleteMany({});
     await prisma.session.deleteMany({});
     await prisma.account.deleteMany({});
     await prisma.verificationToken.deleteMany({});
+    await prisma.notification.deleteMany({});
     await prisma.space.deleteMany({});
     await prisma.floorPlan.deleteMany({});
     await prisma.user.deleteMany({});
