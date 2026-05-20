@@ -1,45 +1,38 @@
-# Spot-On — Testes de API (Postman + Newman)
+# Spot-On — API Testing (Postman + Newman)
 
-Coleção de testes end-to-end para a API REST do Spot-On. Os testes correm contra
-um servidor de desenvolvimento e validam status codes, schema das respostas e
-contratos de cada endpoint.
+End-to-end testing collection for the Spot-On REST API. The tests run against a development server and validate status codes, response schemas, and contracts for each endpoint.
 
-## Conteúdo
+## Content
 
 ```text
 postman/
-├── Spot-On.postman_collection.json   # coleção (importável no Postman)
-├── Spot-On.postman_environment.json  # variáveis de ambiente (baseUrl, IDs seed)
-├── seed-test.ts                      # seed determinístico para a DB de teste
+├── Spot-On.postman_collection.json   # collection (importable in Postman)
+├── Spot-On.postman_environment.json  # environment variables (baseUrl, seed IDs)
+├── seed-test.ts                      # deterministic seed for the test DB
 └── README.md
 ```
 
-## Como funciona o bypass de autenticação
+## How authentication bypass works
 
-A app usa NextAuth com sessões em base de dados (cookie). Testar isso em Postman
-exigia login real + manipulação de cookies. Em alternativa, foi adicionado um
-modo de teste que se ativa por variável de ambiente:
+The app uses NextAuth with database sessions (cookie). Testing this in Postman would require real login + cookie manipulation. As an alternative, a test mode was added, activated via an environment variable:
 
-- `ENABLE_TEST_AUTH=true` — liga o bypass em [require-auth.ts](../lib/require-auth.ts)
-- Cada pedido envia o header `X-Test-User-Id: <id-do-user>` e o `requireAuth()`
-  procura esse user diretamente na DB
-- Em produção (`ENABLE_TEST_AUTH` não definida) o comportamento é o normal
+- `ENABLE_TEST_AUTH=true` — enables bypass in [require-auth.ts](../lib/require-auth.ts)
+- Each request sends the header `X-Test-User-Id: <user-id>` and `requireAuth()` looks for this user directly in the DB
+- In production (`ENABLE_TEST_AUTH` undefined), the behavior is normal
 
-A coleção Postman injeta o header automaticamente via um *pre-request script* na
-raiz, usando `{{hostUserId}}` por defeito. Pedidos que precisem de outro user
-(ex.: guest a tentar entrar numa sessão) sobrepõem o header.
+The Postman collection automatically injects the header via a *pre-request script* at the root level, using `{{hostUserId}}` by default. Requests that need a different user (e.g., a guest trying to join a session) override the header.
 
-## Pré-requisitos
+## Prerequisites
 
 - Node.js + npm
-- Base de dados PostgreSQL para testes (recomendada separada da de dev)
-- Newman: `make postman-install` (instala `newman` e `newman-reporter-htmlextra` globalmente)
+- PostgreSQL database for tests (recommended to be separate from the dev DB)
+- Newman: `make postman-install` (installs `newman` and `newman-reporter-htmlextra` globally)
 
 ## Setup
 
-1. Criar uma DB de testes (ex.: `spoton_test`) e apontar a `DATABASE_URL` para ela.
+1. Create a test DB (e.g., `spoton_test`) and point the `DATABASE_URL` to it.
 
-2. Correr as migrações e regenerar o cliente Prisma:
+2. Run migrations and regenerate the Prisma client:
 
    ```bash
    cd spot-on
@@ -47,71 +40,65 @@ raiz, usando `{{hostUserId}}` por defeito. Pedidos que precisem de outro user
    npx prisma generate
    ```
 
-3. Aplicar o seed de teste (cria utilizadores e espaços com IDs determinísticos):
+3. Apply the test seed (creates users and spaces with deterministic IDs):
 
    ```bash
    cd spot-on
    DATABASE_URL=postgres://.../spoton_test make postman-seed
    ```
 
-4. Arrancar o servidor com o bypass de auth ativo:
+4. Start the server with the auth bypass enabled:
 
    ```bash
    cd spot-on
    ENABLE_TEST_AUTH=true DATABASE_URL=postgres://.../spoton_test QR_SECRET=test-secret npm run dev
    ```
 
-## Correr os testes
+## Running the tests
 
-### Modo automático (recomendado)
+### Automatic mode (recommended)
 
-Um único comando carrega o `.env.test`, corre migrações, aplica o seed, arranca
-o servidor em background, corre o Newman e desliga o servidor no fim:
+A single command loads `.env.test`, runs migrations, applies the seed, starts the server in the background, runs Newman, and shuts down the server at the end:
 
 ```bash
 cd spot-on
 make postman-ci
 ```
 
-Pré-requisitos: `.env.test` configurado, DB de teste acessível e
-`make postman-install` já corrido uma vez.
+Prerequisites: properly configured `.env.test`, accessible test DB, and `make postman-install` already executed once.
 
-### Modo manual
+### Manual mode
 
-Para iterar (servidor a correr permanentemente, testes várias vezes):
+To iterate (server running continuously, running tests multiple times):
 
 ```bash
 cd spot-on
 make postman-run
 ```
 
-Gera um relatório HTML em `postman/reports/report-<timestamp>.html` para anexar
-ao relatório do projeto.
+Generates an HTML report in `postman/reports/report-<timestamp>.html` to attach to the project report.
 
 ### Via Postman (GUI)
 
-1. Importar `Spot-On.postman_collection.json`
-2. Importar `Spot-On.postman_environment.json` e selecioná-lo
-3. *Collection → Run* para correr tudo
+1. Import `Spot-On.postman_collection.json`
+2. Import `Spot-On.postman_environment.json` and select it
+3. *Collection → Run* to run everything
 
-## Cobertura
+## Coverage
 
-A coleção cobre os principais fluxos:
+The collection covers the main flows:
 
-| Pasta         | Testa                                                         |
+| Folder        | Tests                                                         |
 | ------------- | ------------------------------------------------------------- |
-| Auth          | 401 quando o header de teste está vazio                       |
-| Spaces        | Listar, filtrar (`type`, `hasPowerOutlet`), obter por id, 404 |
-| Sessions      | Sessão ativa do espaço, listagem por espaço                   |
-| Join requests | Rejeição de QR inválido (403)                                 |
-| Leaderboard   | Ordenação por pontos, schema das entradas                     |
-| Notifications | Listar pendentes, 404 em recurso inexistente                  |
-| QR code       | Endpoint público de display                                   |
-| Badges        | Listar badges de um utilizador                                |
+| Auth          | 401 when test header is missing                               |
+| Spaces        | List, filter (`type`, `hasPowerOutlet`), get by ID, 404       |
+| Sessions      | Active space session, space session listing                   |
+| Join requests | Rejection of invalid QR (403)                                 |
+| Leaderboard   | Ordering by points, entry schemas                             |
+| Notifications | List pending, 404 on nonexistent resource                     |
+| QR code       | Public display endpoint                                       |
+| Badges        | List badges of a user                                         |
 
-## Relação com os testes Jest
+## Relationship with Jest tests
 
-Os testes Jest (`spot-on/__tests__/`) cobrem **lógica interna** — funções,
-utilities, integrações de DB ao nível do código. Os testes Postman/Newman
-cobrem o **sistema visto de fora** — HTTP, contratos de API, comportamento
-end-to-end. São complementares.
+Jest tests (`spot-on/__tests__/`) cover **internal logic** — functions, utilities, and script-level DB integrations. Postman/Newman tests cover the **system from the outside** — HTTP, API contracts, end-to-end behavior. They complement each other.
