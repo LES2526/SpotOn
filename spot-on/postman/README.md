@@ -75,7 +75,6 @@ To iterate (server running continuously, running tests multiple times):
 cd spot-on
 make postman-run
 ```
-
 Generates an HTML report in `postman/reports/report-<timestamp>.html` to attach to the project report.
 
 ### Via Postman (GUI)
