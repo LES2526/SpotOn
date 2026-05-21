@@ -15,10 +15,12 @@ async function main() {
     await prisma.reportConfirmation.deleteMany({});
     await prisma.report.deleteMany({});
     await prisma.userOnStudySession.deleteMany({});
+    await prisma.joinRequest.deleteMany({});
     await prisma.studySession.deleteMany({});
     await prisma.session.deleteMany({});
     await prisma.account.deleteMany({});
     await prisma.verificationToken.deleteMany({});
+    await prisma.notification.deleteMany({});
     await prisma.space.deleteMany({});
     await prisma.floorPlan.deleteMany({});
     await prisma.badge.deleteMany({});
