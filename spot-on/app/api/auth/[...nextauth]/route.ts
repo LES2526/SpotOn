@@ -22,6 +22,7 @@ import { prisma } from "@/lib/prisma";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import NextAuth, { type NextAuthOptions } from "next-auth";
 import EmailProvider from "next-auth/providers/email";
+import { Resend } from "resend";
 
 /**
  * @swagger
@@ -81,30 +82,21 @@ export const authOptions: NextAuthOptions = {
      */
     providers: [
         EmailProvider({
-            /**
-             * SMTP server configuration for sending magic links.
-             * Uses Gmail SMTP by default.
-             *
-             * @constant {Object|string}
-             * @see {@link https://nodemailer.com/smtp/|Nodemailer SMTP Configuration}
-             */
-            server: {
-                host: process.env.EMAIL_SERVER_HOST,
-                port: Number(process.env.EMAIL_SERVER_PORT),
-                auth: {
-                    user: process.env.EMAIL_SERVER_USER,
-                    pass: process.env.EMAIL_SERVER_PASSWORD,
-                },
-            },
             from: process.env.EMAIL_FROM,
-            /**
-             * Token expiration time in seconds.
-             * Set to 5 minutes (300 seconds) for security.
-             *
-             * @constant {number}
-             * @default 300
-             */
             maxAge: 300,
+            /**
+             * Sends the magic-link email via Resend (HTTPS API).
+             * SMTP is not used because Railway blocks outbound SMTP connections.
+             */
+            sendVerificationRequest: async ({ identifier: email, url, provider: { from } }) => {
+                const resend = new Resend(process.env.RESEND_API_KEY);
+                await resend.emails.send({
+                    from: from ?? "Spot-On UAlg <onboarding@resend.dev>",
+                    to: email,
+                    subject: "Sign in to Spot-On",
+                    html: `<p>Click <a href="${url}">here</a> to sign in to Spot-On UAlg.</p><p>This link expires in 5 minutes.</p>`,
+                });
+            },
         }),
     ],
 
