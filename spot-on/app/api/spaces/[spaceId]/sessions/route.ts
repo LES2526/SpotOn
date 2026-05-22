@@ -290,12 +290,12 @@ export async function DELETE(_request: Request, { params }: Params) {
                 data: { status: 'COMPLETED', actualEndTime: new Date() },
             }),
             incrementPoints(session.user.id, hostPoints),
-            notifyOp(session.user.id, 'CHECKOUT', 'Terminaste a sessão. Pontos atribuídos!'),
+            notifyOp(session.user.id, 'CHECKOUT', `Recebeste ${hostPoints} pontos!`),
             ...activeSession.participants.map(p => {
                 const points = calculateCheckoutPoints(p.joinedAt, spaceType, occupancy, capacity);
                 return [
                     incrementPoints(p.userId, points),
-                    notifyOp(p.userId, 'CHECKOUT', 'A sessão foi terminada pelo host. Pontos atribuídos!'),
+                    notifyOp(p.userId, 'CHECKOUT', `Recebeste ${points} pontos!`),
                 ];
             }).flat(),
         ]);
