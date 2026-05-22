@@ -1,17 +1,16 @@
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import {
     calculateCheckoutPoints,
-    findActiveSession,
+    findUserSession,
     findCheckedOutSession,
     incrementPoints,
     notifyOp,
     removeParticipantOp,
 } from '@/lib/checkout-utils';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
+import { requireAuth } from '@/lib/require-auth';
 import { NextResponse } from 'next/server';
 
-type Params = { params: { spaceId: string } };
+type Params = { params: Promise<{ spaceId: string }> };
 
 /**
  * @swagger
@@ -103,17 +102,17 @@ type Params = { params: { spaceId: string } };
  */
 export async function POST(request: Request, { params }: Params) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) {
+        const session = await requireAuth();
+        if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { spaceId } = params;
+        const { spaceId } = await params;
         const userId = session.user.id;
         const body = await request.json().catch(() => ({}));
         const { targetUserId } = body;
 
-        const activeSession = await findActiveSession(spaceId, userId);
+        const activeSession = await findUserSession(spaceId, userId);
 
         if (!activeSession) {
             const alreadyCheckedOut = await findCheckedOutSession(spaceId, userId);
@@ -129,7 +128,7 @@ export async function POST(request: Request, { params }: Params) {
         const isHost = activeSession.hostId === userId;
 
         const acceptedParticipants = await prisma.userOnStudySession.findMany({
-            where: { sessionId: activeSession.id, status: 'ACCEPTED' },
+            where: { sessionId: activeSession.id },
             orderBy: { joinedAt: 'asc' },
         });
 

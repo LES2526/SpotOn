@@ -1,7 +1,11 @@
-import { prisma } from '@/lib/prisma';
 import { Prisma } from '@/app/generated/prisma';
+import { prisma } from '@/lib/prisma';
 
 type Tx = Prisma.TransactionClient;
+
+function unrefTimer(timer: ReturnType<typeof setTimeout>) {
+    timer.unref?.();
+}
 
 /**
  * The function `markReportExpired` asynchronously marks a report as expired and penalizes the host if
@@ -72,29 +76,28 @@ export async function handleExpiredReport(tx: Tx, reportId: string,
         });
 
         const participants = await tx.userOnStudySession.findMany({
-            where: {sessionId, status: 'ACCEPTED'}
+            where: { sessionId }
         });
 
         const allAbsent = [hostId, ...participants.map(p => p.userId)];
 
-        for(const userId of allAbsent){
-            const user = await tx.user.findUnique({where: {id: userId}, select: {points: true}});
+        for (const userId of allAbsent) {
+            const user = await tx.user.findUnique({ where: { id: userId }, select: { points: true } });
             const penalty = Math.floor((user?.points ?? 0) * 0.1);
-            await tx.user.update({where: {id: userId}, data: {points: {decrement: penalty}}});
+            await tx.user.update({ where: { id: userId }, data: { points: { decrement: penalty } } });
         }
         return { expired: true, sessionEnded: true };
     }
     const confirmedUserIds = new Set(confirmations.map(c => c.userId));
     const participants = await tx.userOnStudySession.findMany({
-        where: { sessionId, status: 'ACCEPTED' }
+        where: { sessionId }
     });
     const notConfirmed = participants
         .filter(p => !confirmedUserIds.has(p.userId))
         .map(p => p.userId);
     if (notConfirmed.length > 0) {
-        await tx.userOnStudySession.updateMany({
+        await tx.userOnStudySession.deleteMany({
             where: { sessionId, userId: { in: notConfirmed } },
-            data: { status: 'REJECTED' }
         });
     }
     if (!confirmedUserIds.has(hostId)) {
@@ -108,11 +111,11 @@ export async function handleExpiredReport(tx: Tx, reportId: string,
         ...notConfirmed,
         ...(!confirmedUserIds.has(hostId) ? [hostId] : [])
     ];
-    
-    for(const userId of absentIds){
-        const user = await tx.user.findUnique({where: { id: userId }, select: {points: true}});
+
+    for (const userId of absentIds) {
+        const user = await tx.user.findUnique({ where: { id: userId }, select: { points: true } });
         const penalty = Math.floor((user?.points ?? 0) * 0.1);
-        await tx.user.update({where: {id : userId}, data: {points: {decrement: penalty}}});
+        await tx.user.update({ where: { id: userId }, data: { points: { decrement: penalty } } });
     }
     return { expired: true, sessionEnded: false };
 }
@@ -131,15 +134,16 @@ export async function handleExpiredReport(tx: Tx, reportId: string,
  * @returns The `scheduleReportExpiry` function is not returning anything as it has a return type of
  * `void`. It schedules the expiration of a report based on the provided `timeToConfirm` parameter.
  */
-export function scheduleReportExpiry(reportId: string, hostId:string, timeToConfirm: Date): void {
+export function scheduleReportExpiry(reportId: string, hostId: string, timeToConfirm: Date): void {
     const delay = timeToConfirm.getTime() - Date.now();
-    
-    if(delay <= 0){
+
+    if (delay <= 0) {
         markReportExpired(reportId, hostId);
         return;
     }
     console.log(`Report ${reportId} scheduled to expire in ${Math.round(delay / 1000)}s`);
-    setTimeout(() => markReportExpired(reportId, hostId), delay);
+    const timer = setTimeout(() => markReportExpired(reportId, hostId), delay);
+    unrefTimer(timer);
 }
 
 /**
@@ -149,17 +153,16 @@ export function scheduleReportExpiry(reportId: string, hostId:string, timeToConf
 export async function restoreReportExpiries(): Promise<void> {
     try {
         const openReports = await prisma.report.findMany({
-            where: {status: 'OPEN'},
-            select: {id: true, timeToConfirm: true, session: {select: {hostId: true}}}
+            where: { status: 'OPEN' },
+            select: { id: true, timeToConfirm: true, session: { select: { hostId: true } } }
 
         });
         console.log(`Restoring expiry timers for ${openReports.length} open report(s)`);
 
-        for(const report of openReports){
+        for (const report of openReports) {
             scheduleReportExpiry(report.id, report.session.hostId, report.timeToConfirm);
         }
     } catch (error) {
         console.error('Failed to restore report expiries:', error);
     }
 }
-
