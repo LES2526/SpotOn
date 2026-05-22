@@ -21,7 +21,7 @@ export default function SpaceCard({ id, name, capacity, hasPowerOutlet,
                     initialStatus={isOccupied ? 'occupied' : 'available'}
                 />
             </div>
-
+  
             <div className="mt-4 flex flex-wrap gap-2">
                 <span className="rounded bg-gray-800 px-2 py-1 text-xs text-gray-400">
                     {capacity} {capacity === 1 ? 'lugar' : 'lugares'}
