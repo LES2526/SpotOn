@@ -334,8 +334,9 @@ ISO/IEC~25010, com critérios verificáveis sempre que possível.
 A arquitetura do Spot-On foi desenhada com foco na \textbf{segurança},
 \textbf{integridade dos dados} e \textbf{manutenibilidade}, utilizando uma
 \emph{stack} moderna baseada em TypeScript. Esta secção descreve a visão de
-alto nível, as camadas lógicas, e as principais decisões técnicas com as
-respetivas justificações.
+alto nível, as camadas lógicas, a \emph{stack} adotada (com comparação a
+alternativas, conforme exigido pelo enunciado) e as principais decisões
+técnicas com as respetivas justificações.
 
 \subsection{Visão de Alto Nível}
 
@@ -347,8 +348,21 @@ base de dados PostgreSQL, acedida exclusivamente através do ORM Prisma. A
 autenticação é delegada à biblioteca NextAuth.js, que gere o fluxo de
 \emph{magic link} sobre o domínio institucional \texttt{@ualg.pt}.
 
-O diagrama de componentes detalhado da arquitetura está disponível no
-repositório em \texttt{diagrams/component/backend\_arquitecture.drawio}.
+O diagrama de componentes (Figura~\ref{fig:arch}) é mantido em formato
+\emph{drawio} no repositório
+(\texttt{diagrams/component/backend\_arquitecture.drawio}) e exportado como
+PNG para inclusão neste relatório.
+
+\begin{figure}[H]
+    \centering
+    % TODO: substituir pela exportação final do diagrama de arquitetura
+    % \includegraphics[width=0.85\linewidth]{figures/architecture_diagram.png}
+    \fbox{\parbox[c][6.5cm][c]{0.85\linewidth}{%
+            \centering\itshape Diagrama de componentes (em desenvolvimento)\\[0.4em]
+            \small Substituir por \texttt{figures/architecture\_diagram.png}\\
+            (fonte: \texttt{diagrams/component/backend\_arquitecture.drawio})}}
+    \caption{Diagrama de componentes de alto nível do Spot-On.}\label{fig:arch}
+\end{figure}
 
 \subsection{Camadas Lógicas}
 
@@ -586,19 +600,19 @@ NextAuth.js) e as do domínio Spot-On.
     \renewcommand{\arraystretch}{1.3}
     \begin{tabularx}{\linewidth}{@{}lX@{}}
         \toprule
-        \textbf{Entidade}           & \textbf{Descrição}                                                                                                                                                          \\
+        \textbf{Entidade}           & \textbf{Descrição}                                                                                                                                                        \\
         \midrule
-        \texttt{User}               & Utilizador autenticado. Inclui \texttt{studentId} opcional, pontos acumulados (\texttt{points}) e prazo de banimento (\texttt{bannedUntil}), se aplicável.                  \\
-        \texttt{FloorPlan}          & Planta de um piso da biblioteca; serve de \emph{canvas} sobre o qual os espaços são posicionados.                                                                           \\
-        \texttt{Space}              & Espaço de estudo (mesa individual ou sala de grupo). Inclui geometria (\emph{points} SVG), capacidade, atributos (tomada, computador, quadro interativo) e o QR rotativo.   \\
-        \texttt{StudySession}       & Sessão de estudo num espaço, com anfitrião, hora prevista de fim e estado (\texttt{ACTIVE}, \texttt{COMPLETED}, \texttt{EXPIRED}).                                          \\
-        \texttt{JoinRequest}        & Pedido de adesão de um utilizador a uma sessão de estudo, com estado (\texttt{PENDING}, \texttt{ACCEPTED}, \texttt{REJECTED}).                                              \\
-        \texttt{UserOnStudySession} & Tabela-pivô que regista a participação efetiva de um utilizador numa sessão (após aceitação do pedido), com \emph{timestamp} de adesão.                                     \\
-        \texttt{Report}             & \emph{Report} submetido por um utilizador sobre uma sessão, com janela de confirmação de 10 minutos.                                                                        \\
-        \texttt{ReportConfirmation} & Confirmação de um \emph{report} por um terceiro utilizador.                                                                                                                 \\
-        \texttt{Notification}       & Notificação \emph{in-app} dirigida a um utilizador (e.g., pedido de adesão, prova de presença, sessão a expirar).                                                           \\
-        \texttt{Badge}              & Insígnia que pode ser atribuída (mensal, anual ou permanente).                                                                                                              \\
-        \texttt{UserBadge}          & Tabela-pivô que regista a atribuição de \emph{badges} a utilizadores.                                                                                                       \\
+        \texttt{User}               & Utilizador autenticado. Inclui \texttt{studentId} opcional, pontos acumulados (\texttt{points}) e prazo de banimento (\texttt{bannedUntil}), se aplicável.                \\
+        \texttt{FloorPlan}          & Planta de um piso da biblioteca; serve de \emph{canvas} sobre o qual os espaços são posicionados.                                                                         \\
+        \texttt{Space}              & Espaço de estudo (mesa individual ou sala de grupo). Inclui geometria (\emph{points} SVG), capacidade, atributos (tomada, computador, quadro interativo) e o QR rotativo. \\
+        \texttt{StudySession}       & Sessão de estudo num espaço, com anfitrião, hora prevista de fim e estado (\texttt{ACTIVE}, \texttt{COMPLETED}, \texttt{EXPIRED}).                                        \\
+        \texttt{JoinRequest}        & Pedido de adesão de um utilizador a uma sessão de estudo, com estado (\texttt{PENDING}, \texttt{ACCEPTED}, \texttt{REJECTED}).                                            \\
+        \texttt{UserOnStudySession} & Tabela-pivô que regista a participação efetiva de um utilizador numa sessão (após aceitação do pedido), com \emph{timestamp} de adesão.                                   \\
+        \texttt{Report}             & \emph{Report} submetido por um utilizador sobre uma sessão, com janela de confirmação de 10 minutos.                                                                      \\
+        \texttt{ReportConfirmation} & Confirmação de um \emph{report} por um terceiro utilizador.                                                                                                               \\
+        \texttt{Notification}       & Notificação \emph{in-app} dirigida a um utilizador (e.g., pedido de adesão, prova de presença, sessão a expirar).                                                         \\
+        \texttt{Badge}              & Insígnia que pode ser atribuída (mensal, anual ou permanente).                                                                                                            \\
+        \texttt{UserBadge}          & Tabela-pivô que regista a atribuição de \emph{badges} a utilizadores.                                                                                                     \\
         \bottomrule
     \end{tabularx}
     \caption{Entidades do modelo de domínio Spot-On.}
@@ -611,10 +625,20 @@ O modelo recorre ainda a vários \emph{enum types} nativos do PostgreSQL:
 
 \subsection{Diagrama do Modelo de Dados}
 
-O diagrama UML de classes do domínio está disponível em
-\texttt{diagrams/class/domain\_class\_diagram.drawio}, mantido em formato
-\emph{drawio} para facilitar a sua edição em conjunto com a evolução do
-\emph{schema}.
+O diagrama UML de classes do domínio (Figura~\ref{fig:classdiag}) é mantido
+em formato \emph{drawio} no repositório, em conjunto com a evolução do
+\emph{schema} Prisma.
+
+\begin{figure}[H]
+    \centering
+    % TODO: substituir pela exportação final do diagrama de classes
+    % \includegraphics[width=0.95\linewidth]{figures/class_diagram.png}
+    \fbox{\parbox[c][7cm][c]{0.85\linewidth}{%
+            \centering\itshape Diagrama UML de classes do domínio (em desenvolvimento)\\[0.4em]
+            \small Substituir por \texttt{figures/class\_diagram.png}\\
+            (fonte: \texttt{diagrams/class/domain\_class\_diagram.drawio})}}
+    \caption{Diagrama UML de classes do modelo de domínio.}\label{fig:classdiag}
+\end{figure}
 
 \subsection{Decisões de Modelação Relevantes}
 
@@ -682,9 +706,15 @@ model Space {
 % =====================================================
 \section{Backend e API}
 
-O \emph{backend} é exposto através das \emph{API routes} do Next.js, sob
-\texttt{/api/*}. A API segue um estilo \textbf{REST}, com \emph{endpoints}
-organizados por recurso. Os grupos atualmente disponíveis são:
+O \emph{backend} é exposto como uma \textbf{API REST de serviços}, suportada
+pelas \emph{API routes} do Next.js sob \texttt{/api/*}. Cada \emph{endpoint}
+é documentado de forma interativa através de \textbf{Swagger / OpenAPI},
+servida pela aplicação em \texttt{/api-doc} (componente
+\texttt{ReactSwagger}, baseado em \texttt{next-swagger-doc} e
+\texttt{swagger-ui-react}). A especificação é gerada automaticamente a
+partir de anotações JSDoc \texttt{@swagger} colocadas em cada rota,
+mantendo a documentação sincronizada com o código. Os grupos de
+\emph{endpoints} atualmente disponíveis são:
 
 \begin{itemize}[leftmargin=*]
     \item \texttt{/api/auth/*} -- \emph{endpoints} geridos pelo NextAuth.js
