@@ -97,6 +97,14 @@ export async function PATCH(_request: Request, { params }: Params) {
         if (!pending) {
             return NextResponse.json({ error: 'No pending request found.' }, { status: 404 });
         }
+
+        const currentOccupancy = await prisma.userOnStudySession.count({
+            where: { sessionId: studySession.id, status: 'ACCEPTED' },
+        });
+        if (currentOccupancy >= space.capacity - 1) {
+            return NextResponse.json({ error: 'Session is already at full capacity.' }, { status: 409 });
+        }
+
         const acceptJoinRequest = await prisma.joinRequest.update({
             where: { id: pending.id },
             data: { status: 'ACCEPTED' }
