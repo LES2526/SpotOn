@@ -5,14 +5,14 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-    provider      = "prisma-client-js"
-    output        = "../app/generated/prisma"
-    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x", "linux-musl-openssl-3.0.x", "darwin-arm64", "windows"]
+  provider      = "prisma-client-js"
+  output        = "../app/generated/prisma"
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x", "linux-musl-openssl-3.0.x", "darwin-arm64", "windows", "debian-openssl-3.0.x"]
 }
 
 datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // ============================================
@@ -22,68 +22,70 @@ datasource db {
 /// Spot-On system user.
 /// Only @ualg.pt emails are accepted (validated in backend).
 model User {
-    id            String    @id @default(cuid()) @db.VarChar(30)
-    studentId     String?   @unique @db.VarChar(20)
-    email         String    @unique @db.VarChar(255)
-    emailVerified DateTime?
-    image         String?   @db.VarChar(255)
-    bannedUntil   DateTime?
+  id            String    @id @default(cuid()) @db.VarChar(30)
+  studentId     String?   @unique @db.VarChar(20)
+  email         String    @unique @db.VarChar(255)
+  emailVerified DateTime?
+  image         String?   @db.VarChar(255)
+  bannedUntil   DateTime?
 
-    points Int @default(0)
+  points Int @default(0)
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @default(now()) @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
-    accounts Account[]
-    sessions Session[]
+  accounts Account[]
+  sessions Session[]
 
-    hostedStudySessions StudySession[]       @relation("SessionHost")
-    participations      UserOnStudySession[]
-    reports             Report[]
-    reportConfirmations ReportConfirmation[]
-    notifications       Notification[]
+  hostedStudySessions StudySession[]       @relation("SessionHost")
+  participations      UserOnStudySession[]
+  reports             Report[]
+  reportConfirmations ReportConfirmation[]
+  notifications       Notification[]
 
-    badges UserBadge[]
+  joinRequests JoinRequest[]
+
+  badges UserBadge[]
 }
 
 /// NextAuth authentication providers.
 /// Supports multiple providers per user (email, OAuth, etc).
 model Account {
-    userId            String  @db.VarChar(30)
-    type              String  @db.VarChar(50)
-    provider          String  @db.VarChar(50)
-    providerAccountId String  @db.VarChar(255)
-    refresh_token     String? @db.Text
-    access_token      String? @db.Text
-    expires_at        Int?
-    token_type        String? @db.VarChar(50)
-    scope             String? @db.Text /// Space-separated permissions/scopes granted by the provider
-    id_token          String? @db.Text
-    session_state     String? @db.VarChar(255)
+  userId            String  @db.VarChar(30)
+  type              String  @db.VarChar(50)
+  provider          String  @db.VarChar(50)
+  providerAccountId String  @db.VarChar(255)
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String? @db.VarChar(50)
+  scope             String? @db.Text /// Space-separated permissions/scopes granted by the provider
+  id_token          String? @db.Text
+  session_state     String? @db.VarChar(255)
 
-    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-    @@id([provider, providerAccountId])
+  @@id([provider, providerAccountId])
 }
 
 /// Active login sessions.
 model Session {
-    id           String   @id @default(cuid()) @db.VarChar(30)
-    sessionToken String   @unique @db.VarChar(255)
-    userId       String   @db.VarChar(30)
-    expires      DateTime
+  id           String   @id @default(cuid()) @db.VarChar(30)
+  sessionToken String   @unique @db.VarChar(255)
+  userId       String   @db.VarChar(30)
+  expires      DateTime
 
-    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 /// Magic link tokens for passwordless authentication.
 /// Expire after 5 minutes.
 model VerificationToken {
-    identifier String   @db.VarChar(255)
-    token      String   @unique @db.VarChar(255)
-    expires    DateTime
+  identifier String   @db.VarChar(255)
+  token      String   @unique @db.VarChar(255)
+  expires    DateTime
 
-    @@id([identifier, token])
+  @@id([identifier, token])
 }
 
 // ============================================
@@ -92,50 +94,50 @@ model VerificationToken {
 
 // --------------------------------------------
 // Enums
-// - SessionStatus, InvitationStatus, SpaceType,
+// - SessionStatus, JoinRequestStatus, SpaceType,
 //   ReportStatus
 // --------------------------------------------
 
 enum SessionStatus {
-    ACTIVE
-    COMPLETED
-    EXPIRED
+  ACTIVE
+  COMPLETED
+  EXPIRED
 }
 
-enum InvitationStatus {
-    PENDING
-    ACCEPTED
-    REJECTED
+enum JoinRequestStatus {
+  PENDING
+  REJECTED
+  ACCEPTED
 }
 
 enum SpaceType {
-    INDIVIDUAL_DESK
-    GROUP_ROOM
+  INDIVIDUAL_DESK
+  GROUP_ROOM
 }
 
 enum SpaceShape {
-    CIRCULAR_DESK
-    RETANGULAR_DESK
+  CIRCULAR_DESK
+  RETANGULAR_DESK
 }
 
 enum ReportStatus {
-    OPEN
-    RESOLVED
-    EXPIRED
+  OPEN
+  RESOLVED
+  EXPIRED
 }
 
 enum NotificationType {
-    PROOF_OF_PRESENCE
-    JOIN_REQUEST
-    SESSION_EXPIRING_SOON
-    CHECKOUT
-    KICKED_FROM_SESSION
-    LEADERSHIP_TRANSFERRED
+  PROOF_OF_PRESENCE
+  JOIN_REQUEST
+  SESSION_EXPIRING_SOON
+  CHECKOUT
+  KICKED_FROM_SESSION
+  LEADERSHIP_TRANSFERRED
 }
 
 enum NotificationStatus {
-    PENDING
-    RESOLVED
+  PENDING
+  RESOLVED
 }
 
 /// Floor plan canvas. Spaces are positioned relative to this container.
@@ -143,17 +145,17 @@ enum NotificationStatus {
 // Floor plan & Spaces
 // --------------------------------------------
 model FloorPlan {
-    id          String @id @default(cuid()) @db.VarChar(30)
-    name        String @db.VarChar(255)
-    floor       Int    @unique @default(0)
-    imageUrl    String @db.VarChar(255) /// URL or path to the floor plan image
-    imageWidth  Int
-    imageHeight Int
+  id          String @id @default(cuid()) @db.VarChar(30)
+  name        String @db.VarChar(255)
+  floor       Int    @unique @default(0)
+  imageUrl    String @db.VarChar(255) /// URL or path to the floor plan image
+  imageWidth  Int
+  imageHeight Int
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @default(now()) @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
-    spaces Space[]
+  spaces Space[]
 }
 
 /// Study space
@@ -161,24 +163,25 @@ model FloorPlan {
 // Space model
 // --------------------------------------------
 model Space {
-    id                  String      @id @default(cuid()) @db.VarChar(30)
-    floorPlanId         String      @db.VarChar(30)
-    name                String      @db.VarChar(255)
-    points              String /// SVG polygon points: "x1,y1 x2,y2 x3,y3 x4,y4" (clockwise from top-left)
-    capacity            Int
-    currentQrToken      String      @unique @db.VarChar(255) /// Rotates periodically; displayed on the space's tablet
-    description         String?     @db.VarChar(255)
-    hasPowerOutlet      Boolean     @default(false)
-    hasComputer         Boolean     @default(false)
-    hasInteractiveBoard Boolean     @default(false)
-    type                SpaceType   @default(INDIVIDUAL_DESK)
-    shape               SpaceShape?
+  id                  String      @id @default(cuid()) @db.VarChar(30)
+  floorPlanId         String      @db.VarChar(30)
+  name                String      @db.VarChar(255)
+  points              String /// SVG polygon points: "x1,y1 x2,y2 x3,y3 x4,y4" (clockwise from top-left)
+  capacity            Int
+  currentQrToken      String      @unique @db.VarChar(255) /// Rotates periodically; displayed on the space's tablet
+  description         String?     @db.VarChar(255)
+  hasPowerOutlet      Boolean     @default(false)
+  hasComputer         Boolean     @default(false)
+  hasInteractiveBoard Boolean     @default(false)
+  type                SpaceType   @default(INDIVIDUAL_DESK)
+  shape               SpaceShape?
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @default(now()) @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
-    floorPlan FloorPlan      @relation(fields: [floorPlanId], references: [id])
-    sessions  StudySession[]
+  floorPlan    FloorPlan      @relation(fields: [floorPlanId], references: [id], onDelete: Cascade)
+  sessions     StudySession[]
+  joinRequests JoinRequest[]
 }
 
 /// Study session in a space.
@@ -186,24 +189,25 @@ model Space {
 // Sessions
 // --------------------------------------------
 model StudySession {
-    id      String @id @default(cuid()) @db.VarChar(30)
-    spaceId String @db.VarChar(30)
-    hostId  String @db.VarChar(30)
+  id      String @id @default(cuid()) @db.VarChar(30)
+  spaceId String @db.VarChar(30)
+  hostId  String @db.VarChar(30)
 
-    startTime       DateTime  @default(now())
-    expectedEndTime DateTime
-    actualEndTime   DateTime?
+  startTime       DateTime  @default(now())
+  expectedEndTime DateTime
+  actualEndTime   DateTime?
 
-    status SessionStatus @default(ACTIVE)
+  status SessionStatus @default(ACTIVE)
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @default(now()) @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
-    space Space @relation(fields: [spaceId], references: [id])
-    host  User  @relation("SessionHost", fields: [hostId], references: [id])
+  space Space @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  host  User  @relation("SessionHost", fields: [hostId], references: [id])
 
-    participants UserOnStudySession[]
-    reports      Report[]
+  participants UserOnStudySession[]
+  reports      Report[]
+  joinRequests JoinRequest[]
 }
 
 /// User participation in study session (pivot table).
@@ -211,48 +215,60 @@ model StudySession {
 // Participation (pivot) models
 // --------------------------------------------
 model UserOnStudySession {
-    userId    String @db.VarChar(30)
-    sessionId String @db.VarChar(30)
+  userId    String @db.VarChar(30)
+  sessionId String @db.VarChar(30)
 
-    status   InvitationStatus @default(PENDING)
-    joinedAt DateTime         @default(now())
+  joinedAt DateTime @default(now())
 
-    user    User         @relation(fields: [userId], references: [id])
-    session StudySession @relation(fields: [sessionId], references: [id])
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session StudySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
-    @@id([userId, sessionId])
+  @@id([userId, sessionId])
 }
+
+model JoinRequest {
+  id             String            @id @default(cuid()) @db.VarChar(30)
+  userId         String            @db.VarChar(30)
+  spaceId        String            @db.VarChar(30)
+  studySessionId String            @db.VarChar(30)
+  createdAt      DateTime          @default(now())
+  status         JoinRequestStatus @default(PENDING)
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  space          Space             @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  studySession   StudySession      @relation(fields: [studySessionId], references: [id], onDelete: Cascade)
+}
+
 
 /// User report about a study session.
 // --------------------------------------------
 // Reports
 // --------------------------------------------
 model Report {
-    id         String       @id @default(cuid()) @db.VarChar(30)
-    reporterId String       @db.VarChar(30)
-    sessionId  String       @db.VarChar(30)
-    reason     String       @db.VarChar(255)
-    status     ReportStatus @default(OPEN)
+  id         String       @id @default(cuid()) @db.VarChar(30)
+  reporterId String       @db.VarChar(30)
+  sessionId  String       @db.VarChar(30)
+  reason     String       @db.VarChar(255)
+  status     ReportStatus @default(OPEN)
 
-    createdAt     DateTime  @default(now())
-    updatedAt     DateTime  @default(now()) @updatedAt
-    timeToConfirm DateTime  @default(dbgenerated("now() + interval '10 minutes'")) /// 10 minutes to confirm the report
-    confirmedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now()) @updatedAt
+  timeToConfirm DateTime  @default(dbgenerated("now() + interval '10 minutes'")) /// 10 minutes to confirm the report
+  confirmedAt   DateTime?
 
-    reporter            User                 @relation(fields: [reporterId], references: [id])
-    session             StudySession         @relation(fields: [sessionId], references: [id])
-    reportConfirmations ReportConfirmation[]
+  reporter            User                 @relation(fields: [reporterId], references: [id])
+  session             StudySession         @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  reportConfirmations ReportConfirmation[]
 }
 
 model ReportConfirmation {
-    reportId    String   @db.VarChar(30)
-    userId      String   @db.VarChar(30)
-    confirmedAt DateTime @default(now())
+  reportId    String   @db.VarChar(30)
+  userId      String   @db.VarChar(30)
+  confirmedAt DateTime @default(now())
 
-    report Report @relation(fields: [reportId], references: [id])
-    user   User   @relation(fields: [userId], references: [id])
+  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id])
 
-    @@id([reportId, userId])
+  @@id([reportId, userId])
 }
 
 /// In-app notification for a user.
@@ -260,36 +276,36 @@ model ReportConfirmation {
 // Notifications
 // --------------------------------------------
 model Notification {
-    id      String             @id @default(cuid()) @db.VarChar(30)
-    userId  String             @db.VarChar(30)
-    type    NotificationType
-    status  NotificationStatus @default(PENDING)
-    message String             @db.VarChar(500)
+  id      String             @id @default(cuid()) @db.VarChar(30)
+  userId  String             @db.VarChar(30)
+  type    NotificationType
+  status  NotificationStatus @default(PENDING)
+  message String             @db.VarChar(500)
 
-    createdAt DateTime @default(now())
+  createdAt DateTime @default(now())
 
-    user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 }
 
 model UserBadge {
-    userId    String   @db.VarChar(30)
-    badgeId   String   @db.VarChar(30)
-    awardedAt DateTime @default(now())
+  userId    String   @db.VarChar(30)
+  badgeId   String   @db.VarChar(30)
+  awardedAt DateTime @default(now())
 
-    user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-    badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
 
-    @@id([userId, badgeId])
+  @@id([userId, badgeId])
 }
 
 model Badge {
-    id          String @id @default(cuid()) @db.VarChar(30)
-    name        String @db.VarChar(255)
-    description String @db.VarChar(255)
-    iconUrl     String @db.VarChar(255) /// URL or path to the badge icon
+  id          String @id @default(cuid()) @db.VarChar(30)
+  name        String @db.VarChar(255)
+  description String @db.VarChar(255)
+  iconUrl     String @db.VarChar(255) /// URL or path to the badge icon
 
-    month Int @default(0) /// Month when the badge is awarded (1-12), 0 for badges that can be awarded any month
-    year  Int @default(0) /// Year when the badge is awarded, 0 for badges that can be awarded any year
+  month Int @default(0) /// Month when the badge is awarded (1-12), 0 for badges that can be awarded any month
+  year  Int @default(0) /// Year when the badge is awarded, 0 for badges that can be awarded any year
 
-    users UserBadge[]
+  users UserBadge[]
 }
