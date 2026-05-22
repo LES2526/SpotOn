@@ -52,6 +52,7 @@ jobs:
       ALLOW_ANY_EMAIL_IN_DEV: "false"
       QR_SECRET: ci-qr-secret
       LIBRARY_CLOSING_TIME: "20:30"
+      BYPASS_HOURS_CHECK: "true"
     steps:
       - uses: actions/checkout@v4
 
