@@ -32,3 +32,4 @@
 **/.next
 LICENSE
 README.md
+.env
