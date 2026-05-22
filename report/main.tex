@@ -327,24 +327,28 @@ ISO/IEC~25010, com critérios verificáveis sempre que possível.
 \end{table}
 
 % =====================================================
-% 5. Arquitetura
+% 5. Arquitetura e Stack Tecnológica
 % =====================================================
-\section{Arquitetura do Sistema}
+\section{Arquitetura e Stack Tecnológica}
+
+A arquitetura do Spot-On foi desenhada com foco na \textbf{segurança},
+\textbf{integridade dos dados} e \textbf{manutenibilidade}, utilizando uma
+\emph{stack} moderna baseada em TypeScript. Esta secção descreve a visão de
+alto nível, as camadas lógicas, e as principais decisões técnicas com as
+respetivas justificações.
 
 \subsection{Visão de Alto Nível}
 
 O Spot-On segue uma arquitetura \textbf{cliente-servidor} com aplicação web
 \emph{full-stack} construída sobre Next.js. O \emph{frontend} (React) e o
-\emph{backend} (API \emph{routes} do Next.js) coabitam no mesmo projeto, mas
-estão claramente separados em termos de responsabilidades. A persistência é
-assegurada por uma base de dados PostgreSQL, acedida exclusivamente através
-do ORM Prisma. A autenticação é delegada à biblioteca NextAuth.js, que gere o
-fluxo de \emph{magic link} sobre o domínio institucional.
+\emph{backend} (API \emph{routes} do Next.js) coabitam no mesmo projeto, com
+responsabilidades claramente separadas. A persistência é assegurada por uma
+base de dados PostgreSQL, acedida exclusivamente através do ORM Prisma. A
+autenticação é delegada à biblioteca NextAuth.js, que gere o fluxo de
+\emph{magic link} sobre o domínio institucional \texttt{@ualg.pt}.
 
-% TODO: Inserir diagrama de arquitetura de alto nível
-\begin{center}
-    \textit{[Diagrama de arquitetura a inserir]}
-\end{center}
+O diagrama de componentes detalhado da arquitetura está disponível no
+repositório em \texttt{diagrams/component/backend\_arquitecture.drawio}.
 
 \subsection{Camadas Lógicas}
 
@@ -356,23 +360,23 @@ Internamente, a aplicação Next.js encontra-se organizada em três camadas:
           \emph{dashboards}. Faz uso de \emph{Server Components} e \emph{Client
               Components} consoante a necessidade de interatividade.
     \item \textbf{API e regras de negócio} -- \emph{API routes} do Next.js,
-          onde reside a validação de dados, regras de domínio (e.g., elegibilidade
-          para iniciar sessão, validade do QR \emph{token}, atribuição de pontos) e
-          a orquestração das operações.
-    \item \textbf{Persistência} -- camada de acesso a dados, totalmente
-          delegada ao Prisma, que gera um cliente tipado a partir do
-          \emph{schema} \texttt{schema.prisma}.
+          onde reside a validação de dados, as regras de domínio (e.g.,
+          elegibilidade para iniciar sessão, validade do QR \emph{token}, atribuição
+          de pontos) e a orquestração das operações. Um \emph{middleware} global
+          (\texttt{proxy.ts}) protege as rotas autenticadas, verificando a presença
+          do \emph{cookie} de sessão NextAuth e redirecionando para a página de
+          \emph{sign-in} quando ausente.
+    \item \textbf{Persistência} -- camada de acesso a dados totalmente delegada
+          ao Prisma, que gera um cliente tipado a partir do \emph{schema}
+          \texttt{schema.prisma}.
 \end{enumerate}
 
-% =====================================================
-% 6. Stack Tecnológico
-% =====================================================
-\section{Stack Tecnológico}
+\subsection{Sumário da Stack e Alternativas}
 
 A tabela seguinte resume as tecnologias adotadas e as principais alternativas
 ponderadas.
 
-\begin{table}[htbp]
+\begin{table}[H]
     \centering
     \scriptsize
     \renewcommand{\arraystretch}{1.25}
@@ -380,70 +384,104 @@ ponderadas.
         \toprule
         \textbf{Camada}                              & \textbf{Tecnologia}             & \textbf{Alternativa}                & \textbf{Justificação}                                                                                                 \\
         \midrule
-        \emph{Framework} \emph{full-stack}           & Next.js (React)                 & React + Express separados           & Unifica UI e API num só projeto, simplifica \emph{deployment} e tipagem partilhada.                                   \\
+        \emph{Framework} \emph{full-stack}           & Next.js (App Router, React)     & React + Express separados           & Unifica UI e API num só projeto, simplifica \emph{deployment} e tipagem partilhada.                                   \\
         Linguagem (\emph{frontend} e \emph{backend}) & TypeScript                      & JavaScript                          & Mesma linguagem em ambas as vertentes, com tipagem estática que reduz erros e integra-se com o cliente Prisma gerado. \\
         ORM                                          & Prisma                          & TypeORM, Sequelize                  & \emph{Schema} declarativo, migrações automáticas, tipagem forte ponta-a-ponta.                                        \\
-        Base de dados                                & PostgreSQL                      & MySQL, MongoDB                      & Modelo relacional adequado às entidades; \texttt{enums} nativos; maturidade.                                          \\
+        Base de dados                                & PostgreSQL                      & MySQL, MongoDB                      & Modelo relacional adequado às entidades; \texttt{enum types} nativos; maturidade.                                     \\
         Autenticação                                 & NextAuth.js (\emph{magic link}) & Auth0, Clerk, implementação própria & Integração nativa com Next.js, fluxo \emph{passwordless} pronto a usar.                                               \\
-        Containerização                              & Docker + Docker Compose         & VM, deploy direto                   & \emph{Setup} reprodutível em qualquer máquina com um único comando.                                                   \\
-        \emph{Hosting}                               & Railway                         & Vercel, AWS, Render                 & \emph{Deploy} simples a partir de Git, base de dados PostgreSQL gerida incluída.                                      \\
-        Testes                                       & Jest                            & Vitest, Mocha                       & Padrão consolidado em projetos React/Next.js, \emph{tooling} maduro.                                                  \\
+        Envio de email                               & Nodemailer / Resend             & SMTP direto, AWS SES                & API simples para envio transacional dos \emph{magic links}.                                                           \\
+        Containerização                              & Docker + Docker Compose         & VM, \emph{deploy} direto            & \emph{Setup} reprodutível em qualquer máquina com um único comando.                                                   \\
+        Testes                                       & Jest + Postman/Newman           & Vitest, Mocha, Playwright           & Jest para unidade/integração; Newman para testes \emph{end-to-end} da API.                                            \\
         CI                                           & GitHub Actions                  & GitLab CI, CircleCI                 & Integração nativa com o repositório, \emph{free tier} suficiente.                                                     \\
         Gestão                                       & Jira                            & Trello, ClickUp                     & Suporte completo a SCRUM (\emph{backlog}, \emph{sprints}, \emph{boards}).                                             \\
         \bottomrule
     \end{tabularx}
-    \caption{Stack tecnológico e alternativas consideradas.}
+    \caption{Stack tecnológica e alternativas consideradas.}
 \end{table}
 
-\subsection{Justificação Detalhada das Escolhas-Chave}
+\subsection{Decisões Técnicas e Justificações}
 
-\paragraph{Next.js \emph{vs.} React + Express.}
-Considerou-se manter \emph{frontend} e \emph{backend} em projetos
-independentes (React no \emph{client-side} e Express como API). Optou-se por
-Next.js pelos seguintes motivos: (i) elimina a necessidade de gerir
-\emph{cross-origin requests} entre dois servidores; (ii) permite tipagem
-partilhada entre cliente e servidor sem etapas adicionais de geração; (iii)
-o seu modelo de \emph{Server Components} simplifica o carregamento inicial de
-páginas como a planta da biblioteca; e (iv) reduz a complexidade de
-\emph{deployment}.
+Apresentam-se de seguida as cinco decisões técnicas estruturantes do projeto,
+com a respetiva justificação.
 
-\paragraph{Prisma \emph{vs.} TypeORM.}
-Prisma destaca-se pelo seu \emph{schema} declarativo (\texttt{schema.prisma}),
-que serve simultaneamente de fonte de verdade para a base de dados e gerador
-do cliente tipado. As migrações geram-se automaticamente a partir de
-alterações ao \emph{schema} (\texttt{prisma migrate dev}), tornando o ciclo
-de evolução do modelo mais rápido e menos propenso a erros do que abordagens
-baseadas em decoradores ou em SQL puro. Em projetos de média dimensão como
-este, a curva de aprendizagem é igualmente menor.
+\subsubsection{1. Core Framework: Next.js \& TypeScript}
 
-\paragraph{PostgreSQL \emph{vs.} MySQL.}
-O modelo do Spot-On é fortemente relacional (sessões pertencem a espaços,
-participações são tabelas-pivô, \emph{reports} ligam-se a sessões e a
-utilizadores) e faz uso intensivo de tipos enumerados (\texttt{SessionStatus},
-\texttt{ReportStatus}, \texttt{NotificationType}). PostgreSQL suporta
-nativamente \texttt{enum types} e oferece um conjunto mais rico de funções
-temporais (necessárias para janelas de confirmação de \emph{reports}, p. ex.
-\texttt{now() + interval '10 minutes'}).
+Optou-se pelo \textbf{Next.js (App Router)} como \emph{framework} principal,
+suportado por TypeScript.
 
-\subsection{Estratégia de Autenticação: do SSO ao \emph{Passwordless}}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Justificação:} Esta escolha permite uma arquitetura
+          \emph{full-stack} num único repositório, onde o \emph{frontend} (React) e
+          o \emph{backend} (API Routes) partilham os mesmos tipos de dados. O uso
+          de TypeScript foi crucial para garantir a robustez do código, prevenindo
+          erros de tipagem comuns durante o desenvolvimento das funcionalidades de
+          reservas e autenticação. Adicionalmente, a experiência prévia da equipa
+          com estas tecnologias foi um fator decisivo, permitindo mitigar riscos
+          técnicos e acelerar a implementação do sistema.
+    \item \textbf{Alternativas ponderadas:} manter \emph{frontend} (React) e
+          \emph{backend} (Express) em projetos independentes. Foi descartada por
+          implicar gerir \emph{cross-origin requests} entre dois servidores,
+          duplicar configuração de \emph{deployment}, e introduzir etapas
+          adicionais de geração de tipos entre cliente e servidor.
+\end{itemize}
 
-A gestão de identidade foi implementada com o NextAuth.js (e o
+\subsubsection{2. Base de Dados e ORM: PostgreSQL \& Prisma}
+
+Para a persistência de dados, optámos por \textbf{PostgreSQL} orquestrado pelo
+\textbf{Prisma ORM}.
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{PostgreSQL:} escolhido pela sua fiabilidade e suporte robusto
+          a relações complexas (\emph{ACID compliance}), essenciais para um sistema
+          de reservas onde a consistência é crítica. O modelo do Spot-On é
+          fortemente relacional e faz uso intensivo de tipos enumerados
+          (\texttt{SessionStatus}, \texttt{JoinRequestStatus},
+          \texttt{ReportStatus}, \texttt{NotificationType}, etc.), nativamente
+          suportados em PostgreSQL.
+    \item \textbf{Prisma ORM:} justifica-se pela \emph{type safety} automática.
+          O ficheiro \texttt{schema.prisma} serve como fonte única de verdade,
+          quer para a geração do cliente tipado, quer para a geração de migrações
+          SQL (\texttt{prisma migrate dev}). Em comparação com abordagens baseadas
+          em decoradores (TypeORM) ou SQL puro, oferece menor curva de
+          aprendizagem e ciclos de evolução do modelo mais rápidos e menos
+          propensos a erros.
+    \item \textbf{Exemplo prático:} as migrações automáticas permitiram-nos
+          evoluir o esquema (adicionando, por exemplo, o campo \texttt{studentId}
+          ao \texttt{User} ou o modelo \texttt{JoinRequest}) mantendo o histórico
+          de versões sincronizado entre toda a equipa, sob o diretório
+          \texttt{prisma/migrations}.
+\end{itemize}
+
+\subsubsection{3. Estratégia de Autenticação e Gestão de Identidade}
+
+Para a gestão de identidade, implementou-se o \textbf{NextAuth.js} (com o
 \texttt{@next-auth/prisma-adapter}). A arquitetura de autenticação sofreu uma
 iteração importante durante o desenvolvimento, adaptando-se às restrições da
 infraestrutura da universidade.
 
-\paragraph{Tentativa inicial: SSO via Microsoft Entra ID.}
-O planeamento inicial previa um verdadeiro \emph{Single Sign-On} (SSO) com o
-\emph{provider} do Azure AD no NextAuth. Como a comunidade académica utiliza o
-ecossistema Microsoft (Outlook/Office 365), o objetivo era um login direto e
-fluido (``Continuar com a conta da Universidade'').
+\paragraph{Decisão Arquitetural: do SSO (Azure AD) para \emph{Passwordless}
+    (\emph{Magic Links}).}
 
-\paragraph{Bloqueio técnico: restrições de \emph{tenant}.}
-Durante a implementação, a equipa deparou-se com um erro \texttt{401
-(Unauthorized)} no portal do Azure (Figura~\ref{fig:azure401}). Concluiu-se que
-as políticas de segurança dos Serviços de Informática da UAlg bloqueiam
-ativamente o registo de novas aplicações (\emph{App Registrations}) por parte
-dos alunos no \emph{tenant} principal da universidade.
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Tentativa inicial (SSO via Microsoft Entra ID):} o planeamento
+          inicial previa a implementação de um verdadeiro \emph{Single Sign-On}
+          (SSO) utilizando o \emph{provider} do Azure AD no NextAuth. Como a
+          comunidade académica utiliza o ecossistema Microsoft (Outlook/Office
+          365), o objetivo era proporcionar um \emph{login} direto e fluido
+          (``Continuar com a conta da Universidade'').
+    \item \textbf{Bloqueio técnico (restrições de \emph{tenant}):} durante a
+          implementação, a equipa deparou-se com um erro \texttt{401
+              (Unauthorized)} no portal do Azure (Figura~\ref{fig:azure401}).
+          Concluiu-se que as políticas de segurança dos Serviços de Informática da
+          UAlg bloqueiam ativamente o registo de novas aplicações (\emph{App
+              Registrations}) por parte dos alunos no \emph{tenant} principal da
+          universidade.
+    \item \textbf{Solução de contingência (\emph{Magic Links}):} face à
+          impossibilidade de integração OAuth/SAML direta sem intervenção
+          demorada da administração de TI da UAlg, a equipa adotou uma estratégia
+          de autenticação \emph{passwordless} (\emph{magic links} via \emph{Email
+              Provider} do NextAuth, com envio através de Nodemailer/Resend).
+\end{itemize}
 
 \begin{figure}[H]
     \centering
@@ -452,36 +490,92 @@ dos alunos no \emph{tenant} principal da universidade.
         registar a aplicação no \emph{tenant} da UAlg.}\label{fig:azure401}
 \end{figure}
 
-\paragraph{Solução de contingência: \emph{Magic Links}.}
-Face à impossibilidade de integração OAuth/SAML direta sem a intervenção
-demorada da administração de TI da UAlg, a equipa optou por uma estratégia de
-autenticação \emph{passwordless} (\emph{magic links} através do \emph{Email
-    Provider} do NextAuth). Esta solução justifica-se por:
+\paragraph{Justificação da solução implementada.}
 
 \begin{itemize}[leftmargin=*]
-    \item \textbf{Independência de infraestrutura.} O sistema funciona de forma
+    \item \textbf{Independência de infraestrutura:} o sistema funciona de forma
           autónoma, sem depender de autorizações de terceiros (Serviços de
           Informática) para operar.
-    \item \textbf{Exclusividade e validação de domínio.} O \emph{login} é
+    \item \textbf{Exclusividade e validação de domínio:} o \emph{login} é
           intercetado e o domínio do email validado por \emph{regex}, garantindo
           que apenas endereços terminados em \texttt{@ualg.pt} recebem o link de
-          acesso e conseguem criar conta.
-    \item \textbf{Segurança.} Mantém-se o princípio de não armazenar \emph{hashes}
-          de \emph{passwords} (a tabela \texttt{User} não possui campo
-          \texttt{password}), mitigando o risco de fugas de dados.
-    \item \textbf{Experiência de utilizador.} O fluxo atua como um SSO
-          simplificado: o utilizador não precisa de memorizar uma nova
-          \emph{password}, bastando clicar no link seguro enviado para a caixa de
-          correio institucional.
+          acesso e conseguem criar conta (controlado pela variável de ambiente
+          \texttt{ALLOWED\_EMAIL\_DOMAIN}).
+    \item \textbf{Segurança:} mantém-se o princípio fundamental de não armazenar
+          \emph{hashes} de \emph{passwords} na base de dados (a tabela
+          \texttt{User} não possui campo \texttt{password}), mitigando o risco de
+          fugas de dados. Os \emph{tokens} de \emph{magic link} expiram em
+          5~minutos e só podem ser utilizados uma vez.
+    \item \textbf{Experiência de utilizador (UX):} o fluxo de \emph{magic link}
+          atua como um SSO simplificado --- o utilizador não precisa de memorizar
+          uma nova \emph{password}, bastando clicar no link seguro enviado para a
+          caixa de correio institucional.
 \end{itemize}
 
+\subsubsection{4. Modelação de Dados e Resolução de Conflitos}
+
+Durante a modelação, surgiram desafios de nomenclatura e de \emph{design} que
+foram resolvidos através de uma separação clara de conceitos no
+\texttt{schema.prisma}:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{\emph{Auth} vs. negócio:}
+          \begin{itemize}
+              \item \texttt{Session} (\emph{Auth}) -- mantida estritamente para a
+                    gestão de sessões de \emph{login} (\emph{cookies}) do NextAuth.
+              \item \texttt{StudySession} (negócio) -- criada para representar as
+                    sessões de estudo ou reservas de espaços. Esta distinção evita
+                    conflitos no código e clarifica o propósito de cada tabela.
+          \end{itemize}
+    \item \textbf{Identificação do estudante:} adicionou-se o campo
+          \texttt{studentId} ao modelo de utilizador para permitir a futura
+          integração com cartões de estudante físicos ou sistemas académicos,
+          separando o ID interno do sistema (CUID) do número de aluno.
+    \item \textbf{Participação vs. pedido de adesão:} para modelar corretamente
+          o ciclo de vida de um convite, foram introduzidas duas entidades
+          distintas:
+          \begin{itemize}
+              \item \texttt{JoinRequest} -- representa um pedido de adesão a uma
+                    sessão, com estado (\texttt{PENDING}, \texttt{ACCEPTED},
+                    \texttt{REJECTED}).
+              \item \texttt{UserOnStudySession} -- tabela-pivô com chave composta
+                    \texttt{(userId, sessionId)} que regista a participação
+                    \emph{efetiva} de um utilizador numa sessão, apenas depois de o
+                    pedido ser aceite.
+          \end{itemize}
+    \item \textbf{Relações com flexibilidade futura:} estabeleceu-se uma relação
+          $1{:}N$ entre \texttt{User} e \texttt{Account}, permitindo que um mesmo
+          utilizador venha a associar múltiplos \emph{providers} de autenticação
+          (e.g., se o SSO institucional se tornar viável no futuro).
+\end{itemize}
+
+\subsubsection{5. Infraestrutura: Docker}
+
+O ambiente de desenvolvimento é padronizado via \textbf{Docker} (observável
+pelos ficheiros \texttt{Dockerfile} e \texttt{compose.yaml}).
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Justificação:} garante que todos os membros da equipa executam
+          a mesma versão da base de dados PostgreSQL, eliminando erros do tipo
+          ``funciona na minha máquina''. O arranque completo do ambiente faz-se
+          com um único comando (\texttt{docker compose up}).
+\end{itemize}
+
+\paragraph{Resumo.} Esta arquitetura privilegia a \textbf{segurança} (ao
+remover \emph{passwords} e validar o domínio institucional), a
+\textbf{integridade} (via PostgreSQL + Prisma com migrações versionadas) e a
+\textbf{manutenibilidade} (TypeScript + Next.js com tipagem partilhada),
+criando uma base sólida para o desenvolvimento das funcionalidades de gestão
+de espaços da UAlg.
+
 % =====================================================
-% 7. Modelo de Dados
+% 6. Modelo de Dados
 % =====================================================
 \section{Modelo de Dados}
 
-A persistência é definida no \emph{schema} Prisma. As entidades dividem-se em
-dois grupos: as relativas à autenticação (\texttt{User}, \texttt{Account},
+A persistência é definida no \emph{schema} Prisma
+(\texttt{spot-on/prisma/schema.prisma}). As entidades dividem-se em dois
+grupos: as relativas à autenticação (\texttt{User}, \texttt{Account},
 \texttt{Session}, \texttt{VerificationToken}, herdadas do modelo do
 NextAuth.js) e as do domínio Spot-On.
 
@@ -494,27 +588,33 @@ NextAuth.js) e as do domínio Spot-On.
         \toprule
         \textbf{Entidade}           & \textbf{Descrição}                                                                                                                                                          \\
         \midrule
-        \texttt{User}               & Utilizador autenticado. Inclui pontos acumulados e prazo de banimento, se aplicável.                                                                                        \\
+        \texttt{User}               & Utilizador autenticado. Inclui \texttt{studentId} opcional, pontos acumulados (\texttt{points}) e prazo de banimento (\texttt{bannedUntil}), se aplicável.                  \\
         \texttt{FloorPlan}          & Planta de um piso da biblioteca; serve de \emph{canvas} sobre o qual os espaços são posicionados.                                                                           \\
-        \texttt{Space}              & Espaço de estudo (mesa individual ou sala de grupo). Inclui geometria (\emph{points} SVG), capacidade, atributos (tomada, computador, quadro) e o \emph{token} QR rotativo. \\
-        \texttt{StudySession}       & Sessão de estudo num espaço, com anfitrião, hora prevista de fim e estado (ativa, concluída, expirada).                                                                     \\
-        \texttt{UserOnStudySession} & Tabela-pivô que regista a participação de utilizadores em sessões, com o estado do convite.                                                                                 \\
+        \texttt{Space}              & Espaço de estudo (mesa individual ou sala de grupo). Inclui geometria (\emph{points} SVG), capacidade, atributos (tomada, computador, quadro interativo) e o QR rotativo.   \\
+        \texttt{StudySession}       & Sessão de estudo num espaço, com anfitrião, hora prevista de fim e estado (\texttt{ACTIVE}, \texttt{COMPLETED}, \texttt{EXPIRED}).                                          \\
+        \texttt{JoinRequest}        & Pedido de adesão de um utilizador a uma sessão de estudo, com estado (\texttt{PENDING}, \texttt{ACCEPTED}, \texttt{REJECTED}).                                              \\
+        \texttt{UserOnStudySession} & Tabela-pivô que regista a participação efetiva de um utilizador numa sessão (após aceitação do pedido), com \emph{timestamp} de adesão.                                     \\
         \texttt{Report}             & \emph{Report} submetido por um utilizador sobre uma sessão, com janela de confirmação de 10 minutos.                                                                        \\
         \texttt{ReportConfirmation} & Confirmação de um \emph{report} por um terceiro utilizador.                                                                                                                 \\
-        \texttt{Notification}       & Notificação in-app dirigida a um utilizador.                                                                                                                                \\
+        \texttt{Notification}       & Notificação \emph{in-app} dirigida a um utilizador (e.g., pedido de adesão, prova de presença, sessão a expirar).                                                           \\
         \texttt{Badge}              & Insígnia que pode ser atribuída (mensal, anual ou permanente).                                                                                                              \\
         \texttt{UserBadge}          & Tabela-pivô que regista a atribuição de \emph{badges} a utilizadores.                                                                                                       \\
         \bottomrule
     \end{tabularx}
-    \caption{Entidades do modelo de domínio.}
+    \caption{Entidades do modelo de domínio Spot-On.}
 \end{table}
+
+O modelo recorre ainda a vários \emph{enum types} nativos do PostgreSQL:
+\texttt{SessionStatus}, \texttt{JoinRequestStatus}, \texttt{SpaceType},
+\texttt{SpaceShape}, \texttt{ReportStatus}, \texttt{NotificationType} e
+\texttt{NotificationStatus}.
 
 \subsection{Diagrama do Modelo de Dados}
 
-% TODO: Inserir diagrama do modelo de dados
-\begin{center}
-    \textit{[Diagrama do modelo de dados a inserir]}
-\end{center}
+O diagrama UML de classes do domínio está disponível em
+\texttt{diagrams/class/domain\_class\_diagram.drawio}, mantido em formato
+\emph{drawio} para facilitar a sua edição em conjunto com a evolução do
+\emph{schema}.
 
 \subsection{Decisões de Modelação Relevantes}
 
@@ -525,20 +625,27 @@ NextAuth.js) e as do domínio Spot-On.
           do SVG. Esta decisão evita a sobrecarga de uma tabela auxiliar de vértices
           e permite \emph{rendering} direto na interface.
     \item \textbf{Token QR rotativo.} O atributo \texttt{currentQrToken} é
-          único e atualizado periodicamente por uma rotina do servidor, impedindo
-          que um QR fotografado uma única vez possa ser reutilizado posteriormente.
+          único e atualizado periodicamente por uma rotina do servidor (\emph{cron
+              job} com \texttt{node-cron}), impedindo que um QR fotografado uma única
+          vez possa ser reutilizado posteriormente.
     \item \textbf{Janela de confirmação de \emph{reports}.} O campo
           \texttt{timeToConfirm} usa o valor por omissão gerado na base de dados
           (\texttt{now() + interval '10 minutes'}), garantindo coerência mesmo
           perante dessincronização horária no \emph{frontend}.
-    \item \textbf{Tabelas-pivô explícitas.} \texttt{UserOnStudySession},
-          \texttt{ReportConfirmation} e \texttt{UserBadge} são modeladas como
-          entidades próprias por carregarem informação adicional (estado do convite,
-          \emph{timestamp} de confirmação, data de atribuição).
+    \item \textbf{Separação \texttt{JoinRequest} / \texttt{UserOnStudySession}.}
+          O ciclo de vida de um convite é modelado em duas tabelas distintas: a
+          primeira regista a intenção de participar (com estado evolutivo), a
+          segunda regista apenas a participação confirmada. Esta separação evita
+          ambiguidade sobre o estado atual e simplifica as consultas.
+    \item \textbf{Tabelas-pivô explícitas com chave composta.}
+          \texttt{UserOnStudySession}, \texttt{ReportConfirmation} e
+          \texttt{UserBadge} são modeladas como entidades próprias por carregarem
+          informação adicional (\texttt{joinedAt}, \texttt{confirmedAt},
+          \texttt{awardedAt}).
     \item \textbf{Banimento como \texttt{DateTime}.}
           \texttt{User.bannedUntil} guarda diretamente o instante até ao qual o
-          banimento é válido, eliminando a necessidade de um \emph{flag} \emph{vs.}
-          data calculada.
+          banimento é válido, eliminando a necessidade de um \emph{flag} associado a
+          uma data calculada.
 \end{itemize}
 
 \subsection{Excerto do \emph{Schema} Prisma}
@@ -548,20 +655,25 @@ A título ilustrativo, apresenta-se a definição da entidade central
 
 \begin{lstlisting}[language=Java]
 model Space {
-  id                  String      @id @default(cuid())
-  floorPlanId         String
-  name                String
-  points              String   // pontos SVG do polígono
+  id                  String      @id @default(cuid()) @db.VarChar(30)
+  floorPlanId         String      @db.VarChar(30)
+  name                String      @db.VarChar(255)
+  points              String      /// pontos SVG do polígono
   capacity            Int
-  currentQrToken      String      @unique
+  currentQrToken      String      @unique @db.VarChar(255)
+  description         String?     @db.VarChar(255)
   hasPowerOutlet      Boolean     @default(false)
   hasComputer         Boolean     @default(false)
   hasInteractiveBoard Boolean     @default(false)
   type                SpaceType   @default(INDIVIDUAL_DESK)
   shape               SpaceShape?
 
-  floorPlan FloorPlan      @relation(fields: [floorPlanId], references: [id])
-  sessions  StudySession[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  floorPlan    FloorPlan      @relation(fields: [floorPlanId], references: [id], onDelete: Cascade)
+  sessions     StudySession[]
+  joinRequests JoinRequest[]
 }
 \end{lstlisting}
 
@@ -572,16 +684,37 @@ model Space {
 
 O \emph{backend} é exposto através das \emph{API routes} do Next.js, sob
 \texttt{/api/*}. A API segue um estilo \textbf{REST}, com \emph{endpoints}
-organizados por recurso (\texttt{/api/spaces}, \texttt{/api/sessions},
-\texttt{/api/reports}, etc.). Cada \emph{endpoint} valida o utilizador
-autenticado, valida os dados de entrada e delega o acesso a dados ao Prisma
-\emph{Client}.
+organizados por recurso. Os grupos atualmente disponíveis são:
+
+\begin{itemize}[leftmargin=*]
+    \item \texttt{/api/auth/*} -- \emph{endpoints} geridos pelo NextAuth.js
+          (envio de \emph{magic links}, \emph{callbacks}, \emph{sign-out}).
+    \item \texttt{/api/spaces/*} -- gestão e consulta de espaços, plantas e
+          sessões de estudo associadas (incluindo criação, adesão, prolongamento,
+          \emph{check-out} e \emph{reports}).
+    \item \texttt{/api/qrcode/*} -- emissão e validação dos \emph{tokens} QR
+          rotativos dos espaços.
+    \item \texttt{/api/notifications/*} -- consulta e atualização de
+          notificações \emph{in-app}.
+    \item \texttt{/api/leaderboard} -- exposição dos rankings de pontuação para
+          a componente de gamificação.
+    \item \texttt{/api/user/*} -- consulta e atualização do perfil do
+          utilizador autenticado.
+\end{itemize}
+
+Cada \emph{endpoint} obtém a sessão via \texttt{getServerSession}, valida os
+dados de entrada e delega o acesso a dados ao Prisma \emph{Client}. A proteção
+de rotas de UI é complementada por um \emph{middleware} (\texttt{proxy.ts})
+que valida a presença do \emph{cookie} de sessão antes de servir páginas
+privadas.
 
 A persistência é totalmente versionada por migrações Prisma. A cada alteração
 do \emph{schema}, é gerada uma nova migração SQL com
 \texttt{npx prisma migrate dev}, ficando registada no diretório
-\texttt{prisma/migrations}. Em produção, as migrações são aplicadas
-automaticamente no \emph{deploy} via \texttt{prisma migrate deploy}.
+\texttt{prisma/migrations} (à data, 10 migrações cobrindo desde a criação
+inicial do \emph{schema} até à introdução do modelo \texttt{JoinRequest} e do
+campo \texttt{bannedUntil}). Em produção, as migrações são aplicadas no
+\emph{deploy} via \texttt{prisma migrate deploy}.
 
 % =====================================================
 % 9. Controlo de Versões
@@ -618,7 +751,7 @@ com critérios de aceitação claros. As \emph{stories} foram refinadas e
 priorizadas no início de cada \emph{sprint}.
 
 \paragraph{Cerimónias.}
-Cada \emph{sprint} (com duração de \textbf{[X]} semanas) inclui:
+Cada \emph{sprint} (com duração de \textbf{duas} semanas) inclui:
 \begin{itemize}[leftmargin=*]
     \item \textbf{\emph{Sprint planning}} -- seleção das \emph{stories} a
           incluir no \emph{sprint};
@@ -639,33 +772,53 @@ movidos entre estados (\emph{To Do}, \emph{In Progress}, \emph{In Review},
 
 \subsection{Testes Automatizados}
 
-A estratégia de testes assenta em \textbf{Jest}, executado quer localmente
-quer na \emph{pipeline} de CI. Os testes cobrem:
+A estratégia de testes combina \textbf{Jest} (executado quer localmente quer
+na \emph{pipeline} de CI) com uma \emph{suite} \textbf{Postman/Newman}
+adicional para validação \emph{end-to-end} da API. O código de teste está
+organizado da seguinte forma:
 
 \begin{itemize}[leftmargin=*]
-    \item \textbf{Testes unitários} -- funções de lógica de negócio (e.g.,
-          cálculo de pontos, validação de \emph{tokens}, regras de elegibilidade
-          para sessão);
-    \item \textbf{Testes de integração} -- \emph{endpoints} da API contra uma
-          base de dados de teste, validando o comportamento ponta-a-ponta da camada
-          de servidor.
+    \item \textbf{Testes unitários} (\texttt{spot-on/\_\_tests\_\_/unit/}) --
+          cobrem funções isoladas de lógica de negócio, e.g., utilitários de
+          autenticação (\texttt{auth-utils.test.ts}), geração e validação dos
+          \emph{tokens} QR dinâmicos (\texttt{dynamic-qrcode.test.ts}), regras de
+          expiração de \emph{reports} (\texttt{ReportExpiry.test.ts}) e
+          notificações.
+    \item \textbf{Testes de integração}
+          (\texttt{spot-on/\_\_tests\_\_/integration/}) -- exercitam os
+          \emph{endpoints} da API contra uma instância real de PostgreSQL e um
+          servidor Next.js em execução. Cobrem os fluxos críticos: sessões de
+          estudo (criação, adesão, prolongamento, libertação, expiração),
+          \emph{reports} ativos, QR code, leaderboard, espaços e \emph{badges}.
+    \item \textbf{Testes \emph{end-to-end} da API}
+          (\texttt{spot-on/postman/}) -- coleção Postman executável via Newman,
+          com \emph{seed} dedicado (\texttt{seed-test.ts}) que prepara o estado da
+          base de dados antes da execução.
 \end{itemize}
 
 \subsection{Pipeline de CI}
 
-A \emph{pipeline} é definida em \texttt{.github/workflows} e dispara a cada
-\emph{push} ou \emph{pull request} para \texttt{main}. Os passos são:
+A \emph{pipeline} é definida em \texttt{.github/workflows/ci.yml} e dispara
+em cada \emph{push} para \texttt{main}, \texttt{develop} ou \emph{branches}
+\texttt{feature/**}/\texttt{fix/**}, bem como em cada \emph{pull request} para
+\texttt{main} ou \texttt{develop}. Estão definidos três \emph{jobs}
+encadeados:
 
 \begin{enumerate}[leftmargin=*]
-    \item \emph{Checkout} do repositório;
-    \item Instalação de dependências (\texttt{npm ci});
-    \item Análise estática de código (\emph{lint});
-    \item Execução dos testes Jest;
-    \item \emph{Build} de produção (\texttt{next build}).
+    \item \textbf{Lint} -- análise estática com ESLint (\texttt{npm run lint}).
+    \item \textbf{Test} -- arranca um serviço PostgreSQL 17, gera o cliente
+          Prisma (\texttt{npx prisma generate}), levanta um servidor Next.js de
+          teste em \texttt{localhost:3001} e executa a \emph{suite} Jest unitária
+          e de integração (\texttt{npm test}).
+    \item \textbf{Build} -- depende de \emph{lint} e \emph{test}, instala
+          dependências e executa \texttt{npm run build} (\texttt{next build}) para
+          garantir que a aplicação compila para produção sem erros.
 \end{enumerate}
 
-A passagem destes passos é uma pré-condição obrigatória para a aprovação dos
-\emph{pull requests}.
+Adicionalmente, o workflow \texttt{codeql.yml} executa análise de segurança
+estática (\emph{CodeQL}) sobre o código TypeScript. A passagem de todos os
+\emph{jobs} é pré-condição obrigatória para a aprovação dos \emph{pull
+    requests}.
 
 % =====================================================
 % 12. Deployment
@@ -687,10 +840,14 @@ As migrações da base de dados são aplicadas automaticamente no arranque do
 
 \subsection{Ambiente de Produção}
 
-Para o ambiente de produção, recorre-se à plataforma \textbf{Railway}, que
-oferece (i) \emph{deploy} contínuo a partir do repositório Git, (ii) base de
-dados PostgreSQL gerida com \emph{backups} automáticos, e (iii) gestão de
-variáveis de ambiente (\texttt{DATABASE\_URL}, segredos do NextAuth, etc.).
+Para o ambiente de produção, considerou-se uma plataforma do tipo
+\emph{Platform-as-a-Service} (e.g., Railway, Vercel ou Render), que oferece
+(i) \emph{deploy} contínuo a partir do repositório Git, (ii) base de dados
+PostgreSQL gerida, e (iii) gestão segura das variáveis de ambiente
+(\texttt{DATABASE\_URL}, \texttt{NEXTAUTH\_SECRET}, \texttt{QR\_SECRET},
+\texttt{ALLOWED\_EMAIL\_DOMAIN}, credenciais de envio de email, etc.). O
+mesmo \texttt{Dockerfile} utilizado em desenvolvimento serve de base para a
+imagem de produção, garantindo paridade entre ambientes.
 
 % =====================================================
 % 13. Conclusão
