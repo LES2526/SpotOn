@@ -66,6 +66,9 @@ jobs:
       - name: Generate Prisma client
         run: npx prisma generate
 
+      - name: Run database migrations
+        run: npx prisma migrate deploy
+
       - name: Start test server
         run: |
           npx next dev --port 3001 --webpack &
