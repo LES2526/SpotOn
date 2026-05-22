@@ -141,7 +141,7 @@ describe('PATCH /api/spaces/[spaceId]/sessions/extend', () => {
             expect(response.status).toBe(400);
 
             const body = await response.json();
-            expect(body.error).toBe('Is not allowed to extend session beyond 19:30');
+            expect(body.error).toBe('Is not allowed to extend session beyond 14:00');
         } finally {
             process.env.LIBRARY_CLOSING_TIME = originalClosingTime;
         }
