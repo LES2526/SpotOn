@@ -113,7 +113,8 @@ export async function PATCH(_request: Request, { params }: Params) {
         await prisma.userOnStudySession.create({
             data: {
                 userId,
-                sessionId: studySession.id
+                sessionId: studySession.id,
+                status: 'ACCEPTED'
             }
         });
         const requester = await prisma.user.findUnique({
