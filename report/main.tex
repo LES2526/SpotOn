@@ -425,6 +425,56 @@ nativamente \texttt{enum types} e oferece um conjunto mais rico de funções
 temporais (necessárias para janelas de confirmação de \emph{reports}, p. ex.
 \texttt{now() + interval '10 minutes'}).
 
+\subsection{Estratégia de Autenticação: do SSO ao \emph{Passwordless}}
+
+A gestão de identidade foi implementada com o NextAuth.js (e o
+\texttt{@next-auth/prisma-adapter}). A arquitetura de autenticação sofreu uma
+iteração importante durante o desenvolvimento, adaptando-se às restrições da
+infraestrutura da universidade.
+
+\paragraph{Tentativa inicial: SSO via Microsoft Entra ID.}
+O planeamento inicial previa um verdadeiro \emph{Single Sign-On} (SSO) com o
+\emph{provider} do Azure AD no NextAuth. Como a comunidade académica utiliza o
+ecossistema Microsoft (Outlook/Office 365), o objetivo era um login direto e
+fluido (``Continuar com a conta da Universidade'').
+
+\paragraph{Bloqueio técnico: restrições de \emph{tenant}.}
+Durante a implementação, a equipa deparou-se com um erro \texttt{401
+(Unauthorized)} no portal do Azure (Figura~\ref{fig:azure401}). Concluiu-se que
+as políticas de segurança dos Serviços de Informática da UAlg bloqueiam
+ativamente o registo de novas aplicações (\emph{App Registrations}) por parte
+dos alunos no \emph{tenant} principal da universidade.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{figures/perm.png}
+    \caption{Erro \texttt{401 (Unauthorized)} no portal do Azure ao tentar
+        registar a aplicação no \emph{tenant} da UAlg.}\label{fig:azure401}
+\end{figure}
+
+\paragraph{Solução de contingência: \emph{Magic Links}.}
+Face à impossibilidade de integração OAuth/SAML direta sem a intervenção
+demorada da administração de TI da UAlg, a equipa optou por uma estratégia de
+autenticação \emph{passwordless} (\emph{magic links} através do \emph{Email
+    Provider} do NextAuth). Esta solução justifica-se por:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Independência de infraestrutura.} O sistema funciona de forma
+          autónoma, sem depender de autorizações de terceiros (Serviços de
+          Informática) para operar.
+    \item \textbf{Exclusividade e validação de domínio.} O \emph{login} é
+          intercetado e o domínio do email validado por \emph{regex}, garantindo
+          que apenas endereços terminados em \texttt{@ualg.pt} recebem o link de
+          acesso e conseguem criar conta.
+    \item \textbf{Segurança.} Mantém-se o princípio de não armazenar \emph{hashes}
+          de \emph{passwords} (a tabela \texttt{User} não possui campo
+          \texttt{password}), mitigando o risco de fugas de dados.
+    \item \textbf{Experiência de utilizador.} O fluxo atua como um SSO
+          simplificado: o utilizador não precisa de memorizar uma nova
+          \emph{password}, bastando clicar no link seguro enviado para a caixa de
+          correio institucional.
+\end{itemize}
+
 % =====================================================
 % 7. Modelo de Dados
 % =====================================================

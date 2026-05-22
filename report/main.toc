@@ -14,21 +14,25 @@
 \contentsline {paragraph}{Next.js \emph {vs.} React + Express.}{5}{subsection.6.1}%
 \contentsline {paragraph}{Prisma \emph {vs.} TypeORM.}{5}{subsection.6.1}%
 \contentsline {paragraph}{PostgreSQL \emph {vs.} MySQL.}{5}{subsection.6.1}%
-\contentsline {section}{\numberline {7}Modelo de Dados}{5}{section.7}%
-\contentsline {subsection}{\numberline {7.1}Entidades de Domínio}{7}{subsection.7.1}%
-\contentsline {subsection}{\numberline {7.2}Diagrama do Modelo de Dados}{7}{subsection.7.2}%
-\contentsline {subsection}{\numberline {7.3}Decisões de Modelação Relevantes}{7}{subsection.7.3}%
-\contentsline {subsection}{\numberline {7.4}Excerto do \emph {Schema} Prisma}{8}{subsection.7.4}%
-\contentsline {section}{\numberline {8}Backend e API}{8}{section.8}%
-\contentsline {section}{\numberline {9}Controlo de Versões}{8}{section.9}%
-\contentsline {paragraph}{Fluxo adotado.}{8}{section.9}%
-\contentsline {section}{\numberline {10}Gestão de Projeto -- SCRUM}{8}{section.10}%
-\contentsline {paragraph}{Cerimónias.}{9}{section.10}%
-\contentsline {paragraph}{Evidências.}{9}{section.10}%
-\contentsline {section}{\numberline {11}Testes e Integração Contínua}{9}{section.11}%
-\contentsline {subsection}{\numberline {11.1}Testes Automatizados}{9}{subsection.11.1}%
-\contentsline {subsection}{\numberline {11.2}Pipeline de CI}{9}{subsection.11.2}%
-\contentsline {section}{\numberline {12}Deployment}{9}{section.12}%
-\contentsline {subsection}{\numberline {12.1}Execução Local}{9}{subsection.12.1}%
-\contentsline {subsection}{\numberline {12.2}Ambiente de Produção}{10}{subsection.12.2}%
-\contentsline {section}{\numberline {13}Conclusão}{10}{section.13}%
+\contentsline {subsection}{\numberline {6.2}Estratégia de Autenticação: do SSO ao \emph {Passwordless}}{5}{subsection.6.2}%
+\contentsline {paragraph}{Tentativa inicial: SSO via Microsoft Entra ID.}{5}{subsection.6.2}%
+\contentsline {paragraph}{Bloqueio técnico: restrições de \emph {tenant}.}{5}{subsection.6.2}%
+\contentsline {paragraph}{Solução de contingência: \emph {Magic Links}.}{7}{figure.caption.5}%
+\contentsline {section}{\numberline {7}Modelo de Dados}{7}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Entidades de Domínio}{8}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Diagrama do Modelo de Dados}{8}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}Decisões de Modelação Relevantes}{8}{subsection.7.3}%
+\contentsline {subsection}{\numberline {7.4}Excerto do \emph {Schema} Prisma}{9}{subsection.7.4}%
+\contentsline {section}{\numberline {8}Backend e API}{9}{section.8}%
+\contentsline {section}{\numberline {9}Controlo de Versões}{9}{section.9}%
+\contentsline {paragraph}{Fluxo adotado.}{9}{section.9}%
+\contentsline {section}{\numberline {10}Gestão de Projeto -- SCRUM}{9}{section.10}%
+\contentsline {paragraph}{Cerimónias.}{10}{section.10}%
+\contentsline {paragraph}{Evidências.}{10}{section.10}%
+\contentsline {section}{\numberline {11}Testes e Integração Contínua}{10}{section.11}%
+\contentsline {subsection}{\numberline {11.1}Testes Automatizados}{10}{subsection.11.1}%
+\contentsline {subsection}{\numberline {11.2}Pipeline de CI}{10}{subsection.11.2}%
+\contentsline {section}{\numberline {12}Deployment}{10}{section.12}%
+\contentsline {subsection}{\numberline {12.1}Execução Local}{10}{subsection.12.1}%
+\contentsline {subsection}{\numberline {12.2}Ambiente de Produção}{11}{subsection.12.2}%
+\contentsline {section}{\numberline {13}Conclusão}{11}{section.13}%
