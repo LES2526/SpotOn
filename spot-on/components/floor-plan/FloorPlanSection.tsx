@@ -33,6 +33,7 @@ export default function FloorPlanSection({ floorPlan, userSession }: Readonly<{ 
 
     function handleCheckoutSuccess(points: number) {
         setPointsToast(points);
+        setSelectedSpaceId(null);
         router.refresh();
         setTimeout(() => setPointsToast(null), 2500);
     }
@@ -59,20 +60,29 @@ export default function FloorPlanSection({ floorPlan, userSession }: Readonly<{ 
                 </div>
             )}
             <SpacePanel spaces={floorPlan.spaces} />
-            <div className="flex gap-4 items-start">
-                <div className="flex-1 min-w-0">
-                    <FloorPlanView
-                        floorPlan={floorPlan}
-                        selectedSpace={selectedSpace}
-                        onSelectSpace={(space) => setSelectedSpaceId(space.id)}
-                    />
-                </div>
-                {selectedSpace && (
-                    <div className="w-72 shrink-0">
+            <FloorPlanView
+                floorPlan={floorPlan}
+                selectedSpace={selectedSpace}
+                onSelectSpace={(space) => setSelectedSpaceId(space.id)}
+            />
+            {selectedSpace && (
+                <div
+                    className="fixed inset-0 z-40 bg-black/60 flex items-end md:items-center justify-center"
+                    onClick={() => setSelectedSpaceId(null)}
+                >
+                    <div
+                        className="relative w-full md:max-w-md max-h-[85vh] overflow-y-auto rounded-t-2xl md:rounded-2xl bg-gray-900"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <button
+                            onClick={() => setSelectedSpaceId(null)}
+                            className="absolute top-5 right-5 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white transition-colors"
+                            aria-label="Fechar"
+                        >✕</button>
                         <SpaceDetailPanel key={selectedSpaceId} space={selectedSpace} onCheckoutSuccess={handleCheckoutSuccess} />
                     </div>
-                )}
-            </div>
+                </div>
+            )}
         </div>
     );
 }
