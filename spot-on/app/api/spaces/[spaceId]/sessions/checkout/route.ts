@@ -128,7 +128,7 @@ export async function POST(request: Request, { params }: Params) {
         const isHost = activeSession.hostId === userId;
 
         const acceptedParticipants = await prisma.userOnStudySession.findMany({
-            where: { sessionId: activeSession.id, status: 'ACCEPTED' },
+            where: { sessionId: activeSession.id },
             orderBy: { joinedAt: 'asc' },
         });
 

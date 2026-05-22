@@ -48,7 +48,6 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
                         hostId: true,
                         host: { select: { id: true, email: true } },
                         participants: {
-                            where: { status: 'ACCEPTED' },
                             select: { user: { select: { id: true, email: true } } },
                         },
                     },
@@ -83,16 +82,16 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
                 expectedEndTime: { gt: new Date() },
                 OR: [
                     { hostId: userId },
-                    { participants: { some: { userId, status: 'ACCEPTED' } } },
+                    { participants: { some: { userId } } },
                 ],
             },
-            select: { spaceId: true, hostId: true },
+            select: { spaceId: true, hostId: true, expectedEndTime: true },
         }) : null,
     ]);
 
     if (!floorPlan) {
         return (
-            <main className="min-h-screen bg-gray-950 p-8 text-white">
+            <main className="min-h-screen bg-gray-950 p-4 md:p-8 text-white">
                 <p className="text-gray-500">Nenhuma planta disponível.</p>
             </main>
         );
@@ -153,11 +152,18 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
     const occupiedRooms: number = floorPlanData.spaces.filter(s => s.type === "GROUP_ROOM" && s.isOccupied).length;
 
     return (
-        <main className="min-h-screen bg-gray-950 p-8 text-white">
+        <main className="min-h-screen bg-gray-950 p-4 md:p-8 text-white">
             <section className="mx-auto max-w-6xl">
                 <DashboardHeader />
                 <FloorFilter floorPlans={floorPlans} selectedFloor={selectedFloor} />
-                <FloorPlanSection floorPlan={floorPlanData} />
+                <FloorPlanSection
+                    floorPlan={floorPlanData}
+                    userSession={userActiveSession ? {
+                        spaceId: userActiveSession.spaceId,
+                        expectedEndTime: userActiveSession.expectedEndTime,
+                        isHost: userActiveSession.hostId === userId,
+                    } : null}
+                />
                 <OccupanceCard
                     totalDesks={totalDesks}
                     occupiedDesks={occupiedDesks}

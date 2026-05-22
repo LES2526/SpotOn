@@ -11,7 +11,7 @@ SWAGGER_PATH ?= /api-doc
 
 .DEFAULT_GOAL := help
 
-.PHONY: help install dev build start lint test test-watch prisma-generate prisma-seed prisma-studio swagger-url swagger-check swagger-open docker-up docker-down docker-build docker-logs docker-ps docker-seed docker-wait-web docker-recreate docker-prune eslint-ignore lint-fix
+.PHONY: help install dev build start lint test test-watch prisma-generate prisma-seed prisma-studio swagger-url swagger-check swagger-open docker-up docker-down docker-build docker-logs docker-ps docker-seed docker-wait-web docker-recreate docker-prune eslint-ignore lint-fix postman-seed postman-run postman-install postman-ci postman-db-up postman-db-down
 
 help: ## Show available targets
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage: make <target>\n\nTargets:\n"} /^[a-zA-Z0-9_.-]+:.*##/ {printf "  %-18s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -124,3 +124,84 @@ eslint-ignore: ## Create .eslintignore to exclude generated files from linting
 
 lint-fix: ## Run linter with --fix to apply auto-fixable changes
 	$(NPM) run lint -- --fix
+
+# ---------------------------------------------------------------
+# Postman / Newman — API tests
+# Requires ENABLE_TEST_AUTH=true in the running dev server.
+# Install once: make postman-install
+# ---------------------------------------------------------------
+
+POSTMAN_DIR ?= ./postman
+NEWMAN_REPORT_DIR ?= $(POSTMAN_DIR)/reports
+
+postman-install: ## Install newman + htmlextra reporter globally
+	npm install -g newman newman-reporter-htmlextra
+
+postman-seed: ## Apply the Postman test seed (creates known test users/spaces)
+	npx ts-node --compiler-options '{"module":"CommonJS"}' $(POSTMAN_DIR)/seed-test.ts
+
+postman-run: ## Run the Postman collection via Newman and generate HTML report
+	@mkdir -p $(NEWMAN_REPORT_DIR)
+	@stamp=$$(date +%Y%m%d-%H%M%S); \
+	newman run $(POSTMAN_DIR)/Spot-On.postman_collection.json \
+		-e $(POSTMAN_DIR)/Spot-On.postman_environment.json \
+		--env-var "baseUrl=$(APP_URL)" \
+		--reporters cli,htmlextra,json \
+		--reporter-htmlextra-export $(NEWMAN_REPORT_DIR)/report-$$stamp.html \
+		--reporter-json-export $(NEWMAN_REPORT_DIR)/report-$$stamp.json \
+		--color on; \
+	echo; echo "HTML report: $(NEWMAN_REPORT_DIR)/report-$$stamp.html"
+
+postman-db-up: ## Start the test Postgres + MailHog containers
+	$(COMPOSE) -f compose.test.yaml up -d db_test mailhog
+	@echo "Waiting for test DB to be healthy..."
+	@deadline=$$(( $$(date +%s) + 60 )); \
+	while ! docker exec spot_on_db_test pg_isready -h 127.0.0.1 -p 5432 -U admin -d spot_on_test_db >/dev/null 2>&1; do \
+		if [ $$(date +%s) -ge $$deadline ]; then echo "Timeout waiting for db_test"; exit 1; fi; \
+		sleep 1; \
+	done; \
+	echo "Test DB is ready at localhost:5434."
+
+postman-db-down: ## Stop and remove the test Postgres container
+	$(COMPOSE) -f compose.test.yaml down -v
+
+postman-ci: postman-db-up ## One-shot: bring up test DB, migrate, seed, start server, run Newman, stop server
+	@set -euo pipefail; \
+	if [ ! -f .env.test ]; then echo ".env.test not found in $$(pwd)"; exit 1; fi; \
+	set -a; [ -f .env ] && . ./.env; . ./.env.test; set +a; \
+	export ENABLE_TEST_AUTH=true; \
+	export PORT="$${PORT:-3001}"; \
+	export APP_URL="$${NEXTAUTH_URL:-http://localhost:$$PORT}"; \
+	echo ">>> Using DATABASE_URL=$$DATABASE_URL"; \
+	echo ">>> Running migrations + prisma generate"; \
+	npx prisma migrate deploy >/dev/null; \
+	npx prisma generate >/dev/null; \
+	echo ">>> Applying Postman test seed"; \
+	npx ts-node --compiler-options '{"module":"CommonJS"}' $(POSTMAN_DIR)/seed-test.ts; \
+	echo ">>> Starting Next.js on $$APP_URL (background)"; \
+	mkdir -p $(NEWMAN_REPORT_DIR); \
+	server_log=$$(mktemp); \
+	($(NPM) run dev -- -p $$PORT >"$$server_log" 2>&1 &) ; \
+	server_pid=$$(pgrep -f "next.* -p $$PORT" | head -n1 || true); \
+	echo ">>> Waiting for $$APP_URL to respond (max $(WAIT_TIMEOUT)s)"; \
+	deadline=$$(( $$(date +%s) + $(WAIT_TIMEOUT) )); \
+	while ! curl -sf "$$APP_URL/api/leaderboard" -o /dev/null -H "X-Test-User-Id: test-host-user"; do \
+		if [ $$(date +%s) -ge $$deadline ]; then \
+			echo "Timeout. Last server log:"; tail -n 40 "$$server_log"; \
+			kill $$server_pid 2>/dev/null || true; exit 1; \
+		fi; sleep 2; \
+	done; \
+	echo ">>> Running Newman"; \
+	stamp=$$(date +%Y%m%d-%H%M%S); \
+	newman run $(POSTMAN_DIR)/Spot-On.postman_collection.json \
+		-e $(POSTMAN_DIR)/Spot-On.postman_environment.json \
+		--env-var "baseUrl=$$APP_URL" \
+		--reporters cli,htmlextra,json \
+		--reporter-htmlextra-export $(NEWMAN_REPORT_DIR)/report-$$stamp.html \
+		--reporter-json-export $(NEWMAN_REPORT_DIR)/report-$$stamp.json \
+		--color on; \
+	newman_status=$$?; \
+	echo ">>> Stopping dev server"; \
+	pkill -f "next.* -p $$PORT" 2>/dev/null || true; \
+	echo; echo "HTML report: $(NEWMAN_REPORT_DIR)/report-$$stamp.html"; \
+	exit $$newman_status
