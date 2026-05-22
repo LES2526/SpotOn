@@ -1,6 +1,5 @@
 'use client';
 
-import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { SuccessStatusProps } from './type';
@@ -26,7 +25,11 @@ export default function SuccessStatus({ spaceId, isJoin }: Readonly<SuccessStatu
         try {
             if (!isJoin) {
                 const expectedEndTime = new Date(Date.now() + durationMinutes * 60 * 1000).toISOString();
-                await axios.patch(`/api/spaces/${spaceId}/sessions`, { expectedEndTime });
+                await fetch(`/api/spaces/${spaceId}/sessions`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ expectedEndTime }),
+                });
             }
             router.push('/dashboard');
         } catch (error) {

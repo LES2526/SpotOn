@@ -1,7 +1,8 @@
+import { resolveNotificationById } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/require-auth";
-import { findActiveSession, findSpace } from "@/lib/space-utils";
 import { sendNotAcceptedJoinRequestEmail } from "@/lib/send-notification-email";
+import { findActiveSession, findSpace } from "@/lib/space-utils";
 import { NextResponse } from "next/server";
 
 type Params = { params: Promise<{ spaceId: string }> };
@@ -85,23 +86,31 @@ export async function PATCH(_request: Request, { params }: Params) {
         }
         const body = await _request.json();
         const { userId, notificationId } = body;
-        const [updateJoinSession, requester] = await prisma.$transaction([
-            prisma.userOnStudySession.update({
-                where: { userId_sessionId: { userId, sessionId: studySession.id } },
-                data: { status: 'REJECTED' },
-            }),
-            prisma.user.findUnique({
-                where: { id: userId },
-                select: { email: true },
-            }),
-            ...(notificationId
-                ? [prisma.notification.update({ where: { id: notificationId }, data: { status: 'RESOLVED' } })]
-                : []),
-        ]);
+        const pending = await prisma.joinRequest.findFirst({
+            where: {
+                userId,
+                studySessionId: studySession.id,
+                status: 'PENDING'
+            }
+        });
+        if (!pending) {
+            return NextResponse.json({ error: 'No pending request found.' }, { status: 404 });
+        }
+        const rejectJoinRequest = await prisma.joinRequest.update({
+            where: { id: pending.id },
+            data: { status: 'REJECTED' }
+        });
+        if (notificationId) {
+            await resolveNotificationById(notificationId);
+        }
+        const requester = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { email: true },
+        });
         if (requester?.email) {
             await sendNotAcceptedJoinRequestEmail(requester.email);
         }
-        return NextResponse.json(updateJoinSession, { status: 200 });
+        return NextResponse.json(rejectJoinRequest, { status: 200 });
     } catch (error) {
         console.error('Error rejecting session:', error);
         return NextResponse.json({ error: 'Failed to reject session' },

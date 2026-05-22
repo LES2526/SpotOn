@@ -23,14 +23,16 @@ function unrefTimer(timer: ReturnType<typeof setTimeout>) {
  */
 export async function markSessionExpired(sessionId: string): Promise<void> {
     try {
-        await prisma.studySession.update({
+        const result = await prisma.studySession.updateMany({
             where: {
                 id: sessionId,
                 status: 'ACTIVE',
             },
-            data: { status: 'EXPIRED' },
+            data: { status: 'EXPIRED', actualEndTime: new Date() },
         });
-        console.log(`Session ${sessionId} marked as EXPIRED`);
+        if (result.count > 0) {
+            console.log(`Session ${sessionId} marked as EXPIRED`);
+        }
     } catch (error) {
         console.error(`Failed to mark session ${sessionId} as EXPIRED:`, error);
     }
