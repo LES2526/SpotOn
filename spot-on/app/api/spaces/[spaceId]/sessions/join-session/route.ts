@@ -96,7 +96,8 @@ export async function POST(_request: Request, { params }: Params) {
         
         const occupancy = await prisma.userOnStudySession.count({
             where: {
-                sessionId: studySession.id
+                sessionId: studySession.id,
+                status: 'ACCEPTED',
             }
         });
 
