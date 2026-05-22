@@ -1,0 +1,663 @@
+\documentclass[11pt,a4paper]{article}
+
+% =====================================================
+% Pacotes
+% =====================================================
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[main=portuguese, provide=*]{babel}
+\usepackage[a4paper, margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{tikz}
+\usetikzlibrary{positioning, shapes.geometric, arrows.meta, fit, backgrounds, calc}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage[protrusion=true,expansion=false]{microtype}
+
+% =====================================================
+% Cabeçalho / Rodapé
+% =====================================================
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small Spot-On — Relatório Técnico}
+\fancyhead[R]{\small LES 2025/2026}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% =====================================================
+% Hyperlinks
+% =====================================================
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!50!black,
+    urlcolor=blue!60!black,
+    citecolor=blue!50!black,
+    pdftitle={Spot-On - Relatorio Tecnico},
+    pdfauthor={Equipa Spot-On}
+}
+
+% =====================================================
+% Estilo de código
+% =====================================================
+\definecolor{codebg}{RGB}{248,248,248}
+\definecolor{codekw}{RGB}{0,80,160}
+\definecolor{codecomment}{RGB}{120,120,120}
+\definecolor{codestring}{RGB}{160,80,0}
+\lstset{
+    backgroundcolor=\color{codebg},
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{codekw}\bfseries,
+    commentstyle=\color{codecomment}\itshape,
+    stringstyle=\color{codestring},
+    breaklines=true,
+    frame=single,
+    framesep=5pt,
+    rulecolor=\color{gray!40},
+    showstringspaces=false,
+    captionpos=b,
+    columns=fullflexible,
+    keepspaces=true,
+    inputencoding=utf8,
+    extendedchars=true,
+    literate=
+        {á}{{\'a}}1 {à}{{\`a}}1 {ã}{{\~a}}1 {â}{{\^a}}1
+        {é}{{\'e}}1 {ê}{{\^e}}1 {í}{{\'i}}1 {ó}{{\'o}}1
+        {ô}{{\^o}}1 {õ}{{\~o}}1 {ú}{{\'u}}1 {ç}{{\c{c}}}1
+        {Á}{{\'A}}1 {À}{{\`A}}1 {Ã}{{\~A}}1 {Â}{{\^A}}1
+        {É}{{\'E}}1 {Ê}{{\^E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1
+        {Ô}{{\^O}}1 {Õ}{{\~O}}1 {Ú}{{\'U}}1 {Ç}{{\c{C}}}1,
+}
+
+% =====================================================
+% Cores para diagramas
+% =====================================================
+\definecolor{cClient}{RGB}{220,235,250}
+\definecolor{cApp}{RGB}{210,240,220}
+\definecolor{cData}{RGB}{250,235,210}
+\definecolor{cExt}{RGB}{240,220,235}
+\definecolor{cBorder}{RGB}{80,80,80}
+
+\titleformat{\section}{\Large\bfseries\color{black!85}}{\thesection}{1em}{}
+\titleformat{\subsection}{\large\bfseries\color{black!75}}{\thesubsection}{1em}{}
+
+\begin{document}
+
+% =====================================================
+% Página de Rosto
+% =====================================================
+\begin{titlepage}
+    \centering
+    \vspace*{1.5cm}
+
+    {\large Universidade do Algarve \par}
+    {\normalsize Faculdade de Ciências e Tecnologia \par}
+
+    \vspace{1cm}
+    \rule{\linewidth}{0.4pt}\\[0.4em]
+    {\Large\bfseries Laboratório de Engenharia de Software \par}
+    {\normalsize Ano letivo 2025/2026 \par}
+    \rule{\linewidth}{0.4pt}
+
+    \vspace{3cm}
+
+    {\Huge\bfseries Spot-On \par}
+    \vspace{0.6cm}
+    {\Large\itshape Sistema de Gestão de Espaços de Estudo \par}
+
+    \vspace{2.5cm}
+
+    {\large Relatório Técnico do Trabalho Prático \par}
+
+    \vspace{2cm}
+
+    \begin{tabular}{rl}
+        \textbf{Docentes:} & José Barateiro \\
+                           & Marco Giunti   \\
+    \end{tabular}
+
+    \vspace{1.5cm}
+
+    \begin{tabular}{rl}
+        \textbf{Equipa:} & André Martins -- n.º a35463  \\
+                         & António Matoso -- n.º a84100 \\
+                         & Tomás Machado -- n.ºa84014   \\
+                         & Vasco Hilário -- n.º 83993   \\
+    \end{tabular}
+
+    \vfill
+    {\large \today \par}
+\end{titlepage}
+
+% =====================================================
+% Índice
+% =====================================================
+\tableofcontents
+\thispagestyle{fancy}
+\newpage
+
+% =====================================================
+% 1. Introdução
+% =====================================================
+\section{Introdução}
+
+O presente relatório documenta o trabalho prático desenvolvido no âmbito da
+unidade curricular de Laboratório de Engenharia de Software, no ano letivo
+2025/2026. O projeto, denominado \textbf{Spot-On}, consiste num sistema de
+gestão de espaços de estudo, concebido para o contexto da biblioteca da
+Universidade do Algarve.
+
+A motivação para o tema surge de uma necessidade frequente entre estudantes:
+identificar rapidamente que mesas individuais ou salas de grupo se encontram
+disponíveis num determinado momento, sem percorrer fisicamente todos os pisos
+da biblioteca. O Spot-On disponibiliza essa informação em tempo real através
+de uma interface visual baseada nas plantas dos pisos, permitindo ainda
+organizar sessões de estudo, convidar colegas, e gerir a ocupação dos espaços
+com recurso a códigos QR.
+
+Este documento descreve a visão geral do sistema, os atores envolvidos, os
+requisitos funcionais e de qualidade, a arquitetura e o modelo de dados
+adotados, bem como a justificação das principais decisões técnicas.
+
+% =====================================================
+% 2. Visão Geral do Sistema
+% =====================================================
+\section{Visão Geral do Sistema}
+
+O Spot-On é uma aplicação web que permite a alunos da Universidade do Algarve
+visualizar e gerir o uso de espaços de estudo na biblioteca. O sistema
+disponibiliza uma representação visual dos pisos da biblioteca, sobre a qual
+são marcados os espaços (mesas individuais e salas de grupo), com indicação do
+seu estado de ocupação em tempo real.
+
+\subsection{Funcionalidades Principais}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Autenticação institucional} -- acesso restrito a contas de
+          correio \texttt{@ualg.pt}, com autenticação \emph{passwordless} via
+          \emph{magic link} enviado por email;
+    \item \textbf{Visualização de plantas} -- exibição interativa das plantas
+          dos pisos da biblioteca, com sobreposição dos espaços de estudo;
+    \item \textbf{Gestão de espaços} -- mesas individuais e salas de grupo,
+          com atributos como capacidade, presença de tomada elétrica, computador ou
+          quadro interativo;
+    \item \textbf{Sessões de estudo} -- criação, consulta e encerramento de
+          sessões, associadas a um espaço e a um anfitrião (\emph{host});
+    \item \textbf{Confirmação de presença via QR code} -- cada espaço dispõe
+          de um \emph{token} QR rotativo que valida fisicamente a ocupação;
+    \item \textbf{Convites e participações} -- o anfitrião pode convidar outros
+          utilizadores para a sessão; estes confirmam ou rejeitam o convite;
+    \item \textbf{Reports} -- mecanismo para reportar comportamentos
+          incorretos, com confirmação por outros utilizadores e janela temporal
+          limitada;
+    \item \textbf{Notificações} -- sistema in-app para pedidos de adesão,
+          pedidos de prova de presença e outros eventos relevantes;
+    \item \textbf{Gamificação} -- atribuição automática de pontos e
+          \emph{badges} (mensais, anuais ou permanentes) que premeiam a utilização
+          regular e correta do sistema;
+    \item \textbf{Administração} -- gestão de plantas, espaços, \emph{badges}
+          e moderação de utilizadores (incluindo banimento temporário).
+\end{itemize}
+
+% =====================================================
+% 3. Atores
+% =====================================================
+\section{Atores do Sistema}
+
+Foram identificados dois atores humanos no sistema:
+
+\begin{table}[h!]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabularx}{\linewidth}{@{}lX@{}}
+        \toprule
+        \textbf{Ator}          & \textbf{Descrição}                          \\
+        \midrule
+        \textbf{Aluno}         &
+        Utilizador final do sistema. Pode autenticar-se, consultar a disponibilidade
+        de espaços, criar e gerir sessões de estudo (anfitrião), participar em sessões
+        de outros (convidado), submeter \emph{reports}, receber notificações e
+        acumular pontos e \emph{badges}.                                     \\
+        \textbf{Administrador} &
+        Responsável pela gestão da configuração do sistema. Define plantas dos pisos,
+        cria e edita espaços, configura \emph{badges} e modera utilizadores. \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Atores do sistema Spot-On.}
+\end{table}
+
+% =====================================================
+% 4. Requisitos
+% =====================================================
+\section{Requisitos}
+
+\subsection{Requisitos Funcionais}
+
+A tabela seguinte sumariza os requisitos funcionais identificados, agrupados
+por área. A lista não é exaustiva, mas reflete o conjunto efetivamente
+implementado.
+
+\begin{table}[h!]
+    \centering
+    \renewcommand{\arraystretch}{1.25}
+    \begin{tabularx}{\linewidth}{@{}llX@{}}
+        \toprule
+        \textbf{ID} & \textbf{Área} & \textbf{Descrição}                                                                              \\
+        \midrule
+        RF-01       & Autenticação  & O sistema autentica utilizadores via \emph{magic link} enviado para o seu email institucional.  \\
+        RF-02       & Autenticação  & O sistema rejeita utilizadores cujo email não pertença ao domínio \texttt{@ualg.pt}.            \\
+        RF-03       & Espaços       & O sistema apresenta as plantas dos pisos com a localização dos espaços.                         \\
+        RF-04       & Espaços       & O sistema indica em tempo real o estado de ocupação de cada espaço.                             \\
+        RF-05       & Espaços       & O utilizador pode filtrar espaços por características (capacidade, tomada, computador, quadro). \\
+        RF-06       & Sessões       & Um utilizador pode iniciar uma sessão de estudo num espaço disponível.                          \\
+        RF-07       & Sessões       & Um anfitrião pode convidar outros utilizadores para a sessão.                                   \\
+        RF-08       & Sessões       & Um utilizador pode aceitar ou rejeitar um convite recebido.                                     \\
+        RF-09       & Sessões       & A presença é confirmada por leitura do QR code do espaço.                                       \\
+        RF-10       & Reports       & Um utilizador pode submeter um \emph{report} sobre uma sessão.                                  \\
+        RF-11       & Reports       & Outros utilizadores podem confirmar um \emph{report}, num prazo limitado.                       \\
+        RF-12       & Notificações  & O sistema envia notificações in-app para eventos relevantes.                                    \\
+        RF-13       & Gamificação   & O sistema atribui pontos e \emph{badges} automaticamente.                                       \\
+        RF-14       & Admin         & O administrador gere plantas, espaços, \emph{badges} e utilizadores.                            \\
+        RF-15       & Admin         & O administrador pode banir temporariamente um utilizador.                                       \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Requisitos funcionais do Spot-On.}
+\end{table}
+
+\subsection{Requisitos de Qualidade}
+
+Os requisitos de qualidade (não funcionais) descrevem propriedades
+transversais ao sistema, não associadas a funcionalidades específicas. A
+tabela seguinte enumera os requisitos identificados, agrupados por categoria
+ISO/IEC~25010, com critérios verificáveis sempre que possível.
+
+\begin{table}[h!]
+    \centering
+    \footnotesize
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabularx}{\linewidth}{@{}llX@{}}
+        \toprule
+        \textbf{ID} & \textbf{Categoria} & \textbf{Descrição e Critério}     \\
+        \midrule
+        RQ-01       & Segurança          &
+        O acesso ao sistema é restrito a endereços de email do domínio
+        \texttt{@ualg.pt}; tentativas com outros domínios são rejeitadas no
+        \emph{backend}.                                                      \\
+        RQ-02       & Segurança          &
+        Os \emph{tokens} de \emph{magic link} expiram em 5~minutos e só podem ser
+        utilizados uma vez.                                                  \\
+        RQ-03       & Segurança          &
+        O \emph{token} QR de cada espaço é rotacionado periodicamente, impedindo a
+        reutilização de fotografias antigas para validar presença.           \\
+        RQ-04       & Segurança          &
+        Utilizadores banidos (\texttt{bannedUntil} no futuro) não conseguem iniciar
+        sessão nem participar em sessões.                                    \\
+        RQ-05       & Manutenibilidade   &
+        A camada de persistência é totalmente acedida através de um ORM, isolando o
+        restante código de detalhes do SGBD.                                 \\
+        RQ-06       & Manutenibilidade   &
+        Todas as alterações ao modelo de dados são versionadas como migrações no
+        repositório (\texttt{prisma/migrations}).                            \\
+        RQ-07       & Portabilidade      &
+        A aplicação executa em qualquer máquina com Docker instalado, através de um
+        único comando (\texttt{docker compose up}), sem dependências locais
+        adicionais.                                                          \\
+        RQ-08       & Fiabilidade        &
+        A \emph{pipeline} de CI executa, em cada \emph{push} e \emph{pull request},
+        análise estática (\emph{lint}), testes automatizados e \emph{build} de
+        produção; nenhum \emph{merge} em \texttt{main} ocorre sem que estes passos
+        passem.                                                              \\
+        RQ-09       & Usabilidade        &
+        A consulta de disponibilidade é feita visualmente sobre a planta do piso,
+        sem necessidade de o utilizador conhecer identificadores de espaços. \\
+        RQ-10       & Compatibilidade    &
+        A aplicação é responsiva e funciona em navegadores modernos (\emph{desktop} e
+        \emph{mobile}), incluindo os tablets fixados nos espaços para exibir o QR
+        code.                                                                \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Requisitos de qualidade do Spot-On.}
+\end{table}
+
+% =====================================================
+% 5. Arquitetura
+% =====================================================
+\section{Arquitetura do Sistema}
+
+\subsection{Visão de Alto Nível}
+
+O Spot-On segue uma arquitetura \textbf{cliente-servidor} com aplicação web
+\emph{full-stack} construída sobre Next.js. O \emph{frontend} (React) e o
+\emph{backend} (API \emph{routes} do Next.js) coabitam no mesmo projeto, mas
+estão claramente separados em termos de responsabilidades. A persistência é
+assegurada por uma base de dados PostgreSQL, acedida exclusivamente através
+do ORM Prisma. A autenticação é delegada à biblioteca NextAuth.js, que gere o
+fluxo de \emph{magic link} sobre o domínio institucional.
+
+% TODO: Inserir diagrama de arquitetura de alto nível
+\begin{center}
+    \textit{[Diagrama de arquitetura a inserir]}
+\end{center}
+
+\subsection{Camadas Lógicas}
+
+Internamente, a aplicação Next.js encontra-se organizada em três camadas:
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Apresentação} -- componentes React responsáveis pela
+          interface, incluindo a renderização das plantas, formulários e
+          \emph{dashboards}. Faz uso de \emph{Server Components} e \emph{Client
+              Components} consoante a necessidade de interatividade.
+    \item \textbf{API e regras de negócio} -- \emph{API routes} do Next.js,
+          onde reside a validação de dados, regras de domínio (e.g., elegibilidade
+          para iniciar sessão, validade do QR \emph{token}, atribuição de pontos) e
+          a orquestração das operações.
+    \item \textbf{Persistência} -- camada de acesso a dados, totalmente
+          delegada ao Prisma, que gera um cliente tipado a partir do
+          \emph{schema} \texttt{schema.prisma}.
+\end{enumerate}
+
+% =====================================================
+% 6. Stack Tecnológico
+% =====================================================
+\section{Stack Tecnológico}
+
+A tabela seguinte resume as tecnologias adotadas e as principais alternativas
+ponderadas.
+
+\begin{table}[htbp]
+    \centering
+    \scriptsize
+    \renewcommand{\arraystretch}{1.25}
+    \begin{tabularx}{\linewidth}{@{}lll>{\raggedright\arraybackslash}X@{}}
+        \toprule
+        \textbf{Camada}                              & \textbf{Tecnologia}             & \textbf{Alternativa}                & \textbf{Justificação}                                                                                                 \\
+        \midrule
+        \emph{Framework} \emph{full-stack}           & Next.js (React)                 & React + Express separados           & Unifica UI e API num só projeto, simplifica \emph{deployment} e tipagem partilhada.                                   \\
+        Linguagem (\emph{frontend} e \emph{backend}) & TypeScript                      & JavaScript                          & Mesma linguagem em ambas as vertentes, com tipagem estática que reduz erros e integra-se com o cliente Prisma gerado. \\
+        ORM                                          & Prisma                          & TypeORM, Sequelize                  & \emph{Schema} declarativo, migrações automáticas, tipagem forte ponta-a-ponta.                                        \\
+        Base de dados                                & PostgreSQL                      & MySQL, MongoDB                      & Modelo relacional adequado às entidades; \texttt{enums} nativos; maturidade.                                          \\
+        Autenticação                                 & NextAuth.js (\emph{magic link}) & Auth0, Clerk, implementação própria & Integração nativa com Next.js, fluxo \emph{passwordless} pronto a usar.                                               \\
+        Containerização                              & Docker + Docker Compose         & VM, deploy direto                   & \emph{Setup} reprodutível em qualquer máquina com um único comando.                                                   \\
+        \emph{Hosting}                               & Railway                         & Vercel, AWS, Render                 & \emph{Deploy} simples a partir de Git, base de dados PostgreSQL gerida incluída.                                      \\
+        Testes                                       & Jest                            & Vitest, Mocha                       & Padrão consolidado em projetos React/Next.js, \emph{tooling} maduro.                                                  \\
+        CI                                           & GitHub Actions                  & GitLab CI, CircleCI                 & Integração nativa com o repositório, \emph{free tier} suficiente.                                                     \\
+        Gestão                                       & Jira                            & Trello, ClickUp                     & Suporte completo a SCRUM (\emph{backlog}, \emph{sprints}, \emph{boards}).                                             \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Stack tecnológico e alternativas consideradas.}
+\end{table}
+
+\subsection{Justificação Detalhada das Escolhas-Chave}
+
+\paragraph{Next.js \emph{vs.} React + Express.}
+Considerou-se manter \emph{frontend} e \emph{backend} em projetos
+independentes (React no \emph{client-side} e Express como API). Optou-se por
+Next.js pelos seguintes motivos: (i) elimina a necessidade de gerir
+\emph{cross-origin requests} entre dois servidores; (ii) permite tipagem
+partilhada entre cliente e servidor sem etapas adicionais de geração; (iii)
+o seu modelo de \emph{Server Components} simplifica o carregamento inicial de
+páginas como a planta da biblioteca; e (iv) reduz a complexidade de
+\emph{deployment}.
+
+\paragraph{Prisma \emph{vs.} TypeORM.}
+Prisma destaca-se pelo seu \emph{schema} declarativo (\texttt{schema.prisma}),
+que serve simultaneamente de fonte de verdade para a base de dados e gerador
+do cliente tipado. As migrações geram-se automaticamente a partir de
+alterações ao \emph{schema} (\texttt{prisma migrate dev}), tornando o ciclo
+de evolução do modelo mais rápido e menos propenso a erros do que abordagens
+baseadas em decoradores ou em SQL puro. Em projetos de média dimensão como
+este, a curva de aprendizagem é igualmente menor.
+
+\paragraph{PostgreSQL \emph{vs.} MySQL.}
+O modelo do Spot-On é fortemente relacional (sessões pertencem a espaços,
+participações são tabelas-pivô, \emph{reports} ligam-se a sessões e a
+utilizadores) e faz uso intensivo de tipos enumerados (\texttt{SessionStatus},
+\texttt{ReportStatus}, \texttt{NotificationType}). PostgreSQL suporta
+nativamente \texttt{enum types} e oferece um conjunto mais rico de funções
+temporais (necessárias para janelas de confirmação de \emph{reports}, p. ex.
+\texttt{now() + interval '10 minutes'}).
+
+% =====================================================
+% 7. Modelo de Dados
+% =====================================================
+\section{Modelo de Dados}
+
+A persistência é definida no \emph{schema} Prisma. As entidades dividem-se em
+dois grupos: as relativas à autenticação (\texttt{User}, \texttt{Account},
+\texttt{Session}, \texttt{VerificationToken}, herdadas do modelo do
+NextAuth.js) e as do domínio Spot-On.
+
+\subsection{Entidades de Domínio}
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabularx}{\linewidth}{@{}lX@{}}
+        \toprule
+        \textbf{Entidade}           & \textbf{Descrição}                                                                                                                                                          \\
+        \midrule
+        \texttt{User}               & Utilizador autenticado. Inclui pontos acumulados e prazo de banimento, se aplicável.                                                                                        \\
+        \texttt{FloorPlan}          & Planta de um piso da biblioteca; serve de \emph{canvas} sobre o qual os espaços são posicionados.                                                                           \\
+        \texttt{Space}              & Espaço de estudo (mesa individual ou sala de grupo). Inclui geometria (\emph{points} SVG), capacidade, atributos (tomada, computador, quadro) e o \emph{token} QR rotativo. \\
+        \texttt{StudySession}       & Sessão de estudo num espaço, com anfitrião, hora prevista de fim e estado (ativa, concluída, expirada).                                                                     \\
+        \texttt{UserOnStudySession} & Tabela-pivô que regista a participação de utilizadores em sessões, com o estado do convite.                                                                                 \\
+        \texttt{Report}             & \emph{Report} submetido por um utilizador sobre uma sessão, com janela de confirmação de 10 minutos.                                                                        \\
+        \texttt{ReportConfirmation} & Confirmação de um \emph{report} por um terceiro utilizador.                                                                                                                 \\
+        \texttt{Notification}       & Notificação in-app dirigida a um utilizador.                                                                                                                                \\
+        \texttt{Badge}              & Insígnia que pode ser atribuída (mensal, anual ou permanente).                                                                                                              \\
+        \texttt{UserBadge}          & Tabela-pivô que regista a atribuição de \emph{badges} a utilizadores.                                                                                                       \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Entidades do modelo de domínio.}
+\end{table}
+
+\subsection{Diagrama do Modelo de Dados}
+
+% TODO: Inserir diagrama do modelo de dados
+\begin{center}
+    \textit{[Diagrama do modelo de dados a inserir]}
+\end{center}
+
+\subsection{Decisões de Modelação Relevantes}
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Geometria dos espaços armazenada como \emph{string} SVG.}
+          O atributo \texttt{points} de \texttt{Space} segue o formato
+          \texttt{"x1,y1 x2,y2 \dots"}, compatível com o elemento \texttt{<polygon>}
+          do SVG. Esta decisão evita a sobrecarga de uma tabela auxiliar de vértices
+          e permite \emph{rendering} direto na interface.
+    \item \textbf{Token QR rotativo.} O atributo \texttt{currentQrToken} é
+          único e atualizado periodicamente por uma rotina do servidor, impedindo
+          que um QR fotografado uma única vez possa ser reutilizado posteriormente.
+    \item \textbf{Janela de confirmação de \emph{reports}.} O campo
+          \texttt{timeToConfirm} usa o valor por omissão gerado na base de dados
+          (\texttt{now() + interval '10 minutes'}), garantindo coerência mesmo
+          perante dessincronização horária no \emph{frontend}.
+    \item \textbf{Tabelas-pivô explícitas.} \texttt{UserOnStudySession},
+          \texttt{ReportConfirmation} e \texttt{UserBadge} são modeladas como
+          entidades próprias por carregarem informação adicional (estado do convite,
+          \emph{timestamp} de confirmação, data de atribuição).
+    \item \textbf{Banimento como \texttt{DateTime}.}
+          \texttt{User.bannedUntil} guarda diretamente o instante até ao qual o
+          banimento é válido, eliminando a necessidade de um \emph{flag} \emph{vs.}
+          data calculada.
+\end{itemize}
+
+\subsection{Excerto do \emph{Schema} Prisma}
+
+A título ilustrativo, apresenta-se a definição da entidade central
+\texttt{Space}:
+
+\begin{lstlisting}[language=Java]
+model Space {
+  id                  String      @id @default(cuid())
+  floorPlanId         String
+  name                String
+  points              String   // pontos SVG do polígono
+  capacity            Int
+  currentQrToken      String      @unique
+  hasPowerOutlet      Boolean     @default(false)
+  hasComputer         Boolean     @default(false)
+  hasInteractiveBoard Boolean     @default(false)
+  type                SpaceType   @default(INDIVIDUAL_DESK)
+  shape               SpaceShape?
+
+  floorPlan FloorPlan      @relation(fields: [floorPlanId], references: [id])
+  sessions  StudySession[]
+}
+\end{lstlisting}
+
+% =====================================================
+% 8. Backend e API
+% =====================================================
+\section{Backend e API}
+
+O \emph{backend} é exposto através das \emph{API routes} do Next.js, sob
+\texttt{/api/*}. A API segue um estilo \textbf{REST}, com \emph{endpoints}
+organizados por recurso (\texttt{/api/spaces}, \texttt{/api/sessions},
+\texttt{/api/reports}, etc.). Cada \emph{endpoint} valida o utilizador
+autenticado, valida os dados de entrada e delega o acesso a dados ao Prisma
+\emph{Client}.
+
+A persistência é totalmente versionada por migrações Prisma. A cada alteração
+do \emph{schema}, é gerada uma nova migração SQL com
+\texttt{npx prisma migrate dev}, ficando registada no diretório
+\texttt{prisma/migrations}. Em produção, as migrações são aplicadas
+automaticamente no \emph{deploy} via \texttt{prisma migrate deploy}.
+
+% =====================================================
+% 9. Controlo de Versões
+% =====================================================
+\section{Controlo de Versões}
+
+Todo o desenvolvimento é gerido em Git, com repositório alojado no GitHub e
+partilhado em modo de leitura com os docentes. Cada elemento da equipa
+contribui sob a sua identidade pessoal, garantindo que o histórico reflete
+fielmente a contribuição individual.
+
+\paragraph{Fluxo adotado.}
+Foi seguido um modelo simplificado baseado em \emph{feature branches}:
+
+\begin{enumerate}[leftmargin=*]
+    \item Cada \emph{user story} ou tarefa origina um \emph{branch} dedicado
+          (\texttt{feature/<descrição>});
+    \item A integração no \emph{branch} principal (\texttt{main}) ocorre
+          exclusivamente via \emph{pull request};
+    \item Cada \emph{pull request} requer revisão por outro elemento da
+          equipa antes de \emph{merge};
+    \item A \emph{pipeline} de CI deve passar (\emph{lint}, testes,
+          \emph{build}) como pré-condição.
+\end{enumerate}
+
+% =====================================================
+% 10. Gestão de Projeto (SCRUM)
+% =====================================================
+\section{Gestão de Projeto -- SCRUM}
+
+A gestão do projeto seguiu a metodologia SCRUM, suportada pela plataforma
+Jira. Definiu-se um \emph{product backlog} composto por \emph{user stories}
+com critérios de aceitação claros. As \emph{stories} foram refinadas e
+priorizadas no início de cada \emph{sprint}.
+
+\paragraph{Cerimónias.}
+Cada \emph{sprint} (com duração de \textbf{[X]} semanas) inclui:
+\begin{itemize}[leftmargin=*]
+    \item \textbf{\emph{Sprint planning}} -- seleção das \emph{stories} a
+          incluir no \emph{sprint};
+    \item \textbf{\emph{Daily}} -- ponto de situação curto entre os elementos;
+    \item \textbf{\emph{Sprint review}} -- demonstração do incremento;
+    \item \textbf{\emph{Retrospetiva}} -- análise do que correu bem, do que
+          deve melhorar e ações a tomar.
+\end{itemize}
+
+\paragraph{Evidências.} O Jira mantém o histórico de \emph{sprints}, cartões
+movidos entre estados (\emph{To Do}, \emph{In Progress}, \emph{In Review},
+\emph{Done}), e os \emph{burndown charts} associados.
+
+% =====================================================
+% 11. Testes e Integração Contínua
+% =====================================================
+\section{Testes e Integração Contínua}
+
+\subsection{Testes Automatizados}
+
+A estratégia de testes assenta em \textbf{Jest}, executado quer localmente
+quer na \emph{pipeline} de CI. Os testes cobrem:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Testes unitários} -- funções de lógica de negócio (e.g.,
+          cálculo de pontos, validação de \emph{tokens}, regras de elegibilidade
+          para sessão);
+    \item \textbf{Testes de integração} -- \emph{endpoints} da API contra uma
+          base de dados de teste, validando o comportamento ponta-a-ponta da camada
+          de servidor.
+\end{itemize}
+
+\subsection{Pipeline de CI}
+
+A \emph{pipeline} é definida em \texttt{.github/workflows} e dispara a cada
+\emph{push} ou \emph{pull request} para \texttt{main}. Os passos são:
+
+\begin{enumerate}[leftmargin=*]
+    \item \emph{Checkout} do repositório;
+    \item Instalação de dependências (\texttt{npm ci});
+    \item Análise estática de código (\emph{lint});
+    \item Execução dos testes Jest;
+    \item \emph{Build} de produção (\texttt{next build}).
+\end{enumerate}
+
+A passagem destes passos é uma pré-condição obrigatória para a aprovação dos
+\emph{pull requests}.
+
+% =====================================================
+% 12. Deployment
+% =====================================================
+\section{Deployment}
+
+\subsection{Execução Local}
+
+A execução local recorre a \textbf{Docker Compose}, com dois serviços: a
+aplicação Next.js e a instância de PostgreSQL. Após clonar o repositório, a
+aplicação é colocada em execução com um único comando:
+
+\begin{lstlisting}[language=bash]
+docker compose up --build
+\end{lstlisting}
+
+As migrações da base de dados são aplicadas automaticamente no arranque do
+\emph{container}.
+
+\subsection{Ambiente de Produção}
+
+Para o ambiente de produção, recorre-se à plataforma \textbf{Railway}, que
+oferece (i) \emph{deploy} contínuo a partir do repositório Git, (ii) base de
+dados PostgreSQL gerida com \emph{backups} automáticos, e (iii) gestão de
+variáveis de ambiente (\texttt{DATABASE\_URL}, segredos do NextAuth, etc.).
+
+% =====================================================
+% 13. Conclusão
+% =====================================================
+\section{Conclusão}
+
+O Spot-On materializa uma solução completa para um problema concreto vivido
+diariamente na biblioteca da Universidade do Algarve. Do ponto de vista de
+engenharia de software, o projeto permitiu aplicar boas práticas em todas as
+fases: levantamento e priorização de requisitos sob SCRUM, desenho de uma
+arquitetura clara e justificada, implementação com tecnologias modernas e
+tipadas, persistência versionada com migrações, testes automatizados,
+\emph{deployment} reprodutível e Integração Contínua.
+
+Como trabalho futuro, identificam-se eixos como (i) a integração com sistemas
+de \emph{notification push} para alertas em tempo real, (ii) a exposição de
+estatísticas agregadas de utilização para apoio à gestão da biblioteca e (iii)
+o alargamento do sistema a outros campi da Universidade.
+
+\end{document}
