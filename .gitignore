@@ -1,7 +1,5 @@
 .DS_Store
 __MACOSX/
-.env
-.env.*
 *.log
 .vscode/
 bin/
