@@ -1,9 +1,44 @@
+# OS
 .DS_Store
 __MACOSX/
-.env
-.env.*
+
+# Logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Editor
 .vscode/
+
+# Build artifacts
 bin/
 venv/
-node_modules
+
+# Dependencies
+node_modules/
+spot-on/.pnp
+spot-on/.pnp.*
+spot-on/.yarn/*
+!spot-on/.yarn/patches
+!spot-on/.yarn/plugins
+!spot-on/.yarn/releases
+!spot-on/.yarn/versions
+
+# Next.js
+spot-on/.next/
+spot-on/out/
+spot-on/build/
+spot-on/coverage/
+spot-on/next-env.d.ts
+spot-on/*.tsbuildinfo
+
+# Prisma generated client
+spot-on/app/generated/prisma
+
+# Vercel
+spot-on/.vercel
+
+# Certificates
+*.pem
