@@ -28,22 +28,38 @@ function isContainerRunning(name: string): boolean {
     return !!result.stdout?.trim();
 }
 
+function getContainerOnPort(port: string): string {
+    const result = spawnSync(
+        'docker', ['ps', '--format', '{{.Names}}', '--filter', `publish=${port}`],
+        { encoding: 'utf-8' }
+    );
+    return result.stdout?.trim() ?? '';
+}
+
 async function startTestDb(): Promise<void> {
-    if (!isContainerRunning(DB_CONTAINER)) {
-        spawnSync('docker', ['rm', '-f', DB_CONTAINER]);
-        execSync(
-            `docker run -d --name ${DB_CONTAINER} \
+    let container = isContainerRunning(DB_CONTAINER) ? DB_CONTAINER : '';
+    if (!container) {
+        const existing = getContainerOnPort(DB_PORT);
+        if (existing) {
+            console.log(`[setup] Port ${DB_PORT} already used by ${existing}; reusing it.`);
+            container = existing;
+        } else {
+            spawnSync('docker', ['rm', '-f', DB_CONTAINER]);
+            execSync(
+                `docker run -d --name ${DB_CONTAINER} \
             -e POSTGRES_USER=admin \
             -e POSTGRES_PASSWORD=admin \
             -e POSTGRES_DB=spot_on_test_db \
             -p ${DB_PORT}:5432 \
             postgres:17-alpine`,
-            { stdio: 'inherit' }
-        );
+                { stdio: 'inherit' }
+            );
+            container = DB_CONTAINER;
+        }
     }
     for (let i = 0; i < 30; i++) {
         const result = spawnSync(
-            'docker', ['exec', DB_CONTAINER, 'pg_isready', '-h', '127.0.0.1', '-U', 'admin'],
+            'docker', ['exec', container, 'pg_isready', '-h', '127.0.0.1', '-U', 'admin'],
             { encoding: 'utf-8' }
         );
         if (result.status === 0) break;
