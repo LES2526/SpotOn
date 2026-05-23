@@ -11,8 +11,8 @@ jest.mock('@/app/api/auth/[...nextauth]/route', () => ({
 }));
 
 import { PATCH } from '@/app/api/spaces/[spaceId]/sessions/extend/route';
-import { prisma } from '@/lib/prisma';
 import type { FloorPlan, Space, User } from '@/app/generated/prisma';
+import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 
 describe('PATCH /api/spaces/[spaceId]/sessions/extend', () => {
@@ -123,7 +123,9 @@ describe('PATCH /api/spaces/[spaceId]/sessions/extend', () => {
 
     it('should not allow extending past 19:30', async () => {
         const originalClosingTime = process.env.LIBRARY_CLOSING_TIME;
+        const originalBypass = process.env.BYPASS_HOURS_CHECK;
         process.env.LIBRARY_CLOSING_TIME = '14:00';
+        process.env.BYPASS_HOURS_CHECK = 'false';
         try {
             (getServerSession as jest.Mock).mockResolvedValue({
                 user: { id: testUser.id },
@@ -144,6 +146,7 @@ describe('PATCH /api/spaces/[spaceId]/sessions/extend', () => {
             expect(body.error).toBe('Is not allowed to extend session beyond 14:00');
         } finally {
             process.env.LIBRARY_CLOSING_TIME = originalClosingTime;
+            process.env.BYPASS_HOURS_CHECK = originalBypass;
         }
     });
 
