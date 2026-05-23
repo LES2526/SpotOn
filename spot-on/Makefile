@@ -180,6 +180,8 @@ postman-ci: postman-db-up ## One-shot: bring up test DB, migrate, seed, start se
 	echo ">>> Applying Postman test seed"; \
 	npx ts-node --compiler-options '{"module":"CommonJS"}' $(POSTMAN_DIR)/seed-test.ts; \
 	echo ">>> Starting Next.js on $$APP_URL (background)"; \
+	pkill -f "next.* -p $$PORT" 2>/dev/null || true; sleep 1; \
+	rm -rf .next/dev; \
 	mkdir -p $(NEWMAN_REPORT_DIR); \
 	server_log=$$(mktemp); \
 	($(NPM) run dev -- -p $$PORT >"$$server_log" 2>&1 &) ; \
