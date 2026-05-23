@@ -10,8 +10,8 @@
 \contentsline {subsection}{\numberline {5.1}Visão de Alto Nível}{4}{subsection.5.1}%
 \contentsline {subsection}{\numberline {5.2}Camadas Lógicas}{5}{subsection.5.2}%
 \contentsline {subsection}{\numberline {5.3}Sumário da Stack e Alternativas}{5}{subsection.5.3}%
-\contentsline {subsection}{\numberline {5.4}Decisões Técnicas e Justificações}{7}{subsection.5.4}%
-\contentsline {subsubsection}{\numberline {5.4.1}1. Core Framework: Next.js \& TypeScript}{7}{subsubsection.5.4.1}%
+\contentsline {subsection}{\numberline {5.4}Decisões Técnicas e Justificações}{6}{subsection.5.4}%
+\contentsline {subsubsection}{\numberline {5.4.1}1. Core Framework: Next.js \& TypeScript}{6}{subsubsection.5.4.1}%
 \contentsline {subsubsection}{\numberline {5.4.2}2. Base de Dados e ORM: PostgreSQL \& Prisma}{7}{subsubsection.5.4.2}%
 \contentsline {subsubsection}{\numberline {5.4.3}3. Estratégia de Autenticação e Gestão de Identidade}{7}{subsubsection.5.4.3}%
 \contentsline {paragraph}{Decisão Arquitetural: do SSO (Azure AD) para \emph {Passwordless} (\emph {Magic Links}).}{7}{subsubsection.5.4.3}%
@@ -22,18 +22,19 @@
 \contentsline {section}{\numberline {6}Modelo de Dados}{9}{section.6}%
 \contentsline {subsection}{\numberline {6.1}Entidades de Domínio}{10}{subsection.6.1}%
 \contentsline {subsection}{\numberline {6.2}Diagrama do Modelo de Dados}{10}{subsection.6.2}%
-\contentsline {subsection}{\numberline {6.3}Decisões de Modelação Relevantes}{11}{subsection.6.3}%
+\contentsline {subsection}{\numberline {6.3}Decisões de Modelação Relevantes}{10}{subsection.6.3}%
 \contentsline {subsection}{\numberline {6.4}Excerto do \emph {Schema} Prisma}{11}{subsection.6.4}%
-\contentsline {section}{\numberline {7}Backend e API}{12}{section.7}%
+\contentsline {section}{\numberline {7}Backend e API}{11}{section.7}%
 \contentsline {section}{\numberline {8}Controlo de Versões}{12}{section.8}%
-\contentsline {paragraph}{Fluxo adotado.}{13}{section.8}%
-\contentsline {section}{\numberline {9}Gestão de Projeto -- SCRUM}{13}{section.9}%
-\contentsline {paragraph}{Cerimónias.}{13}{section.9}%
-\contentsline {paragraph}{Evidências.}{13}{section.9}%
+\contentsline {paragraph}{Fluxo adotado.}{12}{section.8}%
+\contentsline {section}{\numberline {9}Gestão de Projeto -- SCRUM}{12}{section.9}%
+\contentsline {paragraph}{Cerimónias.}{12}{section.9}%
+\contentsline {paragraph}{Evidências.}{12}{section.9}%
 \contentsline {section}{\numberline {10}Testes e Integração Contínua}{13}{section.10}%
 \contentsline {subsection}{\numberline {10.1}Testes Automatizados}{13}{subsection.10.1}%
-\contentsline {subsection}{\numberline {10.2}Pipeline de CI}{14}{subsection.10.2}%
-\contentsline {section}{\numberline {11}Deployment}{14}{section.11}%
-\contentsline {subsection}{\numberline {11.1}Execução Local}{14}{subsection.11.1}%
+\contentsline {subsection}{\numberline {10.2}Pipeline de CI}{13}{subsection.10.2}%
+\contentsline {section}{\numberline {11}Deployment}{13}{section.11}%
+\contentsline {subsection}{\numberline {11.1}Execução Local}{13}{subsection.11.1}%
 \contentsline {subsection}{\numberline {11.2}Ambiente de Produção}{14}{subsection.11.2}%
-\contentsline {section}{\numberline {12}Conclusão}{14}{section.12}%
+\contentsline {section}{\numberline {12}Conformidade com o Enunciado}{14}{section.12}%
+\contentsline {section}{\numberline {13}Conclusão}{14}{section.13}%
