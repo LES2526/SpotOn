@@ -238,7 +238,6 @@ model JoinRequest {
   studySession   StudySession      @relation(fields: [studySessionId], references: [id], onDelete: Cascade)
 }
 
-
 /// User report about a study session.
 // --------------------------------------------
 // Reports
