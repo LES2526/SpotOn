@@ -99,7 +99,7 @@ export async function PATCH(_request: Request, { params }: Params) {
         }
 
         const currentOccupancy = await prisma.userOnStudySession.count({
-            where: { sessionId: studySession.id, status: 'ACCEPTED' },
+            where: { sessionId: studySession.id },
         });
         if (currentOccupancy >= space.capacity - 1) {
             return NextResponse.json({ error: 'Session is already at full capacity.' }, { status: 409 });
@@ -114,7 +114,6 @@ export async function PATCH(_request: Request, { params }: Params) {
             data: {
                 userId,
                 sessionId: studySession.id,
-                status: 'ACCEPTED'
             }
         });
         const requester = await prisma.user.findUnique({
