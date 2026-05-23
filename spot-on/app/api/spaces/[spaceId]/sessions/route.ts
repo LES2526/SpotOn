@@ -13,8 +13,9 @@
  */
 
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { getServerSession } from 'next-auth';
 import { calculateCheckoutPoints, incrementPoints, notifyOp } from '@/lib/checkout-utils';
-import { clampToClosingTime, isAfterHours } from '@/lib/library-hours';
+import { clampToClosingTime } from '@/lib/library-hours';
 import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/require-auth';
 import { scheduleSessionExpiry } from '@/lib/session-expiry';
@@ -252,7 +253,7 @@ export async function DELETE(_request: Request, { params }: Params) {
             where: { spaceId, hostId: session.user.id, status: 'ACTIVE' },
             include: {
                 space: true,
-                participants: { where: { status: 'ACCEPTED' } },
+                participants: true,
             },
         });
 
@@ -280,7 +281,7 @@ export async function DELETE(_request: Request, { params }: Params) {
             }).flat(),
         ]);
 
-        return NextResponse.json({ pointsAwarded: hostPoints });
+        return NextResponse.json({ success: true, pointsAwarded: hostPoints });
     } catch (error) {
         console.error('Error releasing session:', error);
         return NextResponse.json({ error: 'Failed to release session' }, { status: 500 });
