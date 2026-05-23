@@ -28,7 +28,7 @@ const parseBool = (val: string | undefined) =>
 export default async function DashboardPage({ searchParams }: Readonly<{ searchParams: Promise<SearchParams> }>) {
     const { floor, type, hasPowerOutlet, hasComputer, hasInteractiveBoard, isOccupied } = await searchParams;
 
-    const selectedFloor = floor === undefined ? null : Number(floor);
+    const selectedFloor = floor === undefined ? 0 : Number(floor);
 
     const spaceType = type && Object.values(SpaceType).includes(type as SpaceType)
         ? (type as SpaceType)
