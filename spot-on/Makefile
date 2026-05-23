@@ -156,7 +156,8 @@ postman-db-up: ## Start the test Postgres + MailHog containers
 	$(COMPOSE) -f compose.test.yaml up -d db_test mailhog
 	@echo "Waiting for test DB to be healthy..."
 	@deadline=$$(( $$(date +%s) + 60 )); \
-	while ! docker exec spot_on_db_test pg_isready -h 127.0.0.1 -p 5432 -U admin -d spot_on_test_db >/dev/null 2>&1; do \
+	while ! docker exec spot_on_db_test pg_isready -h 127.0.0.1 -p 5432 -U admin -d spot_on_test_db >/dev/null 2>&1 \
+	      || ! nc -z localhost 5434 2>/dev/null; do \
 		if [ $$(date +%s) -ge $$deadline ]; then echo "Timeout waiting for db_test"; exit 1; fi; \
 		sleep 1; \
 	done; \
@@ -174,7 +175,7 @@ postman-ci: postman-db-up ## One-shot: bring up test DB, migrate, seed, start se
 	export APP_URL="$${NEXTAUTH_URL:-http://localhost:$$PORT}"; \
 	echo ">>> Using DATABASE_URL=$$DATABASE_URL"; \
 	echo ">>> Running migrations + prisma generate"; \
-	npx prisma migrate deploy >/dev/null; \
+	npx prisma migrate reset --force --skip-seed >/dev/null; \
 	npx prisma generate >/dev/null; \
 	echo ">>> Applying Postman test seed"; \
 	npx ts-node --compiler-options '{"module":"CommonJS"}' $(POSTMAN_DIR)/seed-test.ts; \
