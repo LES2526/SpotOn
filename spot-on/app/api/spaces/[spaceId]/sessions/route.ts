@@ -12,8 +12,6 @@
  * @since 1.0.0
  */
 
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { getServerSession } from 'next-auth';
 import { calculateCheckoutPoints, incrementPoints, notifyOp } from '@/lib/checkout-utils';
 import { clampToClosingTime } from '@/lib/library-hours';
 import { prisma } from '@/lib/prisma';
@@ -242,8 +240,8 @@ export async function PATCH(request: Request, { params }: Params) {
  */
 export async function DELETE(_request: Request, { params }: Params) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) {
+        const session = await requireAuth();
+        if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
