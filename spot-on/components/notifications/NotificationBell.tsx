@@ -145,7 +145,7 @@ export default function NotificationBell() {
                 )}
             </button>
             {open && (
-                <div className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-xl bg-gray-900 border border-gray-700 shadow-lg z-50 overflow-hidden">
+                <div className="absolute right-0 mt-2 w-80 rounded-xl bg-gray-900 border border-gray-700 shadow-lg z-50 overflow-hidden">
                     <p className="px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider border-b border-gray-700">
                         Notificações
                     </p>
