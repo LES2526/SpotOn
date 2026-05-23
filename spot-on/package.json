@@ -54,7 +54,6 @@
         "typescript": "^5.9.3"
     },
     "prisma": {
-        "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts",
-        "seed:floors": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed-floors.ts"
+        "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
     }
 }
