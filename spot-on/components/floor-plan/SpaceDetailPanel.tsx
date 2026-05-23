@@ -68,9 +68,6 @@ export default function SpaceDetailPanel({ space, onCheckoutSuccess }: Readonly<
         {space.hasInteractiveBoard && (
           <span className="rounded-md bg-gray-800 px-2.5 py-1 text-xs text-gray-300">📋 Quadro interativo</span>
         )}
-        {space.points && (
-          <span className="rounded-md bg-yellow-900/40 px-2.5 py-1 text-xs text-yellow-300">⭐ {space.points} pts</span>
-        )}
       </div>
 
       {space.isOccupied && space.expectedEndTime && (
