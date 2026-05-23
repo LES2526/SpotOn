@@ -82,8 +82,9 @@ export const PATCH = async (_request: Request, { params }: Params) => {
         const newEndTime = new Date(expectedEndTime);
 
         if (isAfterHours(newEndTime)) {
+            const closingTime = process.env.LIBRARY_CLOSING_TIME ?? '19:30';
             return NextResponse.json(
-                { error: 'Is not allowed to extend session beyond 19:30' },
+                { error: `Is not allowed to extend session beyond ${closingTime}` },
                 { status: 400 }
             );
         }
