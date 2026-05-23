@@ -68,6 +68,7 @@ describe('Sessions route – DELETE & PATCH', () => {
         await prisma.studySession.deleteMany({ where: { spaceId: testSpace.id } });
         await prisma.space.delete({ where: { id: testSpace.id } });
         await prisma.floorPlan.delete({ where: { id: testFloorPlan.id } });
+        await prisma.notification.deleteMany({ where: { userId: testUser.id } });
         await prisma.user.delete({ where: { id: testUser.id } });
         await prisma.$disconnect();
     });

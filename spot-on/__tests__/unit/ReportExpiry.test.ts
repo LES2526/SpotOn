@@ -368,10 +368,11 @@ describe('ReportExpiry', () => {
 
     describe('restoreReportExpiries', () => {
         beforeEach(async () => {
-            // Expire any OPEN reports from parallel test files so they don't
-            // interfere with timer-count assertions in this describe block.
+            // Expire ALL OPEN reports so the timer-count assertions start clean.
+            // Within this file, the previous scheduleReportExpiry test leaves an
+            // OPEN report on activeSession; parallel files may add others.
             await prisma.report.updateMany({
-                where: { status: 'OPEN', sessionId: { not: activeSession.id } },
+                where: { status: 'OPEN' },
                 data: { status: 'EXPIRED' },
             });
         });
