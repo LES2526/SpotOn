@@ -49,10 +49,10 @@ async function main() {
     });
 
     const spacesData = [
-        { floorPlanId: floorPlan0.id, name: 'Mesa A1', points: '476,309 524,309 524,505 476,505', capacity: 1, qr: 'qr-mesa-a1', type: SpaceType.INDIVIDUAL_DESK, hasPowerOutlet: true, description: 'Mesa individual junto a janela' },
+        { floorPlanId: floorPlan0.id, name: 'Mesa A1', points: '476,309 524,309 524,505 476,505', capacity: 4, qr: 'qr-mesa-a1', type: SpaceType.INDIVIDUAL_DESK, hasPowerOutlet: true, description: 'Mesa individual junto a janela' },
         { floorPlanId: floorPlan0.id, name: 'Mesa A2', points: '656,321 703,321 703,470 656,470', capacity: 1, qr: 'qr-mesa-a2', type: SpaceType.INDIVIDUAL_DESK, hasPowerOutlet: false, description: 'Mesa individual sem tomada' },
         { floorPlanId: floorPlan0.id, name: 'Mesa A3', points: '900,602 948,602 948,702 900,702', capacity: 1, qr: 'qr-mesa-a3', type: SpaceType.INDIVIDUAL_DESK, hasPowerOutlet: true, description: 'Mesa silenciosa' },
-        { floorPlanId: floorPlan0.id, name: 'Mesa A4', points: '1000,602 1052,602 1052,702 1000,702', capacity: 1, qr: 'qr-mesa-a4', type: SpaceType.INDIVIDUAL_DESK, hasPowerOutlet: true, description: 'Mesa individual no corredor central' },
+        { floorPlanId: floorPlan0.id, name: 'Mesa A4', points: '1000,602 1052,602 1052,702 1000,702', capacity: 4, qr: 'qr-mesa-a4', type: SpaceType.INDIVIDUAL_DESK, hasPowerOutlet: true, description: 'Mesa individual no corredor central' },
         { floorPlanId: floorPlan0.id, name: 'Mesa B1', points: '769,602 821,602 821,650 769,650', capacity: 1, qr: 'qr-mesa-b1', type: SpaceType.INDIVIDUAL_DESK, hasPowerOutlet: false, description: 'Mesa perto da entrada' },
         { floorPlanId: floorPlan0.id, name: 'Mesa B2', points: '659,602 707,602 707,650 659,650', capacity: 1, qr: 'qr-mesa-b2', type: SpaceType.INDIVIDUAL_DESK, hasPowerOutlet: true, description: 'Mesa com boa iluminação natural' },
         { floorPlanId: floorPlan0.id, name: 'Mesa B3', points: '1418,904 1519,904 1519,934 1418,934', capacity: 1, qr: 'qr-mesa-b3', type: SpaceType.INDIVIDUAL_DESK, hasPowerOutlet: false, description: 'Mesa em zona de passagem' },
