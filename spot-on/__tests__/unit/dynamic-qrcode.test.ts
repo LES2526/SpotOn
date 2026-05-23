@@ -470,7 +470,7 @@ describe('Sprint 3 — QR Code & Session API', () => {
                 closingDate.setUTCHours(hours, minutes, 0, 0);
                 const minsUntilClosing = (closingDate.getTime() - now.getTime()) / 60000;
 
-                if (minsUntilClosing > 0 && minsUntilClosing < 15 && process.env.BYPASS_HOURS_CHECK !== 'true') {
+                if (minsUntilClosing > 0 && minsUntilClosing < 15) {
                     const qrWindow = currentWindow();
                     const { status } = await client.post('/api/qrcode/verify', {
                         spaceId,
