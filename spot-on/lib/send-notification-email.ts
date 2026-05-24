@@ -1,11 +1,14 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM = process.env.EMAIL_FROM ?? 'Spot-On UAlg <onboarding@resend.dev>';
+
+function getResend() {
+    return new Resend(process.env.RESEND_API_KEY);
+}
 
 /** Sends an email to the session host warning that their presence was questioned. */
 export async function sendProofOfPresenceEmail(to: string) {
-    await resend.emails.send({
+    await getResend().emails.send({
         from: FROM,
         to,
         subject: 'A tua presença foi questionada!',
@@ -22,7 +25,7 @@ export async function sendProofOfPresenceEmail(to: string) {
 
 /** Sends a join request notification email to the session host. */
 export async function sendJoinRequestEmail(to: string, requesterEmail: string) {
-    await resend.emails.send({
+    await getResend().emails.send({
         from: FROM,
         to,
         subject: 'Alguém quer juntar-se à tua sessão!',
@@ -36,7 +39,7 @@ export async function sendJoinRequestEmail(to: string, requesterEmail: string) {
 
 /** Sends an email to a user whose join request was rejected. */
 export async function sendNotAcceptedJoinRequestEmail(to: string) {
-    await resend.emails.send({
+    await getResend().emails.send({
         from: FROM,
         to,
         subject: 'Pedido para juntar-se à sessão rejeitado',
@@ -50,7 +53,7 @@ export async function sendNotAcceptedJoinRequestEmail(to: string) {
 
 /** Sends an email to a user whose join request was approved. */
 export async function sendApprovedJoinRequestEmail(to: string) {
-    await resend.emails.send({
+    await getResend().emails.send({
         from: FROM,
         to,
         subject: 'Pedido para juntar-se à sessão aprovado',
@@ -64,7 +67,7 @@ export async function sendApprovedJoinRequestEmail(to: string) {
 
 /** Sends an email warning the session host that their session expires in 10 minutes. */
 export async function sendSessionExpiringSoonEmail(to: string) {
-    await resend.emails.send({
+    await getResend().emails.send({
         from: FROM,
         to,
         subject: 'O teu tempo está quase a acabar!',
