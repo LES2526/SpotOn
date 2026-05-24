@@ -5,6 +5,7 @@ import {
     SpaceShape,
     SpaceType,
 } from '../app/generated/prisma';
+import { getAvatarForUser } from '../lib/avatar-utils';
 
 const prisma = new PrismaClient();
 
@@ -33,11 +34,11 @@ async function cleanup() {
 // FLOOR PLANS & SPACES
 // ============================================================
 
-const piso0SpacesData = [ 
+const piso0SpacesData = [
     { name: 'Mesa A1', points: '476,309 524,309 524,505 476,505', capacity: 1, qr: 'qr-mesa-a1', type: SpaceType.INDIVIDUAL_DESK, hasPowerOutlet: true, description: 'Mesa individual junto a janela' },
     { name: 'Mesa A2', points: '656,321 703,321 703,470 656,470', capacity: 1, qr: 'qr-mesa-a2', type: SpaceType.INDIVIDUAL_DESK, hasPowerOutlet: false, description: 'Mesa individual sem tomada' },
     { name: 'Mesa A3', points: '900,602 948,602 948,702 900,702', capacity: 1, qr: 'qr-mesa-a3', type: SpaceType.INDIVIDUAL_DESK, hasPowerOutlet: true, description: 'Mesa silenciosa' },
-    { name: 'Mesa A4', points: '1000,602 1052,602 1052,702 1000,702', capacity: 1, qr: 'qr-mesa-a4', type: SpaceType.INDIVIDUAL_DESK, hasPowerOutlet: true, description: 'Mesa individual no corredor central' },
+    { name: 'Mesa A4', points: '1000,602 1052,602 1052,702 1000,702', capacity: 4, qr: 'qr-mesa-a4', type: SpaceType.INDIVIDUAL_DESK, hasPowerOutlet: true, description: 'Mesa individual no corredor central' },
     { name: 'Mesa B1', points: '769,602 821,602 821,650 769,650', capacity: 1, qr: 'qr-mesa-b1', type: SpaceType.INDIVIDUAL_DESK, hasPowerOutlet: false, description: 'Mesa perto da entrada' },
     { name: 'Mesa B2', points: '659,602 707,602 707,650 659,650', capacity: 1, qr: 'qr-mesa-b2', type: SpaceType.INDIVIDUAL_DESK, hasPowerOutlet: true, description: 'Mesa com boa iluminação natural' },
     { name: 'Mesa B4', points: '256,218 316,218 316,278 256,278', capacity: 1, qr: 'qr-mesa-b4', type: SpaceType.INDIVIDUAL_DESK, hasPowerOutlet: true, description: 'Mesa no canto tranquilo', shape: SpaceShape.CIRCULAR_DESK },
@@ -161,6 +162,7 @@ const usersData = [
     { email: 'a1234@ualg.pt', studentId: 'a1234', points: 120 },
     { email: 'alice.occupied@ualg.pt', studentId: 'a2345', points: 85 },
     { email: 'tsmachado40@gmail.com', studentId: null, points: 0 },
+    { email: 'tsmachado255@gmail.com', studentId: null, points: 0 },
     { email: 'bruno.host@ualg.pt', studentId: 'a3456', points: 230 },
     { email: 'carla.reporter@ualg.pt', studentId: 'a4567', points: 42 },
     { email: 'diogo.participant@ualg.pt', studentId: 'a5678', points: 57 },
@@ -168,7 +170,7 @@ const usersData = [
     { email: 'filipe.rejected@ualg.pt', studentId: 'a7890', points: 8 },
     { email: 'gabriela.viewer@ualg.pt', studentId: 'a8901', points: 64 },
     { email: 'henrique.mentor@ualg.pt', studentId: 'a9012', points: 310 },
-    { email: 'isabel.new@ualg.pt', studentId: null, points: 0, image: null },
+    { email: 'isabel.new@ualg.pt', studentId: null, points: 0 },
 ];
 
 async function seedUsersAndAuth(now: Date) {
@@ -180,7 +182,7 @@ async function seedUsersAndAuth(now: Date) {
                     email: u.email,
                     studentId: u.studentId,
                     points: u.points,
-                    image: (u as { image?: string | null }).image,
+                    image: getAvatarForUser(u.email),
                     emailVerified: now,
                 },
             })
@@ -289,6 +291,16 @@ async function seedSessionsAndReports(
             expectedEndTime: new Date(now.getTime() + 1000 * 60 * 45),
             status: SessionStatus.ACTIVE,
         },
+    });
+
+    await prisma.studySession.create({
+    data: {
+        spaceId: spaceByName['Mesa A3'].id,
+        hostId: userByEmail['tsmachado255@gmail.com'].id,
+        startTime: new Date(now.getTime() - 1000 * 60 * 20),
+        expectedEndTime: new Date(now.getTime() + 1000 * 60 * 12),
+        status: SessionStatus.ACTIVE,
+    },
     });
 
     const activeB2 = await prisma.studySession.create({
