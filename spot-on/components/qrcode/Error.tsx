@@ -2,7 +2,7 @@
 
 import ButtonDefault from '@/components/button/ButtonDefault';
 
-export default function ErrorStatus() {
+export default function ErrorStatus({ message }: Readonly<{ message?: string | null }>) {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-950 text-white px-4">
             <div className="flex flex-col items-center gap-6 rounded-2xl border border-gray-800 bg-gray-900 p-10 shadow-xl max-w-sm w-full">
@@ -14,7 +14,7 @@ export default function ErrorStatus() {
 
                 <div className="text-center">
                     <h1 className="text-xl font-semibold text-white mb-2">Something Went Wrong</h1>
-                    <p className="text-sm text-gray-500">An unexpected error occurred while trying to join the space. Please try again.</p>
+                    <p className="text-sm text-gray-500">{message ?? 'An unexpected error occurred while trying to join the space. Please try again.'}</p>
                 </div>
 
                 <ButtonDefault href="/dashboard">← Back to Dashboard</ButtonDefault>
