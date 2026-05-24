@@ -1,6 +1,7 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { SpaceType } from "@/app/generated/prisma";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import SpacePanel from "@/components/dashboard/SpacePanel";
 import FloorPlanSection from "@/components/floor-plan/FloorPlanSection";
 import { FloorPlanData } from "@/components/floor-plan/type";
 import FloorFilter from "@/components/floor/FloorFilter";
@@ -154,7 +155,7 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
     return (
         <main className="min-h-screen bg-gray-950 p-8 text-white">
             <section className="mx-auto max-w-6xl">
-                <DashboardHeader />
+                <DashboardHeader leftSlot={<SpacePanel spaces={floorPlanData.spaces} />} />
                 <FloorFilter floorPlans={floorPlans} selectedFloor={selectedFloor} />
                 <FloorPlanSection
                     floorPlan={floorPlanData}
