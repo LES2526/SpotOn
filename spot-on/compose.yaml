@@ -31,7 +31,7 @@ services:
       QR_SECRET: "N3LxlmMBZNVOmMuAbOgGHkO++icNQ2Md/ATohwaEQLM="
       CHOKIDAR_USEPOLLING: "true"
       WATCHPACK_POLLING: "true"
-    volumes:nao
+    volumes:
       - .:/app
       - /app/node_modules
       - /app/.next
