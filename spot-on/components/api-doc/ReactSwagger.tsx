@@ -11,7 +11,7 @@ function ReactSwagger({ spec }: Readonly<Props>) {
     return (
         <SwaggerUI
             spec={spec}
-            requestInterceptor={(req: any) => {
+            requestInterceptor={(req: Record<string, unknown>) => {
                 req.credentials = 'include';
                 return req;
             }}
