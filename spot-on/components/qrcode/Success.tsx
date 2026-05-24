@@ -13,7 +13,7 @@ function formatDuration(minutes: number): string {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     if (hours === 0) return `${mins} min`;
-    if (mins === 0) return `${hours} hour${hours > 1 ? 's' : ''}`;
+    if (mins === 0) return `${hours} ${hours > 1 ? 'horas' : 'hora'}`;
     return `${hours}h ${mins}min`;
 }
 
@@ -49,8 +49,14 @@ export default function SuccessStatus({ spaceId, isJoin }: Readonly<SuccessStatu
                 </div>
 
                 <div className="text-center">
-                    <h1 className="text-xl font-semibold text-white mb-2">{isJoin ? 'Joined Session!' : 'Space Occupied!'}</h1>
-                    <p className="text-sm text-gray-500">{isJoin ? 'You have successfully joined the session.' : 'How long do you plan to stay?'}</p>
+                    <h1 className="text-xl font-semibold text-white mb-2">
+                        {isJoin ? 'Pedido enviado!' : 'Espaço ocupado!'}
+                    </h1>
+                    <p className="text-base text-gray-200">
+                        {isJoin
+                            ? 'O teu pedido para te juntares à sessão foi enviado. Aguarda a aprovação do anfitrião.'
+                            : 'Quanto tempo planeias ficar?'}
+                    </p>
                 </div>
 
                 {!isJoin && (
@@ -121,7 +127,7 @@ export default function SuccessStatus({ spaceId, isJoin }: Readonly<SuccessStatu
                     onClick={handleConfirmDuration}
                     className="w-full rounded-lg bg-green-500 hover:bg-green-600 px-4 py-3 text-sm font-semibold text-white transition-colors"
                 >
-                    {isJoin ? 'Go to Dashboard' : `Confirm — ${formatDuration(durationMinutes)}`}
+                    {isJoin ? 'Voltar ao Dashboard' : `Confirmar — ${formatDuration(durationMinutes)}`}
                 </button>
             </div>
         </div>

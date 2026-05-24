@@ -89,7 +89,34 @@ export default function QRCodeContent() {
         occupySpace();
     }, [isInvalidQr, spaceId, qrWindow, sig]);
 
+    const [errorTitle, setErrorTitle] = useState<string | null>(null);
     const [joinError, setJoinError] = useState<string | null>(null);
+
+    function setErrorFromResponse(status: number, backendError?: string) {
+        const err = (backendError ?? '').toLowerCase();
+        if (status === 409 && err.includes('full capacity')) {
+            setErrorTitle('Sessão cheia');
+            setJoinError('Esta sessão já está com lotação máxima. Tenta noutro espaço.');
+        } else if (status === 409 && err.includes('already joined')) {
+            setErrorTitle('Já fazes parte da sessão');
+            setJoinError('Já és participante desta sessão de estudo.');
+        } else if (status === 409 && err.includes('pending')) {
+            setErrorTitle('Pedido pendente');
+            setJoinError('Já tens um pedido de adesão por aprovar para esta sessão.');
+        } else if (status === 429) {
+            setErrorTitle('Demasiados pedidos');
+            setJoinError('Recebeste várias rejeições recentemente. Tenta novamente mais tarde.');
+        } else if (status === 401) {
+            setErrorTitle('Sessão expirada');
+            setJoinError('Precisas de iniciar sessão para te juntares a um espaço.');
+        } else if (status === 404) {
+            setErrorTitle('Espaço não encontrado');
+            setJoinError('Não foi possível encontrar este espaço ou a sessão ativa.');
+        } else {
+            setErrorTitle(null);
+            setJoinError(backendError ?? `Pedido falhou (HTTP ${status}).`);
+        }
+    }
 
     const joinSession = async () => {
         try {
@@ -103,11 +130,12 @@ export default function QRCodeContent() {
                 setStatus('success');
             } else {
                 const data = await response.json().catch(() => ({}));
-                setJoinError(data.error ?? `Pedido falhou (HTTP ${response.status})`);
+                setErrorFromResponse(response.status, data.error);
                 setStatus('error');
             }
         } catch {
-            setJoinError('Erro de rede');
+            setErrorTitle('Sem ligação');
+            setJoinError('Não foi possível contactar o servidor. Verifica a tua ligação.');
             setStatus('error');
         }
     };
@@ -140,7 +168,7 @@ export default function QRCodeContent() {
             )}
             {status === 'user_occupied' && <UserOccupiedStatus />}
             {status === 'expired' && <ExpiredStatus />}
-            {status === 'error' && <ErrorStatus message={joinError} />}
+            {status === 'error' && <ErrorStatus title={errorTitle} message={joinError} />}
             {status === 'after_hours' && <AfterHoursStatus />}
         </div>
     );

@@ -2,7 +2,12 @@
 
 import ButtonDefault from '@/components/button/ButtonDefault';
 
-export default function ErrorStatus({ message }: Readonly<{ message?: string | null }>) {
+type Props = {
+    title?: string | null;
+    message?: string | null;
+};
+
+export default function ErrorStatus({ title, message }: Readonly<Props>) {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-950 text-white px-4">
             <div className="flex flex-col items-center gap-6 rounded-2xl border border-gray-800 bg-gray-900 p-10 shadow-xl max-w-sm w-full">
@@ -13,11 +18,11 @@ export default function ErrorStatus({ message }: Readonly<{ message?: string | n
                 </div>
 
                 <div className="text-center">
-                    <h1 className="text-xl font-semibold text-white mb-2">Something Went Wrong</h1>
-                    <p className="text-sm text-gray-500">{message ?? 'An unexpected error occurred while trying to join the space. Please try again.'}</p>
+                    <h1 className="text-xl font-semibold text-white mb-3">{title ?? 'Algo correu mal'}</h1>
+                    <p className="text-base text-gray-200">{message ?? 'Ocorreu um erro inesperado. Por favor, tenta novamente.'}</p>
                 </div>
 
-                <ButtonDefault href="/dashboard">← Back to Dashboard</ButtonDefault>
+                <ButtonDefault href="/dashboard">← Voltar ao Dashboard</ButtonDefault>
             </div>
         </div>
     );
