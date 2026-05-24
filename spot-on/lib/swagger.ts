@@ -9,16 +9,7 @@ export const getApiDocs = async () => {
                 title: "SpotOn API",
                 version: "1.0",
             },
-            components: {
-                // securitySchemes: {
-                //   BearerAuth: {
-                //     type: "http",
-                //     scheme: "bearer",
-                //     bearerFormat: "JWT",
-                //   },
-                // },
-            },
-            security: [],
+            components: {},
         },
     });
     return spec;

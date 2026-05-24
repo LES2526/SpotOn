@@ -15,6 +15,22 @@ import { handleQrVerification } from '@/lib/qrcode-verify';
  *     tags:
  *       - QR Code
  *     responses:
+ *       200:
+ *         description: OK - Confirmed presence or session already active
+ *         content:
+ *           application/json:
+ *             schema:
+ *               oneOf:
+ *                 - type: object
+ *                   properties:
+ *                     message:
+ *                       type: string
+ *                       example: Confirmed Presence
+ *                 - type: object
+ *                   properties:
+ *                     message:
+ *                       type: string
+ *                       example: Session already active
  *       201:
  *         description: Session created successfully
  *       400:
