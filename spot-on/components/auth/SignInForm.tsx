@@ -2,6 +2,7 @@
 
 import { isEmailFromDomain } from "@/lib/auth-utils";
 import { signIn } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 function hasSpaces(email: string): boolean {
@@ -15,9 +16,13 @@ function isWrongDomain(email: string, domain: string): boolean {
 }
 
 export default function SignInForm({ allowedDomain }: Readonly<{ allowedDomain: string }>) {
+    const searchParams = useSearchParams();
+    const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+
     const [email, setEmail] = useState("");
     const [submitted, setSubmitted] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
 
     function handleEmailChange(e: React.ChangeEvent<HTMLInputElement>) {
         setEmail(e.target.value.replace(/\s/g, ""));
@@ -27,8 +32,13 @@ export default function SignInForm({ allowedDomain }: Readonly<{ allowedDomain: 
         e.preventDefault();
         if (!email || hasSpaces(email)) return;
         setLoading(true);
-        await signIn("email", { email, redirect: false });
+        setSubmitError(null);
+        const result = await signIn("email", { email, callbackUrl, redirect: false });
         setLoading(false);
+        if (result?.error) {
+            setSubmitError("Não foi possível enviar o email. Tenta novamente.");
+            return;
+        }
         setSubmitted(true);
     }
 
@@ -77,6 +87,9 @@ export default function SignInForm({ allowedDomain }: Readonly<{ allowedDomain: 
                         <p className="mt-1.5 text-sm text-yellow-400">
                             Este email não é do domínio @{allowedDomain}. O acesso pode ser recusado.
                         </p>
+                    )}
+                    {submitError && (
+                        <p className="mt-1.5 text-sm text-red-400">{submitError}</p>
                     )}
                     <button
                         type="submit"
