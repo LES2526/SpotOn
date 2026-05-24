@@ -175,7 +175,8 @@ export async function POST(_request: Request, { params }: Params) {
             select: { email: true },
         });
         if (host?.email && session.user.email) {
-            await sendJoinRequestEmail(host.email, session.user.email);
+            sendJoinRequestEmail(host.email, session.user.email).catch(err =>
+                console.error('Failed to send join request email:', err));
         }
         return NextResponse.json(joinRequest, { status: 201 });
     } catch (error) {
