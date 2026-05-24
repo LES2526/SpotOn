@@ -110,7 +110,8 @@ function OccupySpaceContent() {
     if (isInvalidQr) {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-                <LoadingStatus />
+                <h1 className="text-2xl font-bold mb-4">QR Code inválido</h1>
+                <p className="text-gray-500">Coloque o ID do espaço no URL para continuar.</p>
             </div>
         );
     }
