@@ -87,7 +87,6 @@ describe('Reports API', () => {
             data: {
                 userId: acceptedParticipant.id,
                 sessionId: activeSession.id,
-                status: 'ACCEPTED',
             },
         });
     });
@@ -106,6 +105,11 @@ describe('Reports API', () => {
         ).map(r => r.id);
 
         await prisma.reportConfirmation.deleteMany({ where: { reportId: { in: reportIds } } });
+        // Safety net: also delete by userId in case a confirmation slipped through
+        // (e.g., from a directly-inserted confirmation that shares no reportId with the above)
+        await prisma.reportConfirmation.deleteMany({
+            where: { userId: { in: [hostUser.id, reporterUser.id, acceptedParticipant.id] } },
+        });
         await prisma.report.deleteMany({ where: { sessionId: { in: sessionIds } } });
         await prisma.userOnStudySession.deleteMany({ where: { sessionId: { in: sessionIds } } });
         await prisma.studySession.deleteMany({ where: { spaceId: testSpace.id } });

@@ -12,6 +12,7 @@
  * @since 1.0.0
  */
 
+import { calculateCheckoutPoints, incrementPoints, notifyOp } from '@/lib/checkout-utils';
 import { clampToClosingTime } from '@/lib/library-hours';
 import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/require-auth';
@@ -105,7 +106,7 @@ export async function POST(_request: Request, { params }: Params) {
             data: {
                 spaceId,
                 hostId: session.user.id,
-                expectedEndTime: new Date(Date.now() + 60 * 60 * 1000)
+                expectedEndTime: new Date(Date.now() + 60 * 60 * 1000) 
             }
         });
 
@@ -218,65 +219,67 @@ export async function PATCH(request: Request, { params }: Params) {
  *         description: The ID of the space to release
  *     responses:
  *       200:
- *         description: Session released successfully
+ *         description: Session ended successfully — points awarded to all participants
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
+ *                 pointsAwarded:
+ *                   type: number
+ *                   description: Points awarded to the host (caller)
+ *                   example: 42
  *       401:
  *         description: Unauthorized - User is not authenticated
+ *       403:
+ *         description: Forbidden - Only the host can end the session for all participants
  *       404:
  *         description: Not Found - No active session exists for the user in this space
  *       500:
  *         description: Internal Server Error - An unexpected error occurred
  */
-
-
-/* DELETE handler — Release a study space.
- *
- * Marks the authenticated user's active session in the specified space as COMPLETED,
- * effectively freeing the space for other users.
- *
- * @param {Request} _request - Incoming HTTP request (unused)
- * @param {Params} params - Route parameters containing the spaceId
- * @returns {Promise<NextResponse>} A success response, or an error response
- *
- * @throws {401} If the user is not authenticated
- * @throws {404} If no active session exists for the user in this space
- * @throws {500} If an unexpected error occurs
- *
- * @async
- */
 export async function DELETE(_request: Request, { params }: Params) {
     try {
         const session = await requireAuth();
         if (!session) {
-            return NextResponse.json(
-                { error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
         const { spaceId } = await Promise.resolve(params);
 
-        const activeSession = await findActiveSessionByHost(spaceId, session.user.id);
-
-        if (!activeSession) {
-            return NextResponse.json({
-                error: 'No active session found for this space'
-            }, { status: 404 });
-        }
-
-        await prisma.studySession.update({
-            where: { id: activeSession.id },
-            data: {
-                status: 'COMPLETED', actualEndTime: new Date()
-            }
+        const activeSession = await prisma.studySession.findFirst({
+            where: { spaceId, hostId: session.user.id, status: 'ACTIVE' },
+            include: {
+                space: true,
+                participants: true,
+            },
         });
 
-        return NextResponse.json({ success: true });
+        if (!activeSession) {
+            return NextResponse.json({ error: 'No active session found for this space' }, { status: 404 });
+        }
+
+        const { type: spaceType, capacity } = activeSession.space;
+        const occupancy = 1 + activeSession.participants.length;
+        const hostPoints = calculateCheckoutPoints(activeSession.startTime, spaceType, occupancy, capacity);
+
+        await prisma.$transaction([
+            prisma.studySession.update({
+                where: { id: activeSession.id },
+                data: { status: 'COMPLETED', actualEndTime: new Date() },
+            }),
+            incrementPoints(session.user.id, hostPoints),
+            notifyOp(session.user.id, 'CHECKOUT', `Recebeste ${hostPoints} pontos!`),
+            ...activeSession.participants.map(p => {
+                const points = calculateCheckoutPoints(p.joinedAt, spaceType, occupancy, capacity);
+                return [
+                    incrementPoints(p.userId, points),
+                    notifyOp(p.userId, 'CHECKOUT', `Recebeste ${points} pontos!`),
+                ];
+            }).flat(),
+        ]);
+
+        return NextResponse.json({ success: true, pointsAwarded: hostPoints });
     } catch (error) {
         console.error('Error releasing session:', error);
         return NextResponse.json({ error: 'Failed to release session' }, { status: 500 });
