@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { SpaceMarker } from '../floor-plan/type';
 
 interface SpacePanelProps {
@@ -26,8 +26,20 @@ const OCCUPANCY_FILTERS = [
 
 export default function SpacePanel({ spaces }: Readonly<SpacePanelProps>) {
     const [isOpen, setIsOpen] = useState(false);
+    const panelRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
     const searchParams = useSearchParams();
+
+    useEffect(() => {
+        if (!isOpen) return;
+        function handleClickOutside(e: MouseEvent) {
+            if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+                setIsOpen(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [isOpen]);
 
     const updateParam = useCallback((key: string, value: string | null) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -49,11 +61,10 @@ export default function SpacePanel({ spaces }: Readonly<SpacePanelProps>) {
         .some(key => searchParams.has(key));
 
     return (
-        <div className="absolute top-4 left-4 z-20">
-        {/* Hamburger button — always fixed at top left, independent of panel height */}
+        <div ref={panelRef} className="relative">
         <button
             onClick={() => setIsOpen(prev => !prev)}
-            className="flex flex-col items-center justify-center gap-1 w-8 h-8 mb-2 rounded-lg bg-gray-800/95 backdrop-blur-sm border border-gray-700 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
+            className="flex flex-col items-center justify-center gap-1 w-8 h-8 rounded-lg bg-gray-800/95 backdrop-blur-sm border border-gray-700 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
             aria-label={isOpen ? 'Close panel' : 'Open panel'}
         >
             <span className="w-4 h-0.5 bg-current rounded-full" />
@@ -61,8 +72,8 @@ export default function SpacePanel({ spaces }: Readonly<SpacePanelProps>) {
             <span className="w-4 h-0.5 bg-current rounded-full" />
         </button>
 
-        {/* Panel — scrollable, capped at viewport height minus space for button */}
         <div className={`
+            absolute top-full left-0 mt-1 z-20
             flex flex-col
             w-64 max-h-[calc(100vh-6rem)]
             bg-gray-900/95 backdrop-blur-sm
