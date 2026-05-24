@@ -127,7 +127,8 @@ export async function PATCH(_request: Request, { params }: Params) {
             await resolveNotificationById(notificationId);
         }
         if (requester.email) {
-            await sendApprovedJoinRequestEmail(requester.email);
+            sendApprovedJoinRequestEmail(requester.email).catch(err =>
+                console.error('Failed to send approved join request email:', err));
         }
 
         return NextResponse.json(acceptJoinRequest, { status: 200 });
