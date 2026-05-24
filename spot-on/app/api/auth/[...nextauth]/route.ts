@@ -22,10 +22,7 @@ import { prisma } from "@/lib/prisma";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import NextAuth, { type NextAuthOptions } from "next-auth";
 import EmailProvider from "next-auth/providers/email";
-
-const smtpPort = process.env.EMAIL_SERVER_PORT
-    ? Number.parseInt(process.env.EMAIL_SERVER_PORT, 10)
-    : undefined;
+import { Resend } from "resend";
 
 /**
  * @swagger
@@ -85,15 +82,16 @@ export const authOptions: NextAuthOptions = {
      */
     providers: [
         EmailProvider({
-            from: process.env.EMAIL_FROM,
+            from: process.env.EMAIL_FROM ?? 'Spot-On UAlg <onboarding@resend.dev>',
             maxAge: 300,
-            server: {
-                host: process.env.EMAIL_SERVER_HOST,
-                port: smtpPort ?? 587,
-                auth: {
-                    user: process.env.EMAIL_SERVER_USER,
-                    pass: process.env.EMAIL_SERVER_PASSWORD,
-                },
+            sendVerificationRequest: async ({ identifier, url, provider }) => {
+                const resend = new Resend(process.env.RESEND_API_KEY);
+                await resend.emails.send({
+                    from: provider.from,
+                    to: identifier,
+                    subject: 'Entrar no Spot-On',
+                    html: `<p>Clica no link para entrar no Spot-On:</p><p><a href="${url}">${url}</a></p><p>Este link expira em 5 minutos.</p>`,
+                });
             },
         }),
     ],
