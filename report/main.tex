@@ -211,6 +211,49 @@ seu estado de ocupação em tempo real.
           iteração.
 \end{itemize}
 
+\subsection{Levantamento Junto da Administração da Biblioteca}\label{sec:interview}
+
+Para alicerçar a definição de requisitos numa visão real do problema, a
+equipa realizou uma \textbf{reunião de levantamento com a administração da
+Biblioteca da UAlg}. A reunião teve como objetivo perceber as queixas mais
+frequentes recebidas pelos serviços, validar a viabilidade do conceito e
+identificar limitações operacionais que o sistema deveria endereçar. A
+tabela seguinte sumariza os principais pontos relatados e a forma como cada
+um foi (ou não) endereçado pelo Spot-On.
+
+\begin{table}[h!]
+    \centering
+    \footnotesize
+    \renewcommand{\arraystretch}{1.35}
+    \begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{5.2cm}X@{}}
+        \toprule
+        \textbf{Relato da administração}                                                                                                                          & \textbf{Resposta do Spot-On}                                                                                                                                                                                                                                                                                                                                          \\
+        \midrule
+        Muitas queixas de \textbf{barulho} por parte dos alunos, com sugestão de mecanismos de advertência.                                                       & Implementado o sistema de \emph{Reports} entre pares (entidades \texttt{Report} e \texttt{ReportConfirmation}, com janela de 10~min para confirmação por terceiros), permitindo sinalização de comportamentos perturbadores sem necessidade de intervenção presencial do bibliotecário.                                                                              \\
+        \midrule
+        Estudantes que \textbf{deixam pertences (mochilas)} em mesas durante longos períodos sem as ocupar efetivamente --- prática contrária ao \emph{regulamento}. & Combinação de (i) sessão de estudo com \texttt{expectedEndTime} e expiração automática (\texttt{lib/session-expiry.ts}), (ii) \emph{Reports} de ocupação ilegítima por outros utilizadores e (iii) confirmação periódica de presença via QR code rotativo.                                                                                                          \\
+        \midrule
+        \textbf{Sistema de reservas} prévias é regularmente sugerido pelos alunos, mas a administração considera-o \emph{operacionalmente inviável} (sobrelotação fictícia, \emph{no-shows}). & A equipa alinhou-se com este \emph{feedback} e descartou o modelo de reserva antecipada. Optou-se por um modelo de \textbf{ocupação \emph{just-in-time}} com confirmação física via QR code no momento da chegada, eliminando \emph{no-shows} e garantindo que a planta reflete ocupação real.                                                                       \\
+        \midrule
+        \textbf{Aprovação geral} da ideia e da abordagem visual baseada em \textbf{plantas} dos pisos.                                                            & Validou a aposta na visualização gráfica (\texttt{FloorPlanSection}, \texttt{FloorPlanView}, \texttt{SpaceDetailPanel}) com polígonos SVG por espaço, suportando interação direta sobre a planta sem necessidade de identificadores textuais.                                                                                                                          \\
+        \midrule
+        Receio quanto à \textbf{veracidade da informação} em tempo real (e.g., utilizador sai sem terminar a sessão).                                             & Mitigação a três níveis: (i) QR \emph{token} rotativo (\texttt{currentQrToken} sincronizado por \texttt{node-cron}) que invalida fotografias antigas; (ii) pedidos de \emph{prova de presença} despoletados por \emph{Reports}; (iii) expiração automática da sessão ao atingir \texttt{expectedEndTime} ou o horário de fecho (\texttt{LIBRARY\_CLOSING\_TIME}). \\
+        \midrule
+        Nem todos os alunos têm \textbf{telemóveis} capazes de ler QR codes.                                                                                      & Limitação reconhecida. Está prevista como \textbf{trabalho futuro} a disponibilização de \emph{tablets} fixos junto a clusters de mesas (já contemplados em RQ-10) e/ou um fluxo alternativo de \emph{check-in} com código numérico curto.                                                                                                                            \\
+        \midrule
+        Sugestão de \textbf{desativar a aplicação em época de exames} para reduzir \emph{stress} dos estudantes.                                                  & \emph{Feedback} registado para discussão futura. A arquitetura permite, sem alterações de código, desligar funcionalidades sensíveis (e.g., \emph{Reports}) por configuração, viabilizando esta política se a administração assim o entender.                                                                                                                         \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Síntese da reunião com a administração da Biblioteca da UAlg e
+        mapeamento para as funcionalidades do Spot-On.}
+\end{table}
+
+A reunião confirmou a pertinência do problema, validou as opções
+arquiteturais centrais (visualização sobre plantas + QR code) e refinou o
+âmbito do projeto (afastando o modelo de reserva antecipada). Os \emph{inputs}
+recebidos são referenciados ao longo do relatório sempre que motivaram uma
+decisão de \emph{design} concreta.
+
 % =====================================================
 % 3. Atores
 % =====================================================
