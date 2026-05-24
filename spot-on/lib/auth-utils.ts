@@ -51,6 +51,11 @@ export function shouldAllowAnyEmailInDevelopment(): boolean {
  * @public
  * @since 1.0.0
  */
+export function isEmailFromDomain(email: string, domain: string): boolean {
+    const parts = email.toLowerCase().split("@");
+    return parts.length === 2 && parts[1] === domain.toLowerCase();
+}
+
 export function isEmailAllowed(email: string | null | undefined)
     : boolean {
     const normalizedEmail = email?.toLowerCase();
@@ -60,8 +65,7 @@ export function isEmailAllowed(email: string | null | undefined)
     if (shouldAllowAnyEmailInDevelopment()) {
         return true;
     }
-    return normalizedEmail.endsWith(
-        `@${process.env.ALLOWED_EMAIL_DOMAIN}`);
+    return isEmailFromDomain(normalizedEmail, process.env.ALLOWED_EMAIL_DOMAIN!);
 }
 
 /**

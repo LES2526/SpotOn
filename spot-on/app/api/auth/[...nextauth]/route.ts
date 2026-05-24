@@ -19,10 +19,10 @@
 import { extractStudentId, isEmailAllowed } from "@/lib/auth-utils";
 import { getAvatarForUser } from "@/lib/avatar-utils";
 import { prisma } from "@/lib/prisma";
+import { sendVerificationEmail } from "@/lib/send-notification-email";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import NextAuth, { type NextAuthOptions } from "next-auth";
 import EmailProvider from "next-auth/providers/email";
-import { Resend } from "resend";
 
 /**
  * @swagger
@@ -76,6 +76,10 @@ export const authOptions: NextAuthOptions = {
         strategy: "database",
     },
 
+    pages: {
+        signIn: "/auth/signin",
+    },
+
     /**
      * Authentication providers.
      * Currently configured with email-only authentication.
@@ -84,21 +88,8 @@ export const authOptions: NextAuthOptions = {
         EmailProvider({
             from: process.env.EMAIL_FROM ?? 'Spot-On UAlg <onboarding@resend.dev>',
             maxAge: 300,
-            sendVerificationRequest: async ({ identifier, url, provider }) => {
-                const resend = new Resend(process.env.RESEND_API_KEY);
-                await resend.emails.send({
-                    from: provider.from,
-                    to: identifier,
-                    subject: 'Entrar no Spot-On',
-                    html: `
-                        <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#111;color:#e5e7eb;border-radius:12px">
-                            <h2 style="margin:0 0 8px;font-size:22px;color:#fff">Entrar no Spot-On</h2>
-                            <p style="margin:0 0 24px;color:#9ca3af">Clica no botão abaixo para aceder à tua conta. O link expira em <strong style="color:#e5e7eb">5 minutos</strong>.</p>
-                            <a href="${url}" style="display:inline-block;padding:12px 28px;background:#2563eb;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;font-size:15px">Entrar na conta</a>
-                            <p style="margin:24px 0 0;font-size:12px;color:#6b7280">Se não pediste este email, podes ignorá-lo com segurança.</p>
-                        </div>
-                    `,
-                });
+            sendVerificationRequest: async ({ identifier, url }) => {
+                await sendVerificationEmail(identifier, url);
             },
         }),
     ],
