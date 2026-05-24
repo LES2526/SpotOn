@@ -1,3 +1,4 @@
+import { resolveNotificationById } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/require-auth";
 import { sendApprovedJoinRequestEmail } from "@/lib/send-notification-email";
@@ -86,23 +87,51 @@ export async function PATCH(_request: Request, { params }: Params) {
 
         const body = await _request.json();
         const { userId, notificationId } = body;
-        const [updateJoinSession, requester] = await prisma.$transaction([
-            prisma.userOnStudySession.update({
-                where: { userId_sessionId: { userId, sessionId: studySession.id } },
-                data: { status: 'ACCEPTED' },
-            }),
-            prisma.user.findUnique({
-                where: { id: userId },
-                select: { email: true },
-            }),
-            ...(notificationId
-                ? [prisma.notification.update({ where: { id: notificationId }, data: { status: 'RESOLVED' } })]
-                : []),
-        ]);
-        if (requester?.email) {
-            await sendApprovedJoinRequestEmail(requester.email);
+        const pending = await prisma.joinRequest.findFirst({
+            where: {
+                userId: userId,
+                studySessionId: studySession.id,
+                status: 'PENDING'
+            }
+        });
+        if (!pending) {
+            return NextResponse.json({ error: 'No pending request found.' }, { status: 404 });
         }
-        return NextResponse.json(updateJoinSession, { status: 200 });
+
+        const currentOccupancy = await prisma.userOnStudySession.count({
+            where: { sessionId: studySession.id },
+        });
+        if (currentOccupancy >= space.capacity - 1) {
+            return NextResponse.json({ error: 'Session is already at full capacity.' }, { status: 409 });
+        }
+
+        const acceptJoinRequest = await prisma.joinRequest.update({
+            where: { id: pending.id },
+            data: { status: 'ACCEPTED' }
+        });
+
+        await prisma.userOnStudySession.create({
+            data: {
+                userId,
+                sessionId: studySession.id,
+            }
+        });
+        const requester = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { email: true },
+        });
+        if (!requester) {
+            return NextResponse.json({ error: 'Requester not found' }, { status: 404 });
+        }
+        if (notificationId) {
+            await resolveNotificationById(notificationId);
+        }
+        if (requester.email) {
+            sendApprovedJoinRequestEmail(requester.email).catch(err =>
+                console.error('Failed to send approved join request email:', err));
+        }
+
+        return NextResponse.json(acceptJoinRequest, { status: 200 });
     } catch (error) {
         console.error('Error approving session:', error);
         return NextResponse.json({ error: 'Failed to approve session' },
