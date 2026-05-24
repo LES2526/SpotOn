@@ -5,6 +5,7 @@ import {
     SpaceShape,
     SpaceType,
 } from '../app/generated/prisma';
+import { getAvatarForUser } from '../lib/avatar-utils';
 
 const prisma = new PrismaClient();
 
@@ -161,6 +162,7 @@ const usersData = [
     { email: 'a1234@ualg.pt', studentId: 'a1234', points: 120 },
     { email: 'alice.occupied@ualg.pt', studentId: 'a2345', points: 85 },
     { email: 'tsmachado40@gmail.com', studentId: null, points: 0 },
+    { email: 'tsmachado255@gmail.com', studentId: null, points: 0 },
     { email: 'bruno.host@ualg.pt', studentId: 'a3456', points: 230 },
     { email: 'carla.reporter@ualg.pt', studentId: 'a4567', points: 42 },
     { email: 'diogo.participant@ualg.pt', studentId: 'a5678', points: 57 },
@@ -180,7 +182,7 @@ async function seedUsersAndAuth(now: Date) {
                     email: u.email,
                     studentId: u.studentId,
                     points: u.points,
-                    image: (u as { image?: string | null }).image,
+                    image: getAvatarForUser(u.email),
                     emailVerified: now,
                 },
             })
@@ -289,6 +291,16 @@ async function seedSessionsAndReports(
             expectedEndTime: new Date(now.getTime() + 1000 * 60 * 45),
             status: SessionStatus.ACTIVE,
         },
+    });
+
+    await prisma.studySession.create({
+    data: {
+        spaceId: spaceByName['Mesa A3'].id,
+        hostId: userByEmail['tsmachado255@gmail.com'].id,
+        startTime: new Date(now.getTime() - 1000 * 60 * 20),
+        expectedEndTime: new Date(now.getTime() + 1000 * 60 * 12),
+        status: SessionStatus.ACTIVE,
+    },
     });
 
     const activeB2 = await prisma.studySession.create({
