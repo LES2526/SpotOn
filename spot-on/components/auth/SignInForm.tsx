@@ -9,13 +9,14 @@ function hasSpaces(email: string): boolean {
     return /\s/.test(email);
 }
 
-function isWrongDomain(email: string, domain: string): boolean {
+function isWrongDomain(email: string, domain: string | undefined): boolean {
+    if (!domain) return false;
     if (!email.includes("@")) return false;
     const [, emailDomain] = email.split("@");
     return !!emailDomain && !isEmailFromDomain(email, domain);
 }
 
-export default function SignInForm({ allowedDomain }: Readonly<{ allowedDomain: string }>) {
+export default function SignInForm({ allowedDomain }: Readonly<{ allowedDomain?: string }>) {
     const searchParams = useSearchParams();
     const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
 
@@ -86,7 +87,11 @@ export default function SignInForm({ allowedDomain }: Readonly<{ allowedDomain: 
             <div className="w-full max-w-md rounded-2xl bg-gray-900 p-8 shadow-lg">
                 <h2 className="text-2xl font-bold text-white mb-1">Entrar no Spot-On</h2>
                 <p className="text-gray-400 mb-6 text-sm">
-                    Usa o teu email institucional <span className="text-gray-300">@{allowedDomain}</span>
+                    {allowedDomain ? (
+                        <>Usa o teu email institucional <span className="text-gray-300">@{allowedDomain}</span></>
+                    ) : (
+                        <>Introduz o teu email para receberes um link de acesso.</>
+                    )}
                 </p>
                 <form onSubmit={handleSubmit} noValidate>
                     <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
@@ -97,7 +102,7 @@ export default function SignInForm({ allowedDomain }: Readonly<{ allowedDomain: 
                         type="email"
                         value={email}
                         onChange={handleEmailChange}
-                        placeholder={`utilizador@${allowedDomain}`}
+                        placeholder={allowedDomain ? `utilizador@${allowedDomain}` : "utilizador@exemplo.com"}
                         autoComplete="email"
                         className={`w-full rounded-lg border px-4 py-2.5 bg-gray-800 text-white placeholder-gray-500 outline-none transition
                             ${domainWarning
