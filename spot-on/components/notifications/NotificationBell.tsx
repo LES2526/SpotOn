@@ -14,6 +14,9 @@ function parseMessage(message: string): {
         if (parsed.text && parsed.requesterId && parsed.spaceId) {
             return { text: parsed.text, joinRequest: parsed };
         }
+        if (parsed.text) {
+            return { text: parsed.text };
+        }
     } catch {
         // not valid JSON — treat as plain text
     }
