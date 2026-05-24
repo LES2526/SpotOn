@@ -5,7 +5,6 @@ import { FloorPlanData } from "@/components/floor-plan/type";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import SpaceDetailPanel from "./SpaceDetailPanel";
-import SpacePanel from "../dashboard/SpacePanel";
 import SessionExpiryModal from "./SessionExpiryModal";
 
 type UserSession = {
@@ -38,11 +37,11 @@ export default function FloorPlanSection({ floorPlan, userSession }: Readonly<{ 
         setTimeout(() => setPointsToast(null), 2500);
     }
 
-    if (floorPlan.spaces.length === 0) {
-        return <p className="text-sm text-gray-500">Nenhum espaço encontrado neste piso.</p>;
-    }
     return (
         <div>
+            {floorPlan.spaces.length === 0 && (
+                <p className="text-sm text-gray-500 mb-4">Nenhum espaço encontrado para os filtros selecionados.</p>
+            )}
             {userSession && (
                 <SessionExpiryModal
                     spaceId={userSession.spaceId}
@@ -59,7 +58,6 @@ export default function FloorPlanSection({ floorPlan, userSession }: Readonly<{ 
                     </div>
                 </div>
             )}
-            <SpacePanel spaces={floorPlan.spaces} />
             <FloorPlanView
                 floorPlan={floorPlan}
                 selectedSpace={selectedSpace}
