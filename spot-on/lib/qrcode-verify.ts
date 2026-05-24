@@ -1,4 +1,4 @@
-import { clampToClosingTime, isBypassHoursEnabled, isAfterHours } from '@/lib/library-hours';
+import { clampToClosingTime, isAfterHours, isBypassHoursEnabled } from '@/lib/library-hours';
 import { prisma } from '@/lib/prisma';
 import { type VerifyResult, verifyQrCode } from '@/lib/qr-utils';
 import { requireAuth } from '@/lib/require-auth';
@@ -77,15 +77,10 @@ export async function handleQrVerification(request: Request) {
         if (!isBypassHoursEnabled()) {
             const [closingHours, closingMinutes] = process.env.LIBRARY_CLOSING_TIME?.split(':').map(Number) || [19, 30];
             const closingTotalMins = closingHours * 60 + closingMinutes;
-
             const now = new Date();
             const nowUTCMins = now.getUTCHours() * 60 + now.getUTCMinutes();
-
             if (closingTotalMins - nowUTCMins < defaultStudyDurationMinutes) {
-                return NextResponse.json(
-                    { error: 'after_hours' },
-                    { status: 400 }
-                );
+                return NextResponse.json({ error: 'after_hours' }, { status: 400 });
             }
         }
 
