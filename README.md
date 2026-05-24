@@ -704,8 +704,4 @@ Open the `.drawio` files in [draw.io](https://app.diagrams.net/) or the VS Code 
 - [Resend](https://resend.com/) — transactional email
 - [Railway](https://railway.app/) — hosting
 
----
 
-## License
-
-MIT
