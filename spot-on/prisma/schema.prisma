@@ -233,11 +233,10 @@ model JoinRequest {
   studySessionId String            @db.VarChar(30)
   createdAt      DateTime          @default(now())
   status         JoinRequestStatus @default(PENDING)
-  user           User              @relation(fields: [userId], references: [id])
-  space          Space             @relation(fields: [spaceId], references: [id])
-  studySession   StudySession      @relation(fields: [studySessionId], references: [id])
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  space          Space             @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  studySession   StudySession      @relation(fields: [studySessionId], references: [id], onDelete: Cascade)
 }
-
 
 /// User report about a study session.
 // --------------------------------------------

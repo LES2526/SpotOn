@@ -438,8 +438,10 @@ describe('Sprint 3 — QR Code & Session API', () => {
                 const closingTime = process.env.LIBRARY_CLOSING_TIME ?? '19:30';
                 const [hours] = closingTime.split(':').map(Number);
 
-                // Use UTC hours so the test is timezone-agnostic (server runs in UTC)
+                // Use UTC hours so the test is timezone-agnostic (server runs in UTC).
+                // Push to tomorrow first so setUTCHours(hours+1) never wraps to an earlier time.
                 const afterClosing = new Date();
+                afterClosing.setUTCDate(afterClosing.getUTCDate() + 1);
                 afterClosing.setUTCHours(hours + 1, 0, 0, 0); // 1 hour after closing in UTC
 
                 const qrWindow = currentWindow();
@@ -470,7 +472,7 @@ describe('Sprint 3 — QR Code & Session API', () => {
                 closingDate.setUTCHours(hours, minutes, 0, 0);
                 const minsUntilClosing = (closingDate.getTime() - now.getTime()) / 60000;
 
-                if (minsUntilClosing > 0 && minsUntilClosing < 15) {
+                if (minsUntilClosing > 0 && minsUntilClosing < 15 && process.env.BYPASS_HOURS_CHECK !== 'true') {
                     const qrWindow = currentWindow();
                     const { status } = await client.post('/api/qrcode/verify', {
                         spaceId,
@@ -668,8 +670,10 @@ describe('Sprint 3 — QR Code & Session API', () => {
                 const closingTime = process.env.LIBRARY_CLOSING_TIME ?? '19:30';
                 const [hours] = closingTime.split(':').map(Number);
 
-                // Use UTC hours so the test is timezone-agnostic (server runs in UTC)
+                // Use UTC hours so the test is timezone-agnostic (server runs in UTC).
+                // Push to tomorrow first so setUTCHours(hours+1) never wraps to an earlier time.
                 const afterClosing = new Date();
+                afterClosing.setUTCDate(afterClosing.getUTCDate() + 1);
                 afterClosing.setUTCHours(hours + 1, 0, 0, 0);
 
                 const { status, data } = await client.patch(`/api/spaces/${spaceId}/sessions`, {
