@@ -17,7 +17,7 @@ function SignInLoading() {
 export default function SignInPage() {
     return (
         <Suspense fallback={<SignInLoading />}>
-            <SignInForm allowedDomain={process.env.ALLOWED_EMAIL_DOMAIN!} />
+            <SignInForm allowedDomain={process.env.ALLOWED_EMAIL_DOMAIN} />
         </Suspense>
     );
 }

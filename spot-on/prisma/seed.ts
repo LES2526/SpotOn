@@ -74,6 +74,7 @@ const piso1SpacesData = [
     { name: 'Mesa P1-15', points: '1700,278 1749,278 1749,427 1700,427', capacity: 1, qr: 'qr-mesa-p1-15', type: SpaceType.INDIVIDUAL_DESK, hasPowerOutlet: false, description: 'Mesa piso 1' },
     { name: 'Mesa P1-19', points: '202,583 252,583 252,740 202,740', capacity: 1, qr: 'qr-mesa-p1-19', type: SpaceType.INDIVIDUAL_DESK, hasPowerOutlet: false, description: 'Mesa piso 1' },
     { name: 'Mesa P1-21', points: '202,856 252,856 252,1013 202,1013', capacity: 1, qr: 'qr-mesa-p1-21', type: SpaceType.INDIVIDUAL_DESK, hasPowerOutlet: false, description: 'Mesa piso 1' },
+
     { name: 'Mesa P1-25', points: '202,1170 252,1170 252,1327 202,1327', capacity: 1, qr: 'qr-mesa-p1-25', type: SpaceType.INDIVIDUAL_DESK, hasPowerOutlet: false, description: 'Mesa piso 1' },
     { name: 'Mesa P1-34', points: '929,1430 979,1430 979,1579 929,1579', capacity: 1, qr: 'qr-mesa-p1-34', type: SpaceType.INDIVIDUAL_DESK, hasPowerOutlet: false, description: 'Mesa piso 1' },
     { name: 'Mesa P1-35', points: '1112,1459 1161,1459 1161,1559 1112,1559', capacity: 1, qr: 'qr-mesa-p1-35', type: SpaceType.INDIVIDUAL_DESK, hasPowerOutlet: false, description: 'Mesa piso 1' },
