@@ -1035,23 +1035,106 @@ estática (\emph{CodeQL}) sobre o código TypeScript. A passagem de todos os
 % =====================================================
 \section{Deployment}
 
-\subsection{Execução Local}
+\subsection{Execução Local}\label{sec:local}
 
-A execução local recorre a \textbf{Docker Compose}, com dois serviços
-declarados em \texttt{spot-on/compose.yaml}: a aplicação Next.js (construída
-a partir de \texttt{spot-on/Dockerfile}) e a instância de PostgreSQL. Após
-clonar o repositório, a aplicação é colocada em execução com um único
-comando:
+A execução local da aplicação assenta em \textbf{Docker Compose}, com dois
+serviços declarados em \texttt{spot-on/compose.yaml}: o serviço \texttt{web}
+(aplicação Next.js, construída a partir de \texttt{spot-on/Dockerfile}) e o
+serviço \texttt{db} (instância de PostgreSQL 17). Importa sublinhar que o
+\textbf{mesmo \texttt{Dockerfile}} é reutilizado em produção pelo Railway
+(ver \S\ref{sec:railway} e \S\ref{sec:prod}), garantindo paridade total
+entre os dois ambientes.
+
+\paragraph{Pré-requisitos.}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Git} -- para clonar o repositório.
+    \item \textbf{Docker} e \textbf{Docker Compose} -- únicos requisitos
+          obrigatórios para o fluxo recomendado.
+    \item \textbf{GNU Make} (recomendado) -- simplifica o arranque para um
+          único comando; opcional, todas as operações podem ser invocadas
+          diretamente via \texttt{docker compose}.
+    \item \textbf{Node.js 20+} e \texttt{npm} -- apenas necessários para o
+          fluxo alternativo de execução do Next.js diretamente no \emph{host}.
+\end{itemize}
+
+\paragraph{Variáveis de ambiente.}
+O repositório inclui um ficheiro \texttt{spot-on/.env} com valores
+\emph{default} sensatos para desenvolvimento local, pelo que o \emph{stack}
+arranca sem necessidade de configuração adicional. As variáveis principais
+estão descritas em detalhe em \S\ref{sec:prod}; a única que pode requerer
+ajuste é \texttt{NEXTAUTH\_URL}, que tem de corresponder ao endereço real do
+\emph{host} (\texttt{localhost} para uso na própria máquina ou IP da LAN
+para teste em telemóvel via QR code).
+
+\paragraph{Opção A --- \emph{Makefile} (recomendada).}
+O ficheiro \texttt{spot-on/Makefile} encapsula as operações comuns em
+\emph{targets} nomeados. O arranque completo do \emph{stack} faz-se com:
 
 \begin{lstlisting}[language=bash]
-docker compose up --build
+make docker-recreate
 \end{lstlisting}
 
-O \emph{schema} da base de dados é aplicado no arranque do \emph{container}
-e o \emph{seed} é executado para popular as plantas, espaços e dados de
-demonstração. Importa sublinhar que o \textbf{mesmo \texttt{Dockerfile}} é
-reutilizado em produção pelo Railway (ver \S\ref{sec:railway} e
-\S\ref{sec:prod}), garantindo paridade total entre os dois ambientes.
+Este \emph{target} executa, em sequência: \texttt{docker compose down -v}
+$\to$ \texttt{build --no-cache} $\to$ \texttt{up -d} $\to$ aguarda que o
+\emph{container} \texttt{web} responda $\to$ executa \texttt{prisma generate}
+e \texttt{prisma db seed} $\to$ segue os \emph{logs}. No final, a aplicação
+está acessível em \href{http://localhost:3000}{\texttt{http://localhost:3000}}.
+
+\noindent Outros \emph{targets} úteis no dia-a-dia:
+
+\begin{itemize}[leftmargin=*]
+    \item \texttt{make docker-up} / \texttt{make docker-down} --- iniciar /
+          parar o \emph{stack} (com remoção de volumes).
+    \item \texttt{make docker-logs} --- seguir os \emph{logs} dos
+          \emph{containers}.
+    \item \texttt{make docker-seed} --- re-executar o \emph{seed} dentro do
+          \emph{container} \texttt{web} em execução.
+    \item \texttt{make test} / \texttt{make test-watch} --- executar a
+          \emph{suite} Jest (uma vez ou em \emph{watch mode}).
+    \item \texttt{make lint} / \texttt{make lint-fix} --- análise estática
+          ESLint (leitura ou auto-correção).
+    \item \texttt{make prisma-studio} --- abrir Prisma Studio (\emph{browser}
+          visual da base de dados em \texttt{http://localhost:5555}).
+    \item \texttt{make swagger-open} --- abrir a documentação Swagger UI no
+          \emph{browser} (\texttt{/api-doc}).
+    \item \texttt{make postman-ci} --- correr a \emph{suite}
+          \emph{end-to-end} Newman contra uma base de dados de teste
+          isolada.
+\end{itemize}
+
+\paragraph{Opção B --- Docker Compose (manual).}
+Equivalente direto da Opção A, sem o \emph{wrapper} do \emph{Makefile}.
+Reconstrução completa:
+
+\begin{lstlisting}[language=bash]
+docker compose down -v
+docker compose build --no-cache
+docker compose up -d
+docker compose logs -f web
+\end{lstlisting}
+
+O \emph{entrypoint} do \emph{container} \texttt{web} executa automaticamente
+\texttt{prisma generate}, aguarda a base de dados, aplica
+\texttt{prisma db push}, executa o \emph{seed} e inicia \texttt{next dev} ---
+não há passos manuais adicionais.
+
+\paragraph{Opção C --- Node.js no \emph{host} (alternativa).}
+Útil para iterações rápidas em macOS/Windows (\emph{file-watching} mais
+eficiente que dentro do \emph{container}). Apenas a base de dados é
+containerizada:
+
+\begin{lstlisting}[language=bash]
+npm install                     # inclui prisma generate via postinstall
+docker compose up -d db         # apenas o serviço Postgres
+npx prisma migrate dev          # aplica migrações
+npx prisma db seed              # popula a base de dados
+npm run dev                     # inicia o servidor de desenvolvimento
+\end{lstlisting}
+
+Em qualquer das opções, o \emph{seed} popula a base de dados com plantas dos
+pisos, espaços, utilizadores de demonstração, sessões ativas e
+\emph{reports}, permitindo experimentar imediatamente as funcionalidades sem
+necessidade de criar dados manualmente.
 
 \subsection{Ambiente de Produção (Railway)}\label{sec:prod}
 
