@@ -1,18 +1,12 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
-const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_SERVER_HOST,
-    port: Number(process.env.EMAIL_SERVER_PORT),
-    auth: {
-        user: process.env.EMAIL_SERVER_USER,
-        pass: process.env.EMAIL_SERVER_PASSWORD,
-    },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
+const FROM = process.env.EMAIL_FROM ?? 'Spot-On UAlg <onboarding@resend.dev>';
 
 /** Sends an email to the session host warning that their presence was questioned. */
 export async function sendProofOfPresenceEmail(to: string) {
-    await transporter.sendMail({
-        from: process.env.EMAIL_FROM,
+    await resend.emails.send({
+        from: FROM,
         to,
         subject: 'A tua presença foi questionada!',
         html: `
@@ -27,10 +21,9 @@ export async function sendProofOfPresenceEmail(to: string) {
 }
 
 /** Sends a join request notification email to the session host. */
-export async function sendJoinRequestEmail(to: string,
-    requesterEmail: string) {
-    await transporter.sendMail({
-        from: process.env.EMAIL_FROM,
+export async function sendJoinRequestEmail(to: string, requesterEmail: string) {
+    await resend.emails.send({
+        from: FROM,
         to,
         subject: 'Alguém quer juntar-se à tua sessão!',
         html: `
@@ -43,8 +36,8 @@ export async function sendJoinRequestEmail(to: string,
 
 /** Sends an email to a user whose join request was rejected. */
 export async function sendNotAcceptedJoinRequestEmail(to: string) {
-    await transporter.sendMail({
-        from: process.env.EMAIL_FROM,
+    await resend.emails.send({
+        from: FROM,
         to,
         subject: 'Pedido para juntar-se à sessão rejeitado',
         html: `
@@ -57,8 +50,8 @@ export async function sendNotAcceptedJoinRequestEmail(to: string) {
 
 /** Sends an email to a user whose join request was approved. */
 export async function sendApprovedJoinRequestEmail(to: string) {
-    await transporter.sendMail({
-        from: process.env.EMAIL_FROM,
+    await resend.emails.send({
+        from: FROM,
         to,
         subject: 'Pedido para juntar-se à sessão aprovado',
         html: `
@@ -71,8 +64,8 @@ export async function sendApprovedJoinRequestEmail(to: string) {
 
 /** Sends an email warning the session host that their session expires in 10 minutes. */
 export async function sendSessionExpiringSoonEmail(to: string) {
-    await transporter.sendMail({
-        from: process.env.EMAIL_FROM,
+    await resend.emails.send({
+        from: FROM,
         to,
         subject: 'O teu tempo está quase a acabar!',
         html: `
