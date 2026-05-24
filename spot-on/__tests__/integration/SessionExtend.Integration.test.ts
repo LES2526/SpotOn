@@ -11,8 +11,8 @@ jest.mock('@/app/api/auth/[...nextauth]/route', () => ({
 }));
 
 import { PATCH } from '@/app/api/spaces/[spaceId]/sessions/extend/route';
-import { prisma } from '@/lib/prisma';
 import type { FloorPlan, Space, User } from '@/app/generated/prisma';
+import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 
 describe('PATCH /api/spaces/[spaceId]/sessions/extend', () => {
