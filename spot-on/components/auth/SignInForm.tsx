@@ -3,7 +3,7 @@
 import { isEmailFromDomain } from "@/lib/auth-utils";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 function hasSpaces(email: string): boolean {
     return /\s/.test(email);
@@ -23,10 +23,32 @@ export default function SignInForm({ allowedDomain }: Readonly<{ allowedDomain: 
     const [submitted, setSubmitted] = useState(false);
     const [loading, setLoading] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
+    const [spaceWarning, setSpaceWarning] = useState(false);
+    const spaceWarningTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     function handleEmailChange(e: React.ChangeEvent<HTMLInputElement>) {
-        setEmail(e.target.value.replace(/\s/g, ""));
+        const value = e.target.value;
+        if (hasSpaces(value)) {
+            setSpaceWarning(true);
+            if (spaceWarningTimeoutRef.current) {
+                clearTimeout(spaceWarningTimeoutRef.current);
+            }
+            spaceWarningTimeoutRef.current = setTimeout(() => {
+                setSpaceWarning(false);
+            }, 2000);
+            setEmail(value.replace(/\s/g, ""));
+        } else {
+            setEmail(value);
+        }
     }
+
+    useEffect(() => {
+        return () => {
+            if (spaceWarningTimeoutRef.current) {
+                clearTimeout(spaceWarningTimeoutRef.current);
+            }
+        };
+    }, []);
 
     async function handleSubmit(e: React.SyntheticEvent) {
         e.preventDefault();
@@ -83,7 +105,10 @@ export default function SignInForm({ allowedDomain }: Readonly<{ allowedDomain: 
                                 : "border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
                             }`}
                     />
-                    {domainWarning && (
+                    {spaceWarning && (
+                        <p className="mt-1.5 text-sm text-red-400">O email não pode conter espaços.</p>
+                    )}
+                    {!spaceWarning && domainWarning && (
                         <p className="mt-1.5 text-sm text-yellow-400">
                             Este email não é do domínio @{allowedDomain}. O acesso pode ser recusado.
                         </p>
