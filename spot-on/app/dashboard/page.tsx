@@ -91,7 +91,7 @@ export default async function DashboardPage({ searchParams }: Readonly<{ searchP
 
     if (!floorPlan) {
         return (
-            <main className="min-h-screen bg-gray-950 p-8 text-white">
+            <main className="min-h-screen bg-gray-950 p-4 md:p-8 text-white">
                 <p className="text-gray-500">Nenhuma planta disponível.</p>
             </main>
         );
