@@ -108,7 +108,8 @@ export async function PATCH(_request: Request, { params }: Params) {
             select: { email: true },
         });
         if (requester?.email) {
-            await sendNotAcceptedJoinRequestEmail(requester.email);
+            sendNotAcceptedJoinRequestEmail(requester.email).catch(err =>
+                console.error('Failed to send rejected join request email:', err));
         }
         return NextResponse.json(rejectJoinRequest, { status: 200 });
     } catch (error) {
