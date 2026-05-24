@@ -7,7 +7,7 @@ export default function Home() {
                 className="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat"
                 style={{
                     backgroundImage:
-                        "url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1200&q=80')",
+                        "url('/background_home.png')",
                 }}
             >
                 <div className="absolute inset-0 bg-black/40" />
