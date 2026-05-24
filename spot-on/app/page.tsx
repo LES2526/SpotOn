@@ -2,20 +2,27 @@ import ButtonDefault from "../components/button/ButtonDefault";
 
 export default function Home() {
     return (
-        <main className="min-h-screen">
+        <main className="relative min-h-screen">
             <div
-                className="min-h-screen flex items-center justify-center bg-cover bg-center"
+                className="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat"
                 style={{
                     backgroundImage:
-                        "url('https://www.taglivros.com/blog/wp-content/uploads/2020/09/Post-Instagram-1000x1000.png')",
+                        "url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1200&q=80')",
                 }}
             >
-                <div className="w-full max-w-md rounded-2xl bg-white/90 p-8 shadow-lg backdrop-blur">
-                    <div className="flex flex-col items-center justify-center min-h-screen gap-6">
-                        <h1 className="text-3xl font-bold">Bem-vindo ao SpotON!</h1>
-                        <ButtonDefault href="/dashboard">ENTRAR</ButtonDefault>                    </div>
+                <div className="absolute inset-0 bg-black/40" />
+
+                <div className="relative z-10 w-full max-w-md rounded-2xl bg-white/90 p-8 shadow-lg backdrop-blur mx-4">
+                    <div className="flex flex-col items-center gap-6">
+                        <h1 className="text-3xl font-bold text-center">Bem-vindo ao SpotON!</h1>
+                        <ButtonDefault href="/dashboard">ENTRAR</ButtonDefault>
+                    </div>
                 </div>
             </div>
+
+            <p className="absolute bottom-4 right-4 text-xs text-white/70 z-10">
+                Projeto Académico · LES 25/26
+            </p>
         </main>
     );
 }
