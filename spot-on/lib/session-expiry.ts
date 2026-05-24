@@ -15,6 +15,9 @@ function unrefTimer(timer: ReturnType<typeof setTimeout>) {
     timer.unref?.();
 }
 
+const expiryTimers = new Map<string, ReturnType<typeof setTimeout>>();
+const warningTimers = new Map<string, ReturnType<typeof setTimeout>>();
+
 
 /**
  * Marks a single session as EXPIRED.
@@ -87,28 +90,45 @@ export async function sendExpiryWarning(sessionId: string): Promise<void> {
  * @param expectedEndTime - The time at which the session should expire
  */
 export function scheduleSessionExpiry(sessionId: string, expectedEndTime: Date): void {
+    // Cancel any existing timers for this session (e.g. after an extend)
+    const prevWarning = warningTimers.get(sessionId);
+    if (prevWarning) { clearTimeout(prevWarning); warningTimers.delete(sessionId); }
+    const prevExpiry = expiryTimers.get(sessionId);
+    if (prevExpiry) { clearTimeout(prevExpiry); expiryTimers.delete(sessionId); }
+
     const delay = expectedEndTime.getTime() - Date.now();
     if (delay <= 0) {
-        // Already expired — use a 0 ms timer so async test runners can track it
         console.log(`Session ${sessionId} already expired, marking EXPIRED immediately`);
         const timer = setTimeout(() => markSessionExpired(sessionId), 0);
         unrefTimer(timer);
         return;
     }
 
-    const warningDelay = delay - 10 * 60 * 1000;
     console.log(`Session ${sessionId} scheduled to expire in ${Math.round(delay / 1000)}s`);
 
+    const warningDelay = delay - 10 * 60 * 1000;
     if (warningDelay > 0) {
-        const warningTimer = setTimeout(() => sendExpiryWarning(sessionId), warningDelay);
+        const warningTimer = setTimeout(() => {
+            sendExpiryWarning(sessionId);
+            warningTimers.delete(sessionId);
+        }, warningDelay);
         unrefTimer(warningTimer);
+        warningTimers.set(sessionId, warningTimer);
     } else {
-        const warningTimer = setTimeout(() => sendExpiryWarning(sessionId), 0);
+        const warningTimer = setTimeout(() => {
+            sendExpiryWarning(sessionId);
+            warningTimers.delete(sessionId);
+        }, 0);
         unrefTimer(warningTimer);
+        warningTimers.set(sessionId, warningTimer);
     }
 
-    const expiryTimer = setTimeout(() => markSessionExpired(sessionId), delay);
+    const expiryTimer = setTimeout(() => {
+        markSessionExpired(sessionId);
+        expiryTimers.delete(sessionId);
+    }, delay);
     unrefTimer(expiryTimer);
+    expiryTimers.set(sessionId, expiryTimer);
 }
 
 
