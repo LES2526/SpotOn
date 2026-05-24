@@ -114,6 +114,13 @@ export function scheduleSessionExpiry(sessionId: string, expectedEndTime: Date):
         }, warningDelay);
         unrefTimer(warningTimer);
         warningTimers.set(sessionId, warningTimer);
+    } else {
+        const warningTimer = setTimeout(() => {
+            sendExpiryWarning(sessionId);
+            warningTimers.delete(sessionId);
+        }, 0);
+        unrefTimer(warningTimer);
+        warningTimers.set(sessionId, warningTimer);
     }
 
     const expiryTimer = setTimeout(() => {
