@@ -1,4 +1,4 @@
-import { clampToClosingTime, isBypassHoursEnabled, isAfterHours } from '@/lib/library-hours';
+import { clampToClosingTime, isAfterHours, isBypassHoursEnabled } from '@/lib/library-hours';
 import { prisma } from '@/lib/prisma';
 import { type VerifyResult, verifyQrCode } from '@/lib/qr-utils';
 import { requireAuth } from '@/lib/require-auth';

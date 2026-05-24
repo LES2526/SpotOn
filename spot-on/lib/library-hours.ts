@@ -1,3 +1,6 @@
+export function isBypassHoursEnabled(): boolean {
+    return process.env.BYPASS_HOURS_CHECK === 'true';
+}
 
 /** Returns true when the hours check should be skipped (for testing purposes). */
 export function isBypassHoursEnabled(): boolean {
