@@ -15,19 +15,20 @@ A modern web app that lets students view live occupancy, check in via QR codes, 
 5. [Quick Start](#quick-start)
 6. [Environment Variables](#environment-variables)
 7. [Sign-in & Mobile Access](#sign-in--mobile-access)
-8. [Running the Project](#running-the-project)
+8. [Demo Walkthrough](#demo-walkthrough)
+9. [Running the Project](#running-the-project)
     - [Option A — Makefile (recommended)](#option-a--makefile-recommended)
     - [Option B — Docker Compose (manual)](#option-b--docker-compose-manual)
     - [Option C — Local Node.js (manual)](#option-c--local-nodejs-manual)
     - [Option D — Deploy to Railway (optional)](#option-d--deploy-to-railway-optional)
-9. [Database Workflow](#database-workflow)
-10. [Testing](#testing)
-11. [API Documentation](#api-documentation)
-12. [Project Structure](#project-structure)
-13. [Architecture & Diagrams](#architecture--diagrams)
-14. [Team](#team)
-15. [Acknowledgments](#acknowledgments)
-16. [License](#license)
+10. [Database Workflow](#database-workflow)
+11. [Testing](#testing)
+12. [API Documentation](#api-documentation)
+13. [Project Structure](#project-structure)
+14. [Architecture & Diagrams](#architecture--diagrams)
+15. [Team](#team)
+16. [Acknowledgments](#acknowledgments)
+17. [License](#license)
 
 ---
 
@@ -221,6 +222,124 @@ make docker-recreate
 On your phone (same Wi-Fi), open `http://<your-ip>:3000` and scan a space's QR code.
 
 > **Deploying to Railway?** Skip all of the above. Railway gives you a public HTTPS URL reachable from any device on any network — set `NEXTAUTH_URL` once to the Railway-provided domain and the phone just works.
+
+---
+
+## Demo Walkthrough
+
+In production, each library space has a physical QR code stuck on it. For local evaluation, the app exposes a **viewer route** that renders the live rotating QR for any space on screen, so you can scan it with your phone as if you were standing in front of the real one.
+
+The full demo needs **one host machine** (running the app) and **two phones** (or two browser profiles) so you can play two different users at once.
+
+### Step 1 — Pick a space and grab its ID
+
+**1.** Make sure the stack is running:
+
+```bash
+make docker-up
+```
+
+**2.** Open Prisma Studio:
+
+```bash
+make prisma-studio
+```
+
+Or directly: [http://localhost:5555](http://localhost:5555).
+
+**3.** Open the `Space` table. The seed data ships with a handful of spaces (e.g. study tables on each floor). Copy the `id` value of whichever row you want to demo — it'll look something like `clx1a2b3c4d5e6f7g8h9`.
+
+### Step 2 — Display the QR code on the host machine
+
+On your host browser (laptop/desktop), open the **QR viewer** for the space you just copied:
+
+```text
+http://<your-lan-ip>:3000/qrcode/<space-id>
+```
+
+Example:
+
+```text
+http://192.168.1.42:3000/qrcode/clx1a2b3c4d5e6f7g8h9
+```
+
+> The QR shown there is the **same dynamic token** that would appear on a printed sticker in the real library, refreshed automatically. This screen replaces the physical sign for demo purposes.
+
+### Step 3 — Phone 1: check in (host the session)
+
+**1.** Sign in on Phone 1 with **Account A** (an `@ualg.pt` address — or any address if `ALLOW_ANY_EMAIL_IN_DEV=true` in your `.env`). The magic link arrives via Resend.
+
+**2.** From Phone 1, go to `http://<your-lan-ip>:3000` and use the in-app scanner (the **QR icon in the dashboard**), or open the camera app and scan the QR currently displayed on the host browser.
+
+**3.** Phone 1 is now the **host** of an active study session on that space. The space turns "occupied" on the floor plan for everyone else.
+
+### Step 4 — Phone 2: join or report
+
+Phone 2 plays a **second user** (Account B) — a colleague who walks up to the same space and either wants to join or thinks it's being misused.
+
+**1.** Sign in on Phone 2 with **Account B** (a different email from Account A).
+
+**2.** Scan the same QR shown on the host browser, OR open the space directly from the floor plan / dashboard.
+
+You can now demonstrate either flow:
+
+#### Flow A — Request to join the session
+
+- Scanning the QR from a logged-in second account auto-fires a request against `POST /api/spaces/<id>/sessions/join-session`. You'll also see a **Request to join** button in the space's detail panel as a manual entry point.
+- A notification arrives on **Phone 1** (the host) via the in-app bell.
+- The host taps **Approve** or **Reject**. If approved, Phone 2 is added to the session and the occupant counter on the floor plan goes up by one.
+- Phone 2 also receives a notification with the host's decision.
+
+#### Flow B — Report the space (occupancy abuse)
+
+- On Phone 2, open the space's detail panel and tap **Report** — pick a reason (e.g. "table left empty for over an hour").
+- The report is now `OPEN` and visible to anyone who opens that space.
+- The host (Phone 1) is notified via the bell.
+
+### More flows worth demoing
+
+These build on the same two-phone setup from Steps 1–4. None of them require a fresh stack — just keep playing.
+
+#### Flow C — Extend the session or check out early (host)
+
+- On Phone 1, open the active session panel for the space.
+- Tap **Extend** to push `expectedEndTime` forward. The new end time is clamped to `LIBRARY_CLOSING_TIME` so you can't extend past closing.
+- Tap **Check out** to end the session manually — the space immediately turns "available" on the floor plan, the host gets points awarded (`calculateCheckoutPoints`), and any joined guests are removed.
+
+#### Flow D — Confirm a report (third user)
+
+This needs a **third user** — open a new incognito window or a third device and sign in as **Account C**.
+
+- Navigate to the space that was reported in Flow B.
+- Tap **Confirm report** on the active report shown in the panel.
+- Once the confirmation threshold is reached, the host gets escalated notifications and the system can force a checkout. The report transitions toward `RESOLVED`.
+
+#### Flow E — Library closing hours enforcement
+
+The app refuses check-ins outside library opening hours by default.
+
+**1.** In [`spot-on/.env`](spot-on/.env), set `LIBRARY_CLOSING_TIME` to a couple of minutes from now — for example, `15:32` if it's currently 15:30:
+
+```bash
+LIBRARY_CLOSING_TIME=15:32
+```
+
+**2.** Recreate the stack so the change takes effect:
+
+```bash
+make docker-recreate
+```
+
+**3.** Before `15:32`, scan a QR — the check-in succeeds but `expectedEndTime` is capped at the closing time. After `15:32`, scan again — the API rejects the request and the UI shows a "library closed" state.
+
+**4.** To bypass this enforcement during regular development, set `BYPASS_HOURS_CHECK=true` in `.env` and recreate.
+
+### Tips for live demos
+
+- **No second phone?** Use two browser profiles (Chrome regular + Chrome incognito, or Chrome + Safari). Magic-link sign-in works identically there.
+- **Magic-link not arriving?** Without a valid `RESEND_API_KEY` and a verified `EMAIL_FROM` domain, the email is silently dropped. Either configure Resend properly, or check the **Resend dashboard → Logs** for the magic-link URL and paste it into the browser by hand.
+- The **leaderboard** ([`/leaderboard`](http://localhost:3000/leaderboard)) and **profile** ([`/profile`](http://localhost:3000/profile)) pages refresh as sessions complete and badges unlock — a nice closing slide for a demo.
+- Auto-checkout runs on a `node-cron` schedule; to demo expiry-based behaviour, either let a short session expire naturally or use Flow E with a near-future `LIBRARY_CLOSING_TIME`.
 
 ---
 
