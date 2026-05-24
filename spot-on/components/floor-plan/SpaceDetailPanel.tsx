@@ -39,6 +39,32 @@ export default function SpaceDetailPanel({ space, onCheckoutSuccess }: Readonly<
 
   const typeLabel = space.type === "GROUP_ROOM" ? "Sala de grupo" : "Mesa individual";
 
+  const otherParticipants = space.participantsList.filter(p => !p.isHost);
+  const hostAlone = space.currentUserIsHost && otherParticipants.length === 0;
+  const hostWithMembers = space.currentUserIsHost && otherParticipants.length > 0;
+  const nextHost = hostWithMembers ? otherParticipants[0] : null;
+
+  let checkoutTitle: string;
+  let checkoutDetail: string;
+  let checkoutButtonLabel: string;
+  let checkoutLoadingLabel: string;
+  if (hostAlone) {
+    checkoutTitle = "Tens a certeza que queres terminar a sessão?";
+    checkoutDetail = "Não há mais participantes. A sessão será encerrada.";
+    checkoutButtonLabel = "Terminar sessão";
+    checkoutLoadingLabel = "A terminar...";
+  } else if (hostWithMembers) {
+    checkoutTitle = "Tens a certeza que queres sair da sessão?";
+    checkoutDetail = `A liderança passa para ${nextHost!.email} e a sessão continua para os restantes participantes.`;
+    checkoutButtonLabel = "Sair da sessão";
+    checkoutLoadingLabel = "A sair...";
+  } else {
+    checkoutTitle = "Tens a certeza que queres sair da sessão?";
+    checkoutDetail = "Sais apenas tu. A sessão continua para os restantes participantes.";
+    checkoutButtonLabel = "Sair da sessão";
+    checkoutLoadingLabel = "A sair...";
+  }
+
   return (
     <div className="p-4 text-white">
       <div className="mb-4">
@@ -116,18 +142,19 @@ export default function SpaceDetailPanel({ space, onCheckoutSuccess }: Readonly<
               onClick={() => setShowConfirm(true)}
               className="w-full rounded-lg px-4 py-2.5 text-sm font-medium text-orange-400 border border-orange-900 hover:bg-orange-950 transition-colors"
             >
-              Sair da sessão
+              {checkoutButtonLabel}
             </button>
           ) : (
             <div className="rounded-lg border border-orange-900 bg-orange-950/40 p-3 flex flex-col gap-2">
-              <p className="text-sm text-orange-300">A sessão vai encerrar. Tens a certeza?</p>
-              <div className="flex gap-2">
+              <p className="text-sm font-medium text-orange-200">{checkoutTitle}</p>
+              <p className="text-xs text-orange-300/80">{checkoutDetail}</p>
+              <div className="flex gap-2 mt-1">
                 <button
                   onClick={handleCheckout}
                   disabled={checkoutLoading}
                   className="flex-1 rounded px-3 py-1.5 text-sm font-medium bg-orange-600 hover:bg-orange-700 text-white transition-colors disabled:opacity-50"
                 >
-                  {checkoutLoading ? "A sair..." : "Confirmar"}
+                  {checkoutLoading ? checkoutLoadingLabel : "Confirmar"}
                 </button>
                 <button
                   onClick={() => setShowConfirm(false)}

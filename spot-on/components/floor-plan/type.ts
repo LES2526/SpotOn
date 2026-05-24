@@ -12,6 +12,7 @@ export type SpaceMarker = {
     isOccupied: boolean;
     expectedEndTime: Date | null;
     currentUserIsInSession: boolean;
+    currentUserIsHost: boolean;
     currentOcuppants: number;
     participantsList: {id:string; name:string | null; email: string; isHost: boolean}[];
 };
