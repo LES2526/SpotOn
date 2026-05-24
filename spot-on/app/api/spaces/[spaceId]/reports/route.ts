@@ -162,7 +162,8 @@ export const POST = async (_request: Request, props: Params) => {
             select: { email: true },
         });
         if (host?.email) {
-            sendProofOfPresenceEmail(host.email);
+            sendProofOfPresenceEmail(host.email).catch(err =>
+                console.error('Failed to send proof of presence email:', err));
         }
         await createNotification(
             activeSession.hostId,

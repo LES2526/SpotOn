@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import type { CreateEmailOptions } from 'resend';
 
 const FROM = process.env.EMAIL_FROM ?? 'Spot-On UAlg <onboarding@resend.dev>';
 
@@ -6,9 +7,24 @@ function getResend() {
     return new Resend(process.env.RESEND_API_KEY);
 }
 
+async function sendOrThrow(payload: CreateEmailOptions) {
+    const { data, error } = await getResend().emails.send(payload);
+    if (error) {
+        const message = `Resend ${error.name}: ${error.message}`;
+        console.error('[Resend] send failed', {
+            from: payload.from,
+            to: payload.to,
+            subject: payload.subject,
+            error,
+        });
+        throw new Error(message);
+    }
+    return data;
+}
+
 /** Sends an email to the session host warning that their presence was questioned. */
 export async function sendProofOfPresenceEmail(to: string) {
-    await getResend().emails.send({
+    await sendOrThrow({
         from: FROM,
         to,
         subject: 'A tua presença foi questionada!',
@@ -25,7 +41,7 @@ export async function sendProofOfPresenceEmail(to: string) {
 
 /** Sends a join request notification email to the session host. */
 export async function sendJoinRequestEmail(to: string, requesterEmail: string) {
-    await getResend().emails.send({
+    await sendOrThrow({
         from: FROM,
         to,
         subject: 'Alguém quer juntar-se à tua sessão!',
@@ -39,7 +55,7 @@ export async function sendJoinRequestEmail(to: string, requesterEmail: string) {
 
 /** Sends an email to a user whose join request was rejected. */
 export async function sendNotAcceptedJoinRequestEmail(to: string) {
-    await getResend().emails.send({
+    await sendOrThrow({
         from: FROM,
         to,
         subject: 'Pedido para juntar-se à sessão rejeitado',
@@ -53,7 +69,7 @@ export async function sendNotAcceptedJoinRequestEmail(to: string) {
 
 /** Sends an email to a user whose join request was approved. */
 export async function sendApprovedJoinRequestEmail(to: string) {
-    await getResend().emails.send({
+    await sendOrThrow({
         from: FROM,
         to,
         subject: 'Pedido para juntar-se à sessão aprovado',
@@ -67,7 +83,7 @@ export async function sendApprovedJoinRequestEmail(to: string) {
 
 /** Sends an email warning the session host that their session expires in 10 minutes. */
 export async function sendSessionExpiringSoonEmail(to: string) {
-    await getResend().emails.send({
+    await sendOrThrow({
         from: FROM,
         to,
         subject: 'O teu tempo está quase a acabar!',
@@ -81,7 +97,7 @@ export async function sendSessionExpiringSoonEmail(to: string) {
 
 /** Sends the magic-link verification email for sign-in. */
 export async function sendVerificationEmail(to: string, url: string) {
-    await getResend().emails.send({
+    await sendOrThrow({
         from: FROM,
         to,
         subject: 'Entrar no Spot-On',
