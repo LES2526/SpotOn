@@ -18,6 +18,7 @@ function toSvgCoords(svgEl: SVGSVGElement, clientX: number, clientY: number) {
     return pt.matrixTransform(svgEl.getScreenCTM()!.inverse());
 }
 
+
 function ZoomControls() {
     const { zoomIn, zoomOut, resetTransform } = useControls();
     const btnClass = "flex h-9 w-9 items-center justify-center rounded-lg bg-gray-900/80 text-white hover:bg-gray-800 border border-gray-600 transition-colors";
@@ -69,5 +70,6 @@ export default function FloorPlanView({ floorPlan, selectedSpace, onSelectSpace 
                 </TransformComponent>
             </TransformWrapper>
         </div>
+
     );
 }
