@@ -30,7 +30,9 @@ export default function OccupyButton({
   if (isOccupied && showConfirm) {
     return (
       <div className="mt-2 rounded border border-red-900 bg-red-950/40 p-3 flex flex-col gap-2">
-        <p className="text-sm text-red-300">Vais desfazer a sessão de estudo, tens a certeza?</p>
+        <p className="text-sm text-red-300">
+          Vais desfazer a sessão de estudo, tens a certeza?
+        </p>
         <div className="flex gap-2">
           <button
             onClick={handleClick}
@@ -57,7 +59,7 @@ export default function OccupyButton({
       disabled={loading || (!isOccupied && !!isFull)}
       className={`mt-2 w-full rounded px-4 py-2 text-white font-medium transition-colors disabled:opacity-50 ${isOccupied ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"}`}
     >
-      {isOccupied ? "Terminar sessão" : loading ? "..." : "Ocupar"}
+      {isOccupied ? "Desfazer Sessão" : loading ? "..." : "Ocupar"}
     </button>
   );
 }
