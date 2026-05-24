@@ -89,19 +89,25 @@ export default function QRCodeContent() {
         occupySpace();
     }, [isInvalidQr, spaceId, qrWindow, sig]);
 
+    const [joinError, setJoinError] = useState<string | null>(null);
+
     const joinSession = async () => {
         try {
             const response = await fetch(`/api/spaces/${spaceId}/sessions/join-session`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ qrWindow, sig }),
             });
             if (response.ok) {
                 setIsJoin(true);
                 setStatus('success');
             } else {
+                const data = await response.json().catch(() => ({}));
+                setJoinError(data.error ?? `Pedido falhou (HTTP ${response.status})`);
                 setStatus('error');
             }
         } catch {
+            setJoinError('Erro de rede');
             setStatus('error');
         }
     };
@@ -134,7 +140,7 @@ export default function QRCodeContent() {
             )}
             {status === 'user_occupied' && <UserOccupiedStatus />}
             {status === 'expired' && <ExpiredStatus />}
-            {status === 'error' && <ErrorStatus />}
+            {status === 'error' && <ErrorStatus message={joinError} />}
             {status === 'after_hours' && <AfterHoursStatus />}
         </div>
     );

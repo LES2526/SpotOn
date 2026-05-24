@@ -23,6 +23,10 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import NextAuth, { type NextAuthOptions } from "next-auth";
 import EmailProvider from "next-auth/providers/email";
 
+const smtpPort = process.env.EMAIL_SERVER_PORT
+    ? Number.parseInt(process.env.EMAIL_SERVER_PORT, 10)
+    : undefined;
+
 /**
  * @swagger
  * /api/auth/{...nextauth}:
@@ -81,30 +85,16 @@ export const authOptions: NextAuthOptions = {
      */
     providers: [
         EmailProvider({
-            /**
-             * SMTP server configuration for sending magic links.
-             * Uses Gmail SMTP by default.
-             *
-             * @constant {Object|string}
-             * @see {@link https://nodemailer.com/smtp/|Nodemailer SMTP Configuration}
-             */
+            from: process.env.EMAIL_FROM,
+            maxAge: 300,
             server: {
                 host: process.env.EMAIL_SERVER_HOST,
-                port: Number(process.env.EMAIL_SERVER_PORT),
+                port: smtpPort ?? 587,
                 auth: {
                     user: process.env.EMAIL_SERVER_USER,
                     pass: process.env.EMAIL_SERVER_PASSWORD,
                 },
             },
-            from: process.env.EMAIL_FROM,
-            /**
-             * Token expiration time in seconds.
-             * Set to 5 minutes (300 seconds) for security.
-             *
-             * @constant {number}
-             * @default 300
-             */
-            maxAge: 300,
         }),
     ],
 
