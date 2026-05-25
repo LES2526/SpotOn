@@ -309,26 +309,6 @@ These build on the same two-phone setup from Steps 1–4. None of them require a
 - Tap **Extend** to push `expectedEndTime` forward. The new end time is clamped to `LIBRARY_CLOSING_TIME` so you can't extend past closing.
 - Tap **Check out** to end the session manually — the space immediately turns "available" on the floor plan, the host gets points awarded (`calculateCheckoutPoints`), and any joined guests are removed.
 
-#### Flow D — Library closing hours enforcement
-
-The app refuses check-ins outside library opening hours by default.
-
-**1.** In [`spot-on/.env`](spot-on/.env), set `LIBRARY_CLOSING_TIME` to a couple of minutes from now — for example, `15:32` if it's currently 15:30:
-
-```bash
-LIBRARY_CLOSING_TIME=15:32
-```
-
-**2.** Recreate the stack so the change takes effect:
-
-```bash
-make docker-recreate
-```
-
-**3.** Before `15:32`, scan a QR — the check-in succeeds but `expectedEndTime` is capped at the closing time. After `15:32`, scan again — the API rejects the request and the UI shows a "library closed" state.
-
-**4.** To bypass this enforcement during regular development, set `BYPASS_HOURS_CHECK=true` in `.env` and recreate.
-
 ### Tips for live demos
 
 - **No second phone?** Use two browser profiles (Chrome regular + Chrome incognito, or Chrome + Safari). Magic-link sign-in works identically there.
