@@ -309,15 +309,7 @@ These build on the same two-phone setup from Steps 1–4. None of them require a
 - Tap **Extend** to push `expectedEndTime` forward. The new end time is clamped to `LIBRARY_CLOSING_TIME` so you can't extend past closing.
 - Tap **Check out** to end the session manually — the space immediately turns "available" on the floor plan, the host gets points awarded (`calculateCheckoutPoints`), and any joined guests are removed.
 
-#### Flow D — Confirm a report (third user)
-
-This needs a **third user** — open a new incognito window or a third device and sign in as **Account C**.
-
-- Navigate to the space that was reported in Flow B.
-- Tap **Confirm report** on the active report shown in the panel.
-- Once the confirmation threshold is reached, the host gets escalated notifications and the system can force a checkout. The report transitions toward `RESOLVED`.
-
-#### Flow E — Library closing hours enforcement
+#### Flow D — Library closing hours enforcement
 
 The app refuses check-ins outside library opening hours by default.
 
