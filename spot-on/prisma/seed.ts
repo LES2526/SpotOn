@@ -35,7 +35,7 @@ async function cleanup() {
 // ============================================================
 
 const piso0SpacesData = [
-    { name: 'Mesa A1', points: '476,309 524,309 524,505 476,505', capacity: 1, qr: 'qr-mesa-a1', type: SpaceType.INDIVIDUAL_DESK, hasPowerOutlet: true, description: 'Mesa individual junto a janela' },
+    { name: 'Mesa A1', points: '476,309 524,309 524,505 476,505', capacity: 6, qr: 'qr-mesa-a1', type: SpaceType.INDIVIDUAL_DESK, hasPowerOutlet: true, description: 'Mesa individual junto a janela' },
     { name: 'Mesa A2', points: '656,321 703,321 703,470 656,470', capacity: 1, qr: 'qr-mesa-a2', type: SpaceType.INDIVIDUAL_DESK, hasPowerOutlet: false, description: 'Mesa individual sem tomada' },
     { name: 'Mesa A3', points: '900,602 948,602 948,702 900,702', capacity: 1, qr: 'qr-mesa-a3', type: SpaceType.INDIVIDUAL_DESK, hasPowerOutlet: true, description: 'Mesa silenciosa' },
     { name: 'Mesa A4', points: '1000,602 1052,602 1052,702 1000,702', capacity: 4, qr: 'qr-mesa-a4', type: SpaceType.INDIVIDUAL_DESK, hasPowerOutlet: true, description: 'Mesa individual no corredor central' },
