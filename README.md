@@ -122,7 +122,7 @@ cd SpotOn/spot-on
 make docker-recreate
 ```
 
-Open [http://localhost:3000](http://localhost:3000) (or `http://<your-lan-ip>:3000` from any device on the same Wi-Fi) — you should see the landing page. The stack rebuilds the images, starts Postgres + the web service, waits until the app responds, applies the schema, seeds the database, and tails the logs.
+Open `http://<your-lan-ip>:3000` from any device on the same Wi-Fi (or [http://localhost:3000](http://localhost:3000) on the same machine) — you should see the landing page. The stack rebuilds the images, starts Postgres + the web service, waits until the app responds, applies the schema, seeds the database, and tails the logs.
 
 A working [`spot-on/.env`](spot-on/.env) is already committed with sensible local-dev defaults, so there's no file to copy. Don't have `make`? Jump to [Option B](#option-b--docker-compose-manual) for the equivalent raw `docker compose` commands.
 
@@ -330,7 +330,7 @@ The [`Makefile`](spot-on/Makefile) wraps every common command into a single, nam
 make docker-recreate
 ```
 
-It runs, in order: `docker compose down -v` → `build --no-cache` → `up -d` → waits for the web container to respond → executes `prisma generate` + `prisma db seed` inside it → streams the logs. When it finishes, the app is live at [http://localhost:3000](http://localhost:3000) or at `http://<your-lan-ip>:3000` from any device on the same Wi-Fi.
+It runs, in order: `docker compose down -v` → `build --no-cache` → `up -d` → waits for the web container to respond → executes `prisma generate` + `prisma db seed` inside it → streams the logs. When it finishes, the app is live at `http://<your-lan-ip>:3000` (any device on the same Wi-Fi) or [http://localhost:3000](http://localhost:3000) on the same machine.
 
 **Targets you'll use day to day:**
 
@@ -678,5 +678,3 @@ Open the `.drawio` files in [draw.io](https://app.diagrams.net/) or the VS Code 
 - [Prisma](https://www.prisma.io/) — ORM
 - [Resend](https://resend.com/) — transactional email
 - [Railway](https://railway.app/) — hosting
-
-
