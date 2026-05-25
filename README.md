@@ -5,6 +5,9 @@
 A modern web app that lets students view live occupancy, check in via QR codes, collaborate in study sessions, earn badges, and report misuse — while library staff get a clear view of how their space is being used.
 
 ---
+## 🌐 Live Demo
+**[https://spoton.up.railway.app/](https://spoton.up.railway.app/)**
+---
 
 ## Table of Contents
 
