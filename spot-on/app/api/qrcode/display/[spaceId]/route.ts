@@ -47,6 +47,12 @@ type Params = { params: Promise<{ spaceId: string }> };
  *                   type: string
  *                   description: A fully-formed URL to be encoded into a QR image, valid for ~10 seconds.
  *                   example: "http://localhost:3000/qrcode?spaceId=abc123&window=348305280&sig=a3f9c2d1..."
+ *                 isOccupied:
+ *                   type: boolean
+ *                   description: Whether the space currently has an active session
+ *                 currentQrToken:
+ *                   type: string
+ *                   description: The current static QR token for the space (used by the report flow)
  *       400:
  *         description: Bad Request - spaceId is missing
  *       404:

@@ -26,23 +26,69 @@ import EmailProvider from "next-auth/providers/email";
 
 /**
  * @swagger
- * /api/auth/{...nextauth}:
- *   get:
- *     summary: NextAuth authentication endpoint
- *     description: Handles authentication callbacks, session retrieval, and sign-in flows for the application.
- *     tags:
- *       - Authentication
- *     responses:
- *       200:
- *         description: Authentication response
+ * /api/auth/signin/email:
  *   post:
- *     summary: NextAuth authentication endpoint
- *     description: Handles authentication callbacks, session retrieval, and sign-in flows for the application.
+ *     summary: Send a magic link sign-in email
+ *     description: >
+ *       Initiates passwordless authentication by sending a one-time sign-in link
+ *       to the provided email address. Only @ualg.pt addresses are accepted.
+ *       The link expires after 5 minutes.
+ *     tags:
+ *       - Authentication
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - csrfToken
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: Institutional UAlg email address
+ *                 example: "a12345@ualg.pt"
+ *               csrfToken:
+ *                 type: string
+ *                 description: CSRF token obtained from GET /api/auth/csrf
+ *     responses:
+ *       302:
+ *         description: Redirect to sign-in page with verification message
+ *       400:
+ *         description: Email not allowed (only @ualg.pt accepted)
+ * /api/auth/session:
+ *   get:
+ *     summary: Get the current session
+ *     description: Returns the currently authenticated user's session data, or an empty object if not authenticated.
  *     tags:
  *       - Authentication
  *     responses:
  *       200:
- *         description: Authentication response
+ *         description: Current session (empty object if not authenticated)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *                   nullable: true
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                       nullable: true
+ *                     image:
+ *                       type: string
+ *                       nullable: true
+ *                 expires:
+ *                   type: string
+ *                   format: date-time
  */
 
 /**

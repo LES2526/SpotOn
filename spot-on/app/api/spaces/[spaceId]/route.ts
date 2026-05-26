@@ -8,8 +8,8 @@ import { NextResponse } from 'next/server';
  * @swagger
  * /api/spaces/{spaceId}:
  *   get:
- *     summary: List spaces with optional filters
- *     description: Returns spaces filtered by the given query parameters.
+ *     summary: Get a space by ID
+ *     description: Returns the details of a specific space identified by its ID, including occupancy status.
  *     tags:
  *       - Spaces
  *     parameters:
@@ -18,40 +18,10 @@ import { NextResponse } from 'next/server';
  *         required: true
  *         schema:
  *           type: string
- *       - in: query
- *         name: type
- *         schema:
- *           type: string
- *           enum: [INDIVIDUAL_DESK, GROUP_ROOM]
- *       - in: query
- *         name: capacity
- *         schema:
- *           type: integer
- *         description: Minimum number of seats required
- *       - in: query
- *         name: hasPowerOutlet
- *         schema:
- *           type: boolean
- *       - in: query
- *         name: hasComputer
- *         schema:
- *           type: boolean
- *       - in: query
- *         name: hasInteractiveBoard
- *         schema:
- *           type: boolean
- *       - in: query
- *         name: isOccupied
- *         schema:
- *           type: boolean
- *       - in: query
- *         name: floor
- *         schema:
- *           type: string
- *         description: Floor plan name
+ *         description: The unique identifier of the space
  *     responses:
  *       200:
- *         description: Filtered list of spaces
+ *         description: Space details
  *         content:
  *           application/json:
  *             schema:
@@ -61,6 +31,29 @@ import { NextResponse } from 'next/server';
  *                   type: array
  *                   items:
  *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       name:
+ *                         type: string
+ *                       capacity:
+ *                         type: integer
+ *                       type:
+ *                         type: string
+ *                         enum: [INDIVIDUAL_DESK, GROUP_ROOM]
+ *                       hasPowerOutlet:
+ *                         type: boolean
+ *                       hasComputer:
+ *                         type: boolean
+ *                       hasInteractiveBoard:
+ *                         type: boolean
+ *                       isOccupied:
+ *                         type: boolean
+ *                       floorPlan:
+ *                         type: object
+ *                         properties:
+ *                           name:
+ *                             type: string
  *       401:
  *         description: Unauthorized
  *       500:

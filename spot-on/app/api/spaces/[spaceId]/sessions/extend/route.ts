@@ -49,7 +49,7 @@ type Params = { params: Promise<{ spaceId: string }> };
  *                   type: string
  *                   format: date-time
  *       400:
- *         description: Bad request (missing expectedEndTime or time exceeds 19:30)
+ *         description: Bad request (missing expectedEndTime, time exceeds library closing, or new end time is not later than the current one)
  *       401:
  *         description: Unauthorized
  *       404:

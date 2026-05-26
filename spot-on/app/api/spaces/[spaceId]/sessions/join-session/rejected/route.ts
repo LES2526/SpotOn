@@ -34,6 +34,9 @@ type Params = { params: Promise<{ spaceId: string }> };
  *               userId:
  *                 type: string
  *                 description: The user ID of the join request to reject
+ *               notificationId:
+ *                 type: string
+ *                 description: Optional notification ID to resolve after rejecting
  *     responses:
  *       200:
  *         description: Join request rejected successfully. An email is sent to the requester.

@@ -34,6 +34,9 @@ type Params = { params: Promise<{ spaceId: string }> };
  *               userId:
  *                 type: string
  *                 description: The user ID of the join request to approve
+ *               notificationId:
+ *                 type: string
+ *                 description: Optional notification ID to resolve after approving
  *     responses:
  *       200:
  *         description: Join request approved successfully. An email is sent to the requester.
