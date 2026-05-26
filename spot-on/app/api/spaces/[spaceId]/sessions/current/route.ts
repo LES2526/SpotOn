@@ -22,6 +22,15 @@ type Params = { params: Promise<{ spaceId: string }> };
  *     responses:
  *       200:
  *         description: Active session found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 expectedEndTime:
+ *                   type: string
+ *                   format: date-time
+ *                   description: ISO 8601 datetime when the session is expected to end
  *       401:
  *         description: Unauthorized
  *       404:

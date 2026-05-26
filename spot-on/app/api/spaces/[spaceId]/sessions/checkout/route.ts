@@ -1,7 +1,7 @@
 import {
     calculateCheckoutPoints,
-    findUserSession,
     findCheckedOutSession,
+    findUserSession,
     incrementPoints,
     notifyOp,
     removeParticipantOp,

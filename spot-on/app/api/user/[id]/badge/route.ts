@@ -15,7 +15,7 @@ type Params = { params: Promise<{ id: string }> };
 
 /**
  * @swagger
- * /api/user/{id}/badges:
+ * /api/user/{id}/badge:
  *   post:
  *     summary: Award a badge to a user
  *     description: >
